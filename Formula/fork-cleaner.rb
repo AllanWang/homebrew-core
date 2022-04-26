@@ -1,29 +1,26 @@
 class ForkCleaner < Formula
   desc "Cleans up old and inactive forks on your GitHub account"
   homepage "https://github.com/caarlos0/fork-cleaner"
-  url "https://github.com/caarlos0/fork-cleaner/archive/v1.4.3.tar.gz"
-  sha256 "5a71b3d454ac030522ea5fd8f78b90432d4a9a299c2b923388e7f9ee223795d8"
+  url "https://github.com/caarlos0/fork-cleaner/archive/v2.2.1.tar.gz"
+  sha256 "24397ec0ad89738aee48b77e80033a2e763941e67e67b673b6ff86ab04367283"
+  license "MIT"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "ba35506a75b9214f547ab1247e00a1774da42b7b6caf5ad7838786a4311d82aa" => :mojave
-    sha256 "1186f25c26a39b69cc5a45a48b60f8f663dbd7ac450fd7b69b20941d798cb11b" => :high_sierra
-    sha256 "c4f6ff2fb271638993210665fa49a44a6bb57f40116f87e7f1872029dc10000f" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "7bb9884000c308e93182a1a3fd85f5763085e2dcfce62a33ae123bc06fdda42d"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "83f76a38e1962eeb871e00a3171791e70af5f3f0ab5d134fa6437b875f577bc6"
+    sha256 cellar: :any_skip_relocation, monterey:       "fadca52e9366303de45eb299a8d79b7032d77216eccae4a575dc866c5be7ba35"
+    sha256 cellar: :any_skip_relocation, big_sur:        "4d89ad868b65bb6375a39376ff4470e435df3250d5b6295d7c27040814bf9876"
+    sha256 cellar: :any_skip_relocation, catalina:       "5f369eaafb9f81888458504d90b0cb5a3f6f822c3617168031c183310350a579"
+    sha256 cellar: :any_skip_relocation, mojave:         "48a456d3a6483c5b4b5200c5e08d2e3093ae7dc4adf265d56042a80f35f19da3"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "c4a4d8ca76c6c6f33697a07a3486f9518f782c6b841789fb8e641ee0edf204c0"
   end
 
-  depends_on "dep" => :build
   depends_on "go" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-    dir = buildpath/"src/github.com/caarlos0/fork-cleaner"
-    dir.install buildpath.children
-    cd dir do
-      system "dep", "ensure", "-vendor-only"
-      system "make"
-      bin.install "fork-cleaner"
-      prefix.install_metafiles
-    end
+    system "make"
+    bin.install "fork-cleaner"
+    prefix.install_metafiles
   end
 
   test do

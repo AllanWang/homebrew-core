@@ -1,14 +1,17 @@
 class Iperf3 < Formula
   desc "Update of iperf: measures TCP, UDP, and SCTP bandwidth"
   homepage "https://github.com/esnet/iperf"
-  url "https://github.com/esnet/iperf/archive/3.7.tar.gz"
-  sha256 "c349924a777e8f0a70612b765e26b8b94cc4a97cc21a80ed260f65e9823c8fc5"
+  url "https://github.com/esnet/iperf/archive/3.11.tar.gz"
+  sha256 "96e909c0d3ab6034c52328c2954fb3934aaff349395c4bc2611dcd50e6b89875"
+  license "BSD-3-Clause"
 
   bottle do
-    cellar :any
-    sha256 "c6f1a298b199949fc2642cd6eb5860a5d9be4433d1cfbe88ec6734a97fdbfaf6" => :mojave
-    sha256 "86cfc8e385961af48f2432773e5a5574d0aae07b7db14904b98c1f9c8d4f5063" => :high_sierra
-    sha256 "c0e071e3241558fe1e96ee08a90d65af8429f5aa077454b4956a1183228a8271" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "07f43ee08140b9ed415ef4c84d58f0a0242ca4eb11bd5d9691e55066e341dbfd"
+    sha256 cellar: :any,                 arm64_big_sur:  "516f56b84472047a2ba899046ba1e71863ade4f4fb6cc0838ab863b576bc8157"
+    sha256 cellar: :any,                 monterey:       "3d6733f84c93d152e2ea210b3797a789e056b12f0a67ea8a615eb72c9eedac8e"
+    sha256 cellar: :any,                 big_sur:        "b23050ed3f6e8fd6cf43597446fd172b612a2ab539c1b71210ad45182563fb3c"
+    sha256 cellar: :any,                 catalina:       "b3d74087ec104d3b95e491257d647a3e665ed3f5ff63ba176fc4d3d27e253f8c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "b3d05c024cb3e1a062734db9bff61758385b9058aefb896330c9136f37754aff"
   end
 
   head do
@@ -19,24 +22,23 @@ class Iperf3 < Formula
     depends_on "libtool" => :build
   end
 
-  depends_on "openssl"
+  depends_on "openssl@1.1"
 
   def install
     system "./bootstrap.sh" if build.head?
     system "./configure", "--prefix=#{prefix}",
-                          "--with-openssl=#{Formula["openssl"].opt_prefix}"
+                          "--disable-profiling",
+                          "--with-openssl=#{Formula["openssl@1.1"].opt_prefix}"
     system "make", "clean" # there are pre-compiled files in the tarball
     system "make", "install"
   end
 
   test do
-    begin
-      server = IO.popen("#{bin}/iperf3 --server")
-      sleep 1
-      assert_match "Bitrate", pipe_output("#{bin}/iperf3 --client 127.0.0.1 --time 1")
-    ensure
-      Process.kill("SIGINT", server.pid)
-      Process.wait(server.pid)
-    end
+    server = IO.popen("#{bin}/iperf3 --server")
+    sleep 1
+    assert_match "Bitrate", pipe_output("#{bin}/iperf3 --client 127.0.0.1 --time 1")
+  ensure
+    Process.kill("SIGINT", server.pid)
+    Process.wait(server.pid)
   end
 end

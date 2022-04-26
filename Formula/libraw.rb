@@ -1,16 +1,28 @@
 class Libraw < Formula
   desc "Library for reading RAW files from digital photo cameras"
   homepage "https://www.libraw.org/"
-  url "https://www.libraw.org/data/LibRaw-0.19.2.tar.gz"
-  sha256 "400d47969292291d297873a06fb0535ccce70728117463927ddd9452aa849644"
+  url "https://www.libraw.org/data/LibRaw-0.20.2.tar.gz"
+  sha256 "dc1b486c2003435733043e4e05273477326e51c3ea554c6864a4eafaff1004a6"
+  license any_of: ["LGPL-2.1-only", "CDDL-1.0"]
+  revision 1
 
-  bottle do
-    cellar :any
-    sha256 "0abbb192dbe6464e84b81009ecf957748ea4cb00a721eb0157d08c2325c67a43" => :mojave
-    sha256 "a35af2fb6335b0a6d2ec6a99b112e6677df436f9cd074894ea4a1c26ac27b16b" => :high_sierra
-    sha256 "16dd714a8cc2609f4edd4bc881a2d8e7b37379df5867b365ae4d8a02b120bbcd" => :sierra
+  livecheck do
+    url "https://www.libraw.org/download/"
+    regex(/href=.*?LibRaw[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
+  bottle do
+    sha256 cellar: :any,                 arm64_monterey: "9602e190b1f8832e73e1051483ce19d6bd70b5e62de19a3ef111fdbd00808554"
+    sha256 cellar: :any,                 arm64_big_sur:  "23249a1e63273e0d9b5af9ee3cedd67bcb6e5f8ab732c373e564e6f78cc7c247"
+    sha256 cellar: :any,                 monterey:       "10810b4d3f4bd93770c831d32c2feb7e65d3fb8150c33a559f9cda90d12a3b92"
+    sha256 cellar: :any,                 big_sur:        "aa06e46a54ce57dc4be77bb8ad8b65275938a2b2b18184258e990a22fc242f7c"
+    sha256 cellar: :any,                 catalina:       "da61cecad94bd946f622d18440360ba02751dde1ceeea072f930e41dacfcde59"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "59c038b9e4c35a477afb9ed9fd5834d622a43288c88e8375684c358e45a87013"
+  end
+
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
+  depends_on "libtool" => :build
   depends_on "pkg-config" => :build
   depends_on "jasper"
   depends_on "jpeg"
@@ -23,6 +35,7 @@ class Libraw < Formula
   end
 
   def install
+    system "autoreconf", "-fiv"
     system "./configure", "--prefix=#{prefix}",
                           "--disable-dependency-tracking",
                           "ac_cv_prog_c_openmp=-Xpreprocessor -fopenmp",

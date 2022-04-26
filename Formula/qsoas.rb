@@ -1,33 +1,73 @@
 class Qsoas < Formula
   desc "Versatile software for data analysis"
-  homepage "http://bip.cnrs-mrs.fr/bip06/qsoas/"
-  url "http://bip.cnrs-mrs.fr/bip06/qsoas/downloads/qsoas-2.2.0.tar.gz"
-  sha256 "acefcbb4286a6e0bf96353f924115d04a77d241962ceda890508bca19ee3b4f6"
+  homepage "https://bip.cnrs.fr/groups/bip06/software/"
+  url "https://bip.cnrs.fr/wp-content/uploads/qsoas/qsoas-3.0.tar.gz"
+  sha256 "54b54f54363f69a9845b3e9aa4da7dae9ceb7bb0f3ed59ba92ffa3b408163850"
+  license "GPL-2.0-only"
+  revision 2
 
-  bottle do
-    sha256 "95be99b152857cd84d23c847d66ec90ed5dbccb245032aeaa63f9cb1c000c72f" => :mojave
-    sha256 "2864c431780caeff59926d6c51d2a5a925814b33d172b03065f8713d2b9d49ee" => :high_sierra
-    sha256 "8fd2e6ddb2224a9b00218572dc9e6f74ae45df730e468250b8674cf116975471" => :sierra
-    sha256 "34be95fb5a3919dad8d41579e1822bd9ba46a553c96b4f8f90268ef3491e228a" => :el_capitan
+  livecheck do
+    url "https://github.com/fourmond/QSoas.git"
+    regex(/(\d+(?:\.\d+)+)$/i)
   end
 
+  bottle do
+    sha256 cellar: :any,                 arm64_monterey: "13d591fadbb428a0fbef8090685b5d93489a5d1ea8b7414c1353ba2ff6ba0ecb"
+    sha256 cellar: :any,                 arm64_big_sur:  "025ebba3b2548d8bff4df22b14531d39ce5f43b21fb0a8ce726d0ac29f30f7fb"
+    sha256 cellar: :any,                 monterey:       "2f98550e8aa3740ef339886368cc4934a75418a4e6dfae36c72993d8e74dfaa4"
+    sha256 cellar: :any,                 big_sur:        "36f444f910ab011d56e9d109c9e1526be465efec24be4ecccf75f1232e9d115e"
+    sha256 cellar: :any,                 catalina:       "c6fac9f46c8365e23ecc2dee06c29272724039c58ebe347339da1bee9eeae149"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "f2385f9ae773e2c991ed4b1802d0fdb895f26136ad5ba1780c1c664828ab5544"
+  end
+
+  depends_on "bison" => :build
   depends_on "gsl"
-  depends_on "mruby"
-  depends_on "qt"
+  depends_on "qt@5"
+
+  uses_from_macos "ruby"
+
+  on_linux do
+    depends_on "gcc"
+  end
+
+  fails_with gcc: "5"
+
+  # Needs mruby 2, see https://github.com/fourmond/QSoas/issues/2
+  resource "mruby2" do
+    url "https://github.com/mruby/mruby/archive/2.1.2.tar.gz"
+    sha256 "4dc0017e36d15e81dc85953afb2a643ba2571574748db0d8ede002cefbba053b"
+  end
 
   def install
-    gsl = Formula["gsl"].opt_prefix
-    mruby = Formula["mruby"].opt_prefix
+    resource("mruby2").stage do
+      inreplace "build_config.rb", /default/, "full-core"
+      system "make"
 
-    system "qmake", "MRUBY_DIR=#{mruby}", "GSL_DIR=#{gsl}/include",
-                    "QMAKE_LFLAGS=-L#{mruby}/lib -L#{gsl}/lib"
+      cd "build/host/" do
+        libexec.install %w[bin lib mrbgems mrblib]
+      end
+
+      libexec.install "include"
+    end
+
+    gsl = Formula["gsl"].opt_prefix
+    qt5 = Formula["qt@5"].opt_prefix
+
+    system "#{qt5}/bin/qmake", "MRUBY_DIR=#{libexec}", "GSL_DIR=#{gsl}/include",
+                    "QMAKE_LFLAGS=-L#{libexec}/lib -L#{gsl}/lib"
     system "make"
 
-    prefix.install "QSoas.app"
-    bin.write_exec_script "#{prefix}/QSoas.app/Contents/MacOS/QSoas"
+    if OS.mac?
+      prefix.install "QSoas.app"
+      bin.write_exec_script "#{prefix}/QSoas.app/Contents/MacOS/QSoas"
+    else
+      bin.install "QSoas"
+    end
   end
 
   test do
+    # Set QT_QPA_PLATFORM to minimal to avoid error "qt.qpa.xcb: could not connect to display"
+    ENV["QT_QPA_PLATFORM"] = "minimal" if OS.linux? && ENV["HOMEBREW_GITHUB_ACTIONS"]
     assert_match "mfit-linear-kinetic-system",
                  shell_output("#{bin}/QSoas --list-commands")
   end

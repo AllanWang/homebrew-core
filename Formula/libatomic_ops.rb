@@ -1,14 +1,23 @@
 class LibatomicOps < Formula
   desc "Implementations for atomic memory update operations"
   homepage "https://github.com/ivmai/libatomic_ops/"
-  url "https://github.com/ivmai/libatomic_ops/releases/download/v7.6.10/libatomic_ops-7.6.10.tar.gz"
-  sha256 "587edf60817f56daf1e1ab38a4b3c729b8e846ff67b4f62a6157183708f099af"
+  url "https://github.com/ivmai/libatomic_ops/releases/download/v7.6.12/libatomic_ops-7.6.12.tar.gz"
+  sha256 "f0ab566e25fce08b560e1feab6a3db01db4a38e5bc687804334ef3920c549f3e"
+  license "GPL-2.0"
+
+  livecheck do
+    url :stable
+    strategy :github_latest
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "b509d8669c5336775b0462c3e1464419d083bccc0bf43f8dab8fa3eb0ac44405" => :mojave
-    sha256 "2e3053c22101fd8baf693ca404f258763b15e77372b5293e999f8bbc8b032522" => :high_sierra
-    sha256 "d94aa0351ce2de312d0b31a64d48059473a170d9704968378cf121ad097d7d9b" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "8b1c3b5131abdae9c2df1e915a9128c6e892fe05a5975d5ef2dd2c5c56d946b2"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "51e94ad755b4f85d03f3ac3d67a089f7fa0588340682838fce8b3ca5de193e81"
+    sha256 cellar: :any_skip_relocation, monterey:       "89a4f8f01bd7c3991eabbdb321dff7395cff0765f600e59dea1ccc6bf95906e7"
+    sha256 cellar: :any_skip_relocation, big_sur:        "017fae77e5ec0d547f9e8fb08cf907af0fbfabd6eeda54d4353a446e37371971"
+    sha256 cellar: :any_skip_relocation, catalina:       "c9e0de613f4d3dbd8f0aa005c5ed038d8054ed87f8d9e27d10d182113227c923"
+    sha256 cellar: :any_skip_relocation, mojave:         "40c602dbee95c6e67b3c0b63f32a3e4ed81e6281941a1cf484fc8a95394f8f1a"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "e88da0d1511648aae7d26e80745f9a85884ba0a347733ebdbe6cc043eb6708cc"
   end
 
   def install

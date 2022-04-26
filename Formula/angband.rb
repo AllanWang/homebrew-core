@@ -1,23 +1,27 @@
 class Angband < Formula
   desc "Dungeon exploration game"
-  homepage "https://rephial.org/"
-  url "https://rephial.org/downloads/4.1/angband-4.1.3.tar.gz"
-  sha256 "9402c4f8da691edbd4567a948c5663e1066bee3fcb4a62fbcf86b5454918406f"
-  head "https://github.com/angband/angband.git"
+  homepage "https://angband.github.io/angband/"
+  url "https://github.com/angband/angband/releases/download/4.2.4/Angband-4.2.4.tar.gz"
+  sha256 "a07c78c1dd05e48ddbe4d8ef5d1880fcdeab55fd05f1336d9cba5dd110b15ff3"
+  license "GPL-2.0-only"
+  head "https://github.com/angband/angband.git", branch: "master"
 
-  bottle do
-    sha256 "9f122623c5ef12aecc045f865527bbb85100aa192beab072ea5952574a8377d8" => :mojave
-    sha256 "5659320a3de2e2f84b8dbbb385802ac18e7e80ad53c7aa6d0ae44d5ccbac6faa" => :high_sierra
-    sha256 "b212186bf04d009ac2c6a16bbceda9cdad23fa7eb9b61f4567ff3971b8de6873" => :sierra
-    sha256 "48e336d2c27873aa53c976460346f7523f0b12dbf1939e89c428af4ee95dfa73" => :el_capitan
+  livecheck do
+    url :stable
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
   end
 
-  depends_on "autoconf" => :build
-  depends_on "automake" => :build
+  bottle do
+    sha256 arm64_monterey: "a35fe8d9924485cd51dceb3ba4cd1c915bfc65b6b1bd8eb7f67a9fc5e505fe42"
+    sha256 arm64_big_sur:  "94495ff709647df63efa6c16f22f5be1de4ac52c404047fadcbb08a4aef55a3e"
+    sha256 monterey:       "b68729b3a66c3c3f4777af5e5abf53752a192773f5c2f9a2ef9dea5844e95808"
+    sha256 big_sur:        "925eb3391381b336266c068b43779d7ebfd22aba15a9e61fba4b853cba4dc624"
+    sha256 catalina:       "f34102aa4cd0341970481bbca15a98de6021d68b493c5e9ba4f882a79745e5c3"
+    sha256 x86_64_linux:   "3cfa3f60f7b88f2aa13cbbcae6b90e0aec128f5aef92e49c2860e61075c32af3"
+  end
 
   def install
     ENV["NCURSES_CONFIG"] = "#{MacOS.sdk_path}/usr/bin/ncurses5.4-config"
-    system "./autogen.sh"
     system "./configure", "--prefix=#{prefix}",
                           "--bindir=#{bin}",
                           "--libdir=#{libexec}",

@@ -1,31 +1,48 @@
 class Rdesktop < Formula
   desc "UNIX client for connecting to Windows Remote Desktop Services"
-  homepage "https://www.rdesktop.org/"
-  url "https://github.com/rdesktop/rdesktop/releases/download/v1.8.6/rdesktop-1.8.6.tar.gz"
-  sha256 "4131c5cc3d6a2e1a6515180502093c2b1b94cc8c34dd3f86aa8b3475399634ef"
+  homepage "https://github.com/rdesktop/rdesktop"
+  url "https://github.com/rdesktop/rdesktop/releases/download/v1.9.0/rdesktop-1.9.0.tar.gz"
+  sha256 "473c2f312391379960efe41caad37852c59312bc8f100f9b5f26609ab5704288"
+  license "GPL-3.0-or-later"
+  revision 2
 
   bottle do
-    sha256 "502610835305f8ad03ffaff82d4ed349ec999680e79835225c1053124cb6b628" => :mojave
-    sha256 "86b656a23bae94a0eb4769f69afe491bc6b620320c450679a1f32250a89f5edb" => :high_sierra
-    sha256 "e8a895ce49ccf9df4b41f557a53dedf055eec20f14c17d24351750b816695d45" => :sierra
+    sha256 arm64_monterey: "671a5f5ead3a6f2406306b8a05a0a63bee37eda0e7e771ab33acc397a8f7c645"
+    sha256 arm64_big_sur:  "1903e4da2086a2942a0cb67b7eaaab26b3fb5048114b6ccccfa0977f676f52a4"
+    sha256 monterey:       "087f1adc8db1045091b37fa769df85d5bd9cc886c8c12e7ff5d1216da6dd62ba"
+    sha256 big_sur:        "60d5a72e5a55cace788d0a28241b9080fbf039c25fd91eb3bf91a95a8e8e4a89"
+    sha256 catalina:       "8b22a2d1f52ff40334a16fc4614bc2f2c9e50386f0732e8e4478f68c7008f961"
+    sha256 mojave:         "91b95a137be4361dee7d8bf2e442fa75eaf159469c09e238a127aa1186534638"
+    sha256 high_sierra:    "84ca9f1d74ad63108e320f2cae63a2afdfafd3995aa2d37837d551cc5dda8688"
+    sha256 x86_64_linux:   "05b175c2263baf72cb59debeaf49a974d31db23caf9f1c2b5e9eb3007a02e791"
   end
 
-  depends_on "openssl"
-  depends_on :x11
+  deprecate! date: "2020-11-12", because: :unmaintained
 
-  # Note: The patch below is meant to remove the reference to the
-  # undefined symbol SCARD_CTL_CODE.
-  # upstream bug report: https://sourceforge.net/p/rdesktop/bugs/352/
-  patch :DATA
+  # Added automake as a build dependency to update config files for ARM support.
+  depends_on "automake" => :build
+  depends_on "pkg-config" => :build
+  depends_on "gnutls"
+  depends_on "libao"
+  depends_on "libtasn1"
+  depends_on "libx11"
+  depends_on "libxcursor"
+  depends_on "libxrandr"
+  depends_on "nettle"
+
+  uses_from_macos "pcsc-lite"
 
   def install
+    # Workaround for ancient config files not recognizing aarch64 macos.
+    %w[config.guess config.sub].each do |fn|
+      cp Formula["automake"].share/"automake-#{Formula["automake"].version.major_minor}"/fn, fn
+    end
+
     args = %W[
       --prefix=#{prefix}
       --disable-credssp
       --enable-smartcard
-      --with-openssl=#{Formula["openssl"].opt_prefix}
-      --x-includes=#{MacOS::X11.include}
-      --x-libraries=#{MacOS::X11.lib}
+      --with-sound=libao
     ]
 
     system "./configure", *args
@@ -36,26 +53,3 @@ class Rdesktop < Formula
     assert_match version.to_s, shell_output("#{bin}/rdesktop -help 2>&1", 64)
   end
 end
-
-__END__
-diff --git a/scard.c b/scard.c
-index caa0745..5521ee9 100644
---- a/scard.c
-+++ b/scard.c
-@@ -2152,7 +2152,6 @@ TS_SCardControl(STREAM in, STREAM out)
-	{
-		/* Translate to local encoding */
-		dwControlCode = (dwControlCode & 0x3ffc) >> 2;
--		dwControlCode = SCARD_CTL_CODE(dwControlCode);
-	}
-	else
-	{
-@@ -2198,7 +2197,7 @@ TS_SCardControl(STREAM in, STREAM out)
-	}
-
- #ifdef PCSCLITE_VERSION_NUMBER
--	if (dwControlCode == SCARD_CTL_CODE(3400))
-+	if (0)
-	{
-		int i;
-		SERVER_DWORD cc;

@@ -1,29 +1,30 @@
 class Libdazzle < Formula
   desc "GNOME companion library to GObject and Gtk+"
   homepage "https://gitlab.gnome.org/GNOME/libdazzle"
-  url "https://download.gnome.org/sources/libdazzle/3.32/libdazzle-3.32.2.tar.xz"
-  sha256 "413f8dfb8706760e0c649e2994bd10524ac0736601dd03ad2036293bed3bf141"
-  revision 2
+  url "https://download.gnome.org/sources/libdazzle/3.44/libdazzle-3.44.0.tar.xz"
+  sha256 "3cd3e45eb6e2680cb05d52e1e80dd8f9d59d4765212f0e28f78e6c1783d18eae"
+  license "GPL-3.0-or-later"
 
   bottle do
-    cellar :any
-    sha256 "75a3bcfed0864ff940dfbdc4327330ea33547bd1f04e335d230cd1d6d92f645f" => :mojave
-    sha256 "fe4ea9139f7d785044684e84c8066473c4c502c77e799257b843728b866338a0" => :high_sierra
-    sha256 "5696ad25d9b0bc32204875e7ea1f88137f435b6080fcb0f859bde66a0b793afd" => :sierra
+    sha256 arm64_monterey: "fd00728bb05e73562b642a2a36bb24562f97c867710642e08bcc522fbd06ea5e"
+    sha256 arm64_big_sur:  "03413be24801e4b02bf0b72e4900463908267c62849277bcdcd006409ca73dc4"
+    sha256 monterey:       "df1d41d43c5d86024ba7d83b13272f324f42ecc555a4cd9670c13e95b027d1ba"
+    sha256 big_sur:        "2ed5d0fad6b1e2b7f8ac25d274aa6e8a5e28924f6b20e08da8fdbc796f2481fd"
+    sha256 catalina:       "aa728a5d7ac88a8c22cb9f022e292c0f121cbe2085f69128df9e4e2e5e862bf3"
+    sha256 x86_64_linux:   "37dc86c031ab20df01037021b776f53af623ceab915e06a7bb8693ad3853d283"
   end
 
   depends_on "gobject-introspection" => :build
   depends_on "meson" => :build
   depends_on "ninja" => :build
   depends_on "pkg-config" => :build
-  depends_on "python" => :build
   depends_on "vala" => :build
   depends_on "glib"
   depends_on "gtk+3"
 
   def install
     mkdir "build" do
-      system "meson", "--prefix=#{prefix}", "-Dwith_vapi=true", ".."
+      system "meson", *std_meson_args, "-Dwith_vapi=true", ".."
       system "ninja", "-v"
       system "ninja", "install", "-v"
     end
@@ -92,12 +93,14 @@ class Libdazzle < Formula
       -lglib-2.0
       -lgobject-2.0
       -lgtk-3
-      -lintl
       -lpango-1.0
       -lpangocairo-1.0
-      -Wl,-framework
-      -Wl,CoreFoundation
     ]
+    if OS.mac?
+      flags << "-lintl"
+      flags << "-Wl,-framework"
+      flags << "-Wl,CoreFoundation"
+    end
     system ENV.cc, "test.c", "-o", "test", *flags
     system "./test"
   end

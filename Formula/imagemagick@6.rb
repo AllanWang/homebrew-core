@@ -1,18 +1,23 @@
 class ImagemagickAT6 < Formula
   desc "Tools and libraries to manipulate images in many formats"
-  homepage "https://www.imagemagick.org/"
-  # Please always keep the Homebrew mirror as the primary URL as the
-  # ImageMagick site removes tarballs regularly which means we get issues
-  # unnecessarily and older versions of the formula are broken.
-  url "https://dl.bintray.com/homebrew/mirror/imagemagick%406--6.9.10-50.tar.xz"
-  mirror "https://www.imagemagick.org/download/ImageMagick-6.9.10-50.tar.xz"
-  sha256 "a6d48c608c9976f55d1fa726cc0e77b3be2c71c99d987a15346c0150bec315dd"
-  head "https://github.com/imagemagick/imagemagick6.git"
+  homepage "https://legacy.imagemagick.org/"
+  url "https://www.imagemagick.org/download/releases/ImageMagick-6.9.12-46.tar.xz"
+  sha256 "e3973e3d37ed9083ba704deb7064bd8c81fb8113ec9bb1f485f7a943e72e0614"
+  license "ImageMagick"
+  head "https://github.com/imagemagick/imagemagick6.git", branch: "main"
+
+  livecheck do
+    url "https://download.imagemagick.org/ImageMagick/download/"
+    regex(/href=.*?ImageMagick[._-]v?(6(?:\.\d+)+(?:-\d+)?)\.t/i)
+  end
 
   bottle do
-    sha256 "02d5f654b076f26516881a5dc4e007f4585e5e0e4263832a9fd622f203de84f3" => :mojave
-    sha256 "62f432214652189688480785abf5a0b9b221d5c5b99d4c98cdbc9c3f29133d18" => :high_sierra
-    sha256 "a520830a9d735fb2f4c06549b5b82d36e67fc7bea265c5efe2d3bd0ba4ebce27" => :sierra
+    sha256 arm64_monterey: "5d62f6d07caa82e518a6a6bf12aa2eb24cddfb5f38f5d9b7cb03c379d2d419f6"
+    sha256 arm64_big_sur:  "72e4306170438c71ba24f19c5305559ba6e886b021fe929f29e4509076ceee1e"
+    sha256 monterey:       "c4abf168d36c4bfed4bbe0b53fb63d5c4fb55b0fee5223a888211415fe689fef"
+    sha256 big_sur:        "5b7caad9d411f7d03ef1443176e602d2a9c2356de6f745f3d747241306def6cc"
+    sha256 catalina:       "97881a43f05d9aa21557042eda5236680e691364f89db941452cbe029ff4b178"
+    sha256 x86_64_linux:   "f80eb53f466e5341ad80c5bec34b238abe41bd761e31299f7801b726937cc7a3"
   end
 
   keg_only :versioned_formula
@@ -20,6 +25,7 @@ class ImagemagickAT6 < Formula
   depends_on "pkg-config" => :build
 
   depends_on "freetype"
+  depends_on "ghostscript"
   depends_on "jpeg"
   depends_on "libpng"
   depends_on "libtiff"
@@ -32,8 +38,11 @@ class ImagemagickAT6 < Formula
   skip_clean :la
 
   def install
+    # Avoid references to shim
+    inreplace Dir["**/*-config.in"], "@PKG_CONFIG@", Formula["pkg-config"].opt_bin/"pkg-config"
+
     args = %W[
-      --disable-osx-universal-binary
+      --enable-osx-universal-binary=no
       --prefix=#{prefix}
       --disable-dependency-tracking
       --disable-silent-rules
@@ -45,7 +54,7 @@ class ImagemagickAT6 < Formula
       --with-modules
       --with-webp=yes
       --with-openjp2
-      --without-gslib
+      --with-gslib
       --with-gs-font-dir=#{HOMEBREW_PREFIX}/share/ghostscript/fonts
       --without-fftw
       --without-pango
@@ -54,7 +63,7 @@ class ImagemagickAT6 < Formula
     ]
 
     # versioned stuff in main tree is pointless for us
-    inreplace "configure", "${PACKAGE_NAME}-${PACKAGE_VERSION}", "${PACKAGE_NAME}"
+    inreplace "configure", "${PACKAGE_NAME}-${PACKAGE_BASE_VERSION}", "${PACKAGE_NAME}"
     system "./configure", *args
     system "make", "install"
   end

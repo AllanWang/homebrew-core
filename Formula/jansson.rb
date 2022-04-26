@@ -1,19 +1,22 @@
 class Jansson < Formula
   desc "C library for encoding, decoding, and manipulating JSON"
-  homepage "http://www.digip.org/jansson/"
-  url "http://www.digip.org/jansson/releases/jansson-2.12.tar.gz"
-  sha256 "5f8dec765048efac5d919aded51b26a32a05397ea207aa769ff6b53c7027d2c9"
+  homepage "https://digip.org/jansson/"
+  url "https://github.com/akheron/jansson/releases/download/v2.14/jansson-2.14.tar.gz"
+  sha256 "5798d010e41cf8d76b66236cfb2f2543c8d082181d16bc3085ab49538d4b9929"
+  license "MIT"
 
   bottle do
-    cellar :any
-    sha256 "79437c250f1b9fff4eab1a15385bbc38e5a29856b0efe3e5b0d68356d24d1f7b" => :mojave
-    sha256 "aeb69f2744314df891be52ee4ff2fdb95e8991715a24f74858535063639f3491" => :high_sierra
-    sha256 "ffafd42341f4a86ab91bf46e56a2cc4436d840998a9d053bff38467f8b6f4a1b" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "f8a132e116364ead3e428b1ad39768791f7a11ad26c07f5040c41d3514b7dea2"
+    sha256 cellar: :any,                 arm64_big_sur:  "08a95c23eb5aa8cfe0af9dc360b4bb3ecab89cfb42db9d5e68bc6490b571321c"
+    sha256 cellar: :any,                 monterey:       "b17770854e930d4302809dd4549142205f99a153a231492a9740f0c18d8e3258"
+    sha256 cellar: :any,                 big_sur:        "bb129dc922c0610c35a7b161429033a9123f03c4171df35717ff086b9cb52922"
+    sha256 cellar: :any,                 catalina:       "ddf25d83863396b864697529e837b869220ce86b8bb7b2cc03b77bdf1129563c"
+    sha256 cellar: :any,                 mojave:         "e219fa24f9fa034654592f6626c4a09d01fdeb888343a259a08ab4b1d08ac4ec"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "4f29060c36272b9dd76c5215e4118c04c0ef9235565281f87c34f8e8029cc3cb"
   end
 
   def install
-    system "./configure", "--disable-dependency-tracking",
-                          "--prefix=#{prefix}"
+    system "./configure", *std_configure_args
     system "make", "install"
   end
 

@@ -1,19 +1,25 @@
 class Ngspice < Formula
   desc "Spice circuit simulator"
   homepage "https://ngspice.sourceforge.io/"
-  url "https://downloads.sourceforge.net/project/ngspice/ng-spice-rework/30/ngspice-30.tar.gz"
-  sha256 "08fe0e2f3768059411328a33e736df441d7e6e7304f8dad0ed5f28e15d936097"
-  revision 1
+  url "https://downloads.sourceforge.net/project/ngspice/ng-spice-rework/36/ngspice-36.tar.gz"
+  sha256 "4f818287efba245341046635b757ae81f879549b326a4316b5f6e697aa517f8c"
+
+  livecheck do
+    url :stable
+    regex(%r{url=.*?/ngspice[._-]v?(\d+(?:\.\d+)*)\.t}i)
+  end
 
   bottle do
-    rebuild 1
-    sha256 "ad1218af03e9711b74cbf8919b8ef9c77ec216ee43d40648423c5043f4feb393" => :mojave
-    sha256 "1241cc934814f62c3abcc148817b1eb10ec84db5a7ec65c7d0f5316e4bb7f831" => :high_sierra
-    sha256 "89983540f2878f500431a0bec70dfcc2bcfc695e382499586e7f44189a978caa" => :sierra
+    sha256 arm64_monterey: "d9ede6e35d7f1ab796ec2c19e785359dfa19f14c1ee2f84c8a0e1af5d6a138f0"
+    sha256 arm64_big_sur:  "8107e3a0dbb732b3da2e9b4f0dc7115f147c4df5203d2740cf356530414fbaa1"
+    sha256 monterey:       "8f9f6742807f18fedd725bd51d09cf4fbfce072a4646d03ff96839935326acbb"
+    sha256 big_sur:        "06e7103236e3bf1aa3037c25a2b47a916574677632749c4fc461d6ddfd976470"
+    sha256 catalina:       "857b80d8491645039822df8c422a662667501295598b4c89c63e573b31fc0aea"
+    sha256 x86_64_linux:   "777b72adb972fd06b5456835016d6625a45f6bc9473792c6e013eb3765b4254f"
   end
 
   head do
-    url "https://git.code.sf.net/p/ngspice/ngspice.git"
+    url "https://git.code.sf.net/p/ngspice/ngspice.git", branch: "master"
 
     depends_on "autoconf" => :build
     depends_on "automake" => :build
@@ -37,6 +43,9 @@ class Ngspice < Formula
 
     system "./configure", *args
     system "make", "install"
+
+    # remove conflict lib files with libngspice
+    rm_rf Dir[lib/"ngspice"]
   end
 
   test do

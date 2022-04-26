@@ -7,16 +7,27 @@
 class Itex2mml < Formula
   desc "Text filter to convert itex equations to MathML"
   homepage "https://golem.ph.utexas.edu/~distler/blog/itex2MML.html"
-  url "https://golem.ph.utexas.edu/~distler/blog/files/itexToMML-1.5.7.tar.gz"
-  sha256 "3e0435c3ebcd5366d0d285ca194cfccc0b9c28e3e3ae5d92c9d1b47c854a5d7a"
+  url "https://golem.ph.utexas.edu/~distler/blog/files/itexToMML-1.6.1.tar.gz"
+  sha256 "3ef2572aa3421cf4d12321905c9c3f6b68911c3c9283483b7a554007010be55f"
+  license any_of: ["Artistic-1.0-Perl", "GPL-1.0-or-later"]
+
+  livecheck do
+    url :homepage
+    regex(%r{<b>\s*Current itex2MML Version:\s*</b>\s*(\d+(?:\.\d+)+)[\s(<]}im)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "94806b5914e031608d459ce11c9d0377588b30f66442c1d86e74c915d763dd51" => :mojave
-    sha256 "571c1069b19131d921c7b07ea4a4a055d33e9d5ff861787d5abd794773a2a87d" => :high_sierra
-    sha256 "08b3ab528d7fc4d010cfa95bae7f6c1bb087e4304e0eeedfbdfc44b20cca11fd" => :sierra
-    sha256 "f7a80cfc09e71828c01e5526912e4b49136d31e7134b95928dfb39dc6d6b5259" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "f08478f4813d052ae7d98339582ca05b95674d7b08a254305bf8e4e6575b3327"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "2a13992add208a7ab179fab850b3aba9a18a672dd803247ccde9c225103edf01"
+    sha256 cellar: :any_skip_relocation, monterey:       "fa3e744eb8281aba061785ebb783c1a55d7f4a85c00787052a309411af702583"
+    sha256 cellar: :any_skip_relocation, big_sur:        "3cf7d88d4e102acb646f5e23a4bc168a50c19ce8bda26011bd25c7d8208dbb86"
+    sha256 cellar: :any_skip_relocation, catalina:       "a4a3f1a4d8ff096ed6a4e1eb6ac2883d916de6504496cd8da929081484ab65c4"
+    sha256 cellar: :any_skip_relocation, mojave:         "ca96d27550adc14145a18df3a31ed79dfd12d082f7e4dbccce73e8eabe4ae69e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "809bf39b25611efdd6f0c297918b0376788c1a4f380a69489b1e4495bd19821e"
   end
+
+  uses_from_macos "bison" => :build
+  uses_from_macos "flex" => :build
 
   def install
     bin.mkpath
@@ -27,6 +38,10 @@ class Itex2mml < Formula
   end
 
   test do
-    system "#{bin}/itex2MML", "--version"
+    input = "$f(x)$"
+    output = "<math xmlns='http://www.w3.org/1998/Math/MathML' display='inline'><semantics><mrow>" \
+             "<mi>f</mi><mo stretchy=\"false\">(</mo><mi>x</mi><mo stretchy=\"false\">)</mo></mrow>" \
+             "<annotation encoding='application/x-tex'>f(x)</annotation></semantics></math>"
+    assert_equal output, pipe_output("#{bin}/itex2MML", input)
   end
 end

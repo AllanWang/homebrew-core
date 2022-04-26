@@ -1,17 +1,17 @@
 class Snzip < Formula
   desc "Compression/decompression tool based on snappy"
   homepage "https://github.com/kubo/snzip"
-  url "https://bintray.com/artifact/download/kubo/generic/snzip-1.0.4.tar.gz"
-  sha256 "a45081354715d48ed31899508ebed04a41d4b4a91dca37b79fc3b8ee0c02e25e"
-  revision 2
+  url "https://github.com/kubo/snzip/releases/download/v1.0.5/snzip-1.0.5.tar.gz"
+  sha256 "fbb6b816619628f385b62f44a00a1603be157fba6ed2d30de490b0c5e645bff8"
+  license "BSD-2-Clause"
 
   bottle do
-    cellar :any
-    sha256 "0304142d75d2495662ea2dae386948830aada6a7f653a90a74a746e56a7e9ff8" => :mojave
-    sha256 "fd4c734255707e1695f5d89a6dccc7d8b6a302771a71f6f6db0a054b9655d287" => :high_sierra
-    sha256 "953a79f0aa028d4b5f13cc606ead6e225c290972db683947dabed58bb6748257" => :sierra
-    sha256 "fdc031ce925717ee49048f3ffab3015f1039a06299f5093f7949e9a41cab975e" => :el_capitan
-    sha256 "68247e4d0d0520d9a2615acd906d079951b84e4138b27a69c2aa7ce6a286dd9e" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "f6e7e23067b3b7a345478140297d5eb874f3ab0d674fd1327e331ad44704c9c1"
+    sha256 cellar: :any,                 arm64_big_sur:  "23f40e27a4ad634c07f15e736c6ed868ad78c780de0076c9c9d0206295f0d39f"
+    sha256 cellar: :any,                 monterey:       "fc6766844ef54540722dac85eb882b946db05d9db9d69fec810d77333c502224"
+    sha256 cellar: :any,                 big_sur:        "60e584c91dcbc5f21a74cdeddd239a432911f99785350499873e04a7a91fcb7e"
+    sha256 cellar: :any,                 catalina:       "41e8c6ce6c722fb30c57c820e2fee38d080b19332884284866b22b5584945c09"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "ba8de3ad67c0529384b55511515d68e132f76b8b7a6da0772c62c2fde0a5a8f5"
   end
 
   depends_on "snappy"

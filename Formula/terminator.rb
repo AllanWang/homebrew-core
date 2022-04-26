@@ -1,76 +1,46 @@
 class Terminator < Formula
-  desc "Multiple terminals in one window"
-  homepage "https://gnometerminator.blogspot.com/p/introduction.html"
-  revision 2
-  head "lp:terminator", :using => :bzr
+  include Language::Python::Virtualenv
 
-  stable do
-    url "https://launchpad.net/terminator/trunk/0.98/+download/terminator-0.98.tar.gz"
-    sha256 "0a6d8c9ffe36d67e60968fbf2752c521e5d498ceda42ef171ad3e966c02f26c1"
-
-    # Patch to fix cwd resolve issue for OS X / Darwin
-    # See: https://bugs.launchpad.net/terminator/+bug/1261293
-    # Should be fixed in next release after 0.98
-    patch :DATA
-  end
+  desc "Multiple GNOME terminals in one window"
+  homepage "https://gnome-terminator.org"
+  url "https://github.com/gnome-terminator/terminator/archive/refs/tags/v2.1.1.tar.gz"
+  sha256 "ee1907bc9bfe03244f6d8074b214ef1638a964b38e21ca2ad4cca993d0c1d31e"
+  license "GPL-2.0-only"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "684029ff528fce3fc54d7449574539948d0d53255e3ad7f58ec679af58c2c96e" => :mojave
-    sha256 "00e85432871cb5e7df4bcbe8e835cf9ad619f772de9018c41ed781bef4fa6643" => :high_sierra
-    sha256 "00e85432871cb5e7df4bcbe8e835cf9ad619f772de9018c41ed781bef4fa6643" => :sierra
-    sha256 "00e85432871cb5e7df4bcbe8e835cf9ad619f772de9018c41ed781bef4fa6643" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "2c180712581d30b046b14a4ee5279f2cea55b3bff7a62b2737b21693e993996c"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "8c177f5b4ceed9612e512051ae5ce29a4d04a9d26e942fbe485e4f5053f437e1"
+    sha256 cellar: :any_skip_relocation, monterey:       "cf82ea3cadca21e1ae94e3b2fdb8e3d814f04d33623203797ec08fda18071ba3"
+    sha256 cellar: :any_skip_relocation, big_sur:        "8039dfc9e641c81615932afdb6bec92a512e123079974e4d87acbf6bd904a5fb"
+    sha256 cellar: :any_skip_relocation, catalina:       "8c257067fdc58cceaa2f4f68fd569aa408db036faff673fe27f3950224745987"
+    sha256 cellar: :any_skip_relocation, mojave:         "cbaae7d439b7f9fb6d2149c3fba76eefefb2120aac26504c60ebaab4d842846b"
   end
 
-  depends_on "intltool" => :build
-  depends_on "pkg-config" => :build
-  depends_on "pango"
-  depends_on "pygobject"
-  depends_on "pygtk"
-  depends_on "python@2"
-  depends_on "vte"
+  depends_on "pygobject3"
+  depends_on "python@3.9"
+  depends_on "six"
+  depends_on "vte3"
+
+  resource "psutil" do
+    url "https://files.pythonhosted.org/packages/e1/b0/7276de53321c12981717490516b7e612364f2cb372ee8901bd4a66a000d7/psutil-5.8.0.tar.gz"
+    sha256 "0c9ccb99ab76025f2f0bbecf341d4656e9c1351db8cc8a03ccd62e318ab4b5c6"
+  end
+
+  resource "configobj" do
+    url "https://files.pythonhosted.org/packages/64/61/079eb60459c44929e684fa7d9e2fdca403f67d64dd9dbac27296be2e0fab/configobj-5.0.6.tar.gz"
+    sha256 "a2f5650770e1c87fb335af19a9b7eb73fc05ccf22144eb68db7d00cd2bcb0902"
+  end
 
   def install
-    ENV.prepend_create_path "PYTHONPATH", lib/"python2.7/site-packages"
-    system "python", *Language::Python.setup_install_args(prefix)
-  end
-
-  def post_install
-    system "#{Formula["gtk"].opt_bin}/gtk-update-icon-cache", "-f",
-           "-t", "#{HOMEBREW_PREFIX}/share/icons/hicolor"
+    virtualenv_install_with_resources
   end
 
   test do
-    ENV.prepend_path "PYTHONPATH", Formula["pygtk"].opt_lib/"python2.7/site-packages/gtk-2.0"
-    ENV.prepend_path "PYTHONPATH", lib/"python2.7/site-packages"
-    system "#{bin}/terminator", "--version"
+    pid = Process.spawn bin/"terminator", "-d", [:out, :err] => "#{testpath}/output"
+    sleep 5
+    Process.kill "TERM", pid
+    assert_match "Window::create_layout: Making a child of type: Terminal", File.read("#{testpath}/output")
+  ensure
+    Process.kill "KILL", pid
   end
 end
-
-__END__
-diff --git a/terminatorlib/cwd.py b/terminatorlib/cwd.py
-index 7b17d84..e3bdbad 100755
---- a/terminatorlib/cwd.py
-+++ b/terminatorlib/cwd.py
-@@ -49,6 +49,11 @@ def get_pid_cwd():
-         func = sunos_get_pid_cwd
-     else:
-         dbg('Unable to determine a get_pid_cwd for OS: %s' % system)
-+        try:
-+            import psutil
-+            func = generic_cwd
-+        except (ImportError):
-+            dbg('psutil not found')
-
-     return(func)
-
-@@ -71,4 +76,9 @@ def sunos_get_pid_cwd(pid):
-     """Determine the cwd for a given PID on SunOS kernels"""
-     return(proc_get_pid_cwd(pid, '/proc/%s/path/cwd'))
-
-+def generic_cwd(pid):
-+    """Determine the cwd using psutil which also supports Darwin"""
-+    import psutil
-+    return psutil.Process(pid).as_dict()['cwd']
-+
- # vim: set expandtab ts=4 sw=4:

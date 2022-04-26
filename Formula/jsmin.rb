@@ -1,18 +1,25 @@
 class Jsmin < Formula
   desc "Minify JavaScript code"
   homepage "https://www.crockford.com/javascript/jsmin.html"
-  url "https://github.com/douglascrockford/JSMin/archive/1bf6ce5f74a9f8752ac7f5d115b8d7ccb31cfe1b.tar.gz"
-  version "2013-03-29"
-  sha256 "aae127bf7291a7b2592f36599e5ed6c6423eac7abe0cd5992f82d6d46fe9ed2d"
+  url "https://github.com/douglascrockford/JSMin/archive/430bfe68dc0823d8c0f92c08d426e517cbc8de5e.tar.gz"
+  version "2019-10-30"
+  sha256 "24e3ad04979ace5d734e38b843f62f0dc832f94f5ba48642da31b4a33ccec9ac"
+  license "JSON"
+
+  # The GitHub repository doesn't contain any tags, so we have to check the
+  # date in the comment at the top of the `jsmin.c` file.
+  livecheck do
+    url "https://raw.githubusercontent.com/douglascrockford/JSMin/master/jsmin.c"
+    regex(/jsmin\.c\s*(\d{4}-\d{1,2}-\d{1,2})/im)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "40fb75c3bff520391b1e9c6b163f41ece401ed3aafaeb5231c3c116ffd597000" => :mojave
-    sha256 "333b2cb7e9b9b575580cf9a100760641117e2c178b766eee49dcd18854f40d8f" => :high_sierra
-    sha256 "21ce8792fb1bb8b004f884953b2ab97ebd0d00568f5507c3b168f594ebbbd084" => :sierra
-    sha256 "7672c92faa52fbc0684808da9803ebfa8883df0e0243e63a9a0b7c6441218b85" => :el_capitan
-    sha256 "92ce35c390c8a2723e7b7cef8655e61ab9373f274c719ab4c04256cab1c42d1d" => :yosemite
-    sha256 "248da380666e6e08f25b75588c32d1dcad3952978e31d2a08c59c99756946bb4" => :mavericks
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "f9caafc345c169887fc5c05efbd7b4a6c67dd05355799c81be9fef87cb6e0add"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "edb266d3a4e8ebe1bce385a232ddd519be07dbd8a26e35d40f0db02d1ce9b198"
+    sha256 cellar: :any_skip_relocation, monterey:       "ae38034bff2af75cf7b0df7184e738cd58499d7c25fa9dcea30ca9174ba973ec"
+    sha256 cellar: :any_skip_relocation, big_sur:        "717998b8cbbcea8f6d16b8629fed8cc19b97a433b7047d1c803fb6b067fda738"
+    sha256 cellar: :any_skip_relocation, catalina:       "8f9c76010cb23d67e4b63c78a9d5dc278fbd22b6f38fc4a38c40066e2c196785"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "61a685d16de3648cae270451c662c8f1ab23bdb71d56f69b9a769273069bdff1"
   end
 
   def install

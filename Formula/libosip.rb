@@ -1,22 +1,45 @@
 class Libosip < Formula
   desc "Implementation of the eXosip2 stack"
   homepage "https://www.gnu.org/software/osip/"
-  url "https://ftp.gnu.org/gnu/osip/libosip2-5.0.0.tar.gz"
-  mirror "https://ftpmirror.gnu.org/osip/libosip2-5.0.0.tar.gz"
-  sha256 "18a13c954f7297978e7bf1a0cdadde7c531e519d61a045dae304e054f3b2df03"
+  url "https://ftp.gnu.org/gnu/osip/libosip2-5.3.0.tar.gz"
+  mirror "https://ftpmirror.gnu.org/osip/libosip2-5.3.0.tar.gz"
+  sha256 "f4725916c22cf514969efb15c3c207233d64739383f7d42956038b78f6cae8c8"
+  license "LGPL-2.1-or-later"
+
+  livecheck do
+    url :stable
+    regex(/href=.*?libosip2[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "5b8ab7e59d4c2e7daa9bfedecb74fabdb9a997c677d7f19fa55b48604cfe5d49" => :mojave
-    sha256 "6a92bcb59772b46d9eba4e340f01cd798f54fcf521a6f6e09011c4f89c44d863" => :high_sierra
-    sha256 "a6f031a29e43ee5af71d20f9c9b86bc138ad55a1c41faef1f2f852b5595912a8" => :sierra
-    sha256 "b0a4712e735be9c798ba7f9233db9339a09dc70b69c88c318fc14662972f5511" => :el_capitan
-    sha256 "01816d798919670ccce2726b59aa1752d4f6ef2a3e74df5e9141882c778e1f37" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "10b2ccc4ecbd787145593f7471be07f8d7d337b88f0910c65a90fde3a74c7153"
+    sha256 cellar: :any,                 arm64_big_sur:  "83a8054802766537ac0bf9a7a26a4e058196659d22b3e73fdc4ca1e1465eebd4"
+    sha256 cellar: :any,                 monterey:       "5257a4db4c419617cb61facd541b0dfd065cf65b04522ba129508153f1cba76f"
+    sha256 cellar: :any,                 big_sur:        "c1c218af9476972bd79a997ed6d17b15585a819da6a8f48e465a3a2e0dd46bcb"
+    sha256 cellar: :any,                 catalina:       "1ce96e56712d36f561bceb138de9c2213340f20a22e20ef0d18fcb5d7539ed72"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "5250bfa31928e5b25d34dd4a10d2d70d9a8f8e18aec0af8846c3f6c974a13171"
   end
 
   def install
     system "./configure", "--disable-debug", "--disable-dependency-tracking",
                           "--prefix=#{prefix}"
     system "make", "install"
+  end
+
+  test do
+    (testpath/"test.c").write <<~EOS
+      #include <sys/time.h>
+      #include <osip2/osip.h>
+
+      int main() {
+          osip_t *osip;
+          int i = osip_init(&osip);
+          if (i != 0)
+            return -1;
+          return 0;
+      }
+    EOS
+    system ENV.cc, "test.c", "-I#{include}", "-L#{lib}", "-losip2", "-o", "test"
+    system "./test"
   end
 end

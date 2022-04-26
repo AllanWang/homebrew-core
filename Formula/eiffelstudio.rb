@@ -1,15 +1,17 @@
 class Eiffelstudio < Formula
   desc "Development environment for the Eiffel language"
   homepage "https://www.eiffel.com"
-  url "https://ftp.eiffel.com/pub/download/18.11/eiffelstudio-18.11.10.2592.tar"
-  sha256 "9ee3c9663e21123a84e1447e301919171c2939b117ed1ad5780ba3e8021204ef"
-  revision 1
+  url "https://ftp.eiffel.com/pub/download/19.05/eiffelstudio-19.05.10.3187.tar"
+  sha256 "b5f883353405eb9ce834c50a863b3721b21c35950a226103e6d01d0101a932b3"
+  license "GPL-2.0"
 
   bottle do
-    cellar :any
-    sha256 "28b738ce36b616c1480309841aa04db4dd052223adf0fb86e218efe9aa9e835c" => :mojave
-    sha256 "4ca7f35feed76bb3c3c64a18c3aea0ac82087ce2022220faa921a5d310fb0410" => :high_sierra
-    sha256 "fe019f342cd9bc955afb00fbf87a8d2a78962829682f5bcd9f100efcc020a58d" => :sierra
+    sha256 cellar: :any, arm64_big_sur: "247ae6f6d6c9a15fb568d7a67150ed74f75b7718fff8391f746f5fae89adce54"
+    sha256 cellar: :any, big_sur:       "aeb6b50791dc52a1911e04309f88a37ffbc597ae077124cbcdd983366c2d02f7"
+    sha256 cellar: :any, catalina:      "a75094bbba27a570e33d7efb5136526da56a8328c0177ad7ca4dff6e217ba49e"
+    sha256 cellar: :any, mojave:        "8a7764d27dccc50a8bd8d34175591c90bd52ef8c3e3bf256a941cfccbd0e7f84"
+    sha256 cellar: :any, high_sierra:   "1204b20cd8146aeb89dc15b904ee792cfe6dd7141bc30536beba436efa667cea"
+    sha256 cellar: :any, sierra:        "4f8f7374ec1a2032334dd13ddf00d93b3feda22c75d884f7c0f8fe799f27643b"
   end
 
   depends_on "pkg-config" => :build
@@ -18,9 +20,9 @@ class Eiffelstudio < Formula
   def install
     system "./compile_exes", "macosx-x86-64"
     system "./make_images", "macosx-x86-64"
-    prefix.install Dir["Eiffel_18.11/*"]
+    prefix.install Dir["Eiffel_19.05/*"]
     bin.mkpath
-    env = { :ISE_EIFFEL => prefix, :ISE_PLATFORM => "macosx-x86-64" }
+    env = { ISE_EIFFEL: prefix, ISE_PLATFORM: "macosx-x86-64" }
     (bin/"ec").write_env_script(prefix/"studio/spec/macosx-x86-64/bin/ec", env)
     (bin/"ecb").write_env_script(prefix/"studio/spec/macosx-x86-64/bin/ecb", env)
     (bin/"estudio").write_env_script(prefix/"studio/spec/macosx-x86-64/bin/estudio", env)

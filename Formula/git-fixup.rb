@@ -1,20 +1,20 @@
 class GitFixup < Formula
   desc "Alias for git commit --fixup <ref>"
   homepage "https://github.com/keis/git-fixup"
-  url "https://github.com/keis/git-fixup/archive/v1.2.0.tar.gz"
-  sha256 "894989bd31b52fcfbfe226bc86bd1baea06820aa86938561b14772929f261337"
-  head "https://github.com/keis/git-fixup.git", :branch => "master"
+  url "https://github.com/keis/git-fixup/archive/v1.4.0.tar.gz"
+  sha256 "78cc604b205fa6fe1d982eee2adb9b7482ba0b08f83d2e52f713d663e2865e9d"
+  license "ISC"
+  head "https://github.com/keis/git-fixup.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "0fc85e047798c8602c8ad69796c6b6ac4d9759852bdba1b189aa0e999dfb53a2" => :mojave
-    sha256 "0fc85e047798c8602c8ad69796c6b6ac4d9759852bdba1b189aa0e999dfb53a2" => :high_sierra
-    sha256 "30b0473a2e18df5f4d91f61d74babf21fd5e8eccf9499d402f61790643400af7" => :sierra
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, all: "e1d0bfbc7b1cdccd454e5c532e27b79e5a791e92be429758cdc8c4b70c1b1dd9"
   end
 
   def install
     system "make", "PREFIX=#{prefix}", "install"
     zsh_completion.install "completion.zsh" => "_git-fixup"
+    fish_completion.install "completion.fish" => "git-fixup.fish"
   end
 
   test do

@@ -1,14 +1,21 @@
 class Onscripter < Formula
   desc "NScripter-compatible visual novel engine"
-  homepage "https://onscripter.osdn.jp/"
-  url "https://onscripter.osdn.jp/onscripter-20181218.tar.gz"
-  sha256 "724bd96c3687f2848292f5308d0a39d702957be22f0fe790f404522efcce113f"
+  homepage "https://onscripter.osdn.jp/onscripter.html"
+  url "https://onscripter.osdn.jp/onscripter-20220123.tar.gz"
+  sha256 "5da41dc3471eeec8c93153906b39dac0a32edbb2bcefce0fa0a976c148b448ca"
+  license "GPL-2.0-or-later"
+
+  livecheck do
+    url :homepage
+    regex(/href=.*?onscripter[._-]v?(\d+(?:\.\d+)*)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "b6abab7894db68812623cbdc53658979f7315fcac7ca5348fcc109112abbd7f6" => :mojave
-    sha256 "fb948f3d991f248a3ff0186088ecd2f72e935f254c025a991ee74e84857e0662" => :high_sierra
-    sha256 "5b113d4313b15493f4b8ab05911bc8c5ec7a9d6d0c81246139205a0d7ee9b222" => :sierra
+    sha256 cellar: :any, arm64_monterey: "6df121cc439c63ec6804ab3c781c0062b4bca08af5362bc866a1ca0565da8982"
+    sha256 cellar: :any, arm64_big_sur:  "608b9e37d9da7ec4edb68d3542fe45d0593b6bd52d64e234caa5c681086ff993"
+    sha256 cellar: :any, monterey:       "4b917a20089f1917708e638862a7b09034409e65b6309b2cce72351d62fff52d"
+    sha256 cellar: :any, big_sur:        "a76c2fb8593c7e5d66c281ba69b59e8c4ee763eef572763ec44c2cca1bace610"
+    sha256 cellar: :any, catalina:       "be36e240be9435dc871afeddb024aa23aec53364d8843d19ba88a7bd260915c7"
   end
 
   depends_on "pkg-config" => :build

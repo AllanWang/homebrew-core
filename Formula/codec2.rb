@@ -2,23 +2,29 @@ class Codec2 < Formula
   desc "Open source speech codec"
   homepage "https://www.rowetel.com/?page_id=452"
   # Linked from https://freedv.org/
-  url "https://hobbes1069.fedorapeople.org/freetel/codec2/codec2-0.8.1.tar.xz"
-  sha256 "a07cdaacf59c3f7dbb1c63b769d443af486c434b3bd031fb4edd568ce3e613d6"
+  url "https://github.com/drowe67/codec2/archive/v1.03.tar.gz"
+  version "1.0.3"
+  sha256 "d1b156035b806fd89a29371a5ab0eefca3ccecfeff303dac0672c59d5c0c1235"
+  license "LGPL-2.1-only"
 
   bottle do
-    cellar :any
-    sha256 "92031b75a027390385864b1c2a4bde522da712162b7c6f8187a1b2adf74f8504" => :mojave
-    sha256 "37a6ae2407ae97ae632078020e89163e9b58d3613207bcf534401f6660128108" => :high_sierra
-    sha256 "d90f5373ac39385b8fffee0605afe2e27c195f44ef211f98d7b5d89c7200508d" => :sierra
-    sha256 "896b96db4b2d4349ca56dc0e4daaf2bebfc28908197c013aefe89d86fe57317c" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "090856f39e5957c5d3badc83d370aa70bb89d1d5cc6120446d6c3b877581d94d"
+    sha256 cellar: :any,                 arm64_big_sur:  "ae72433df0f211abb44fa154af2f7d404a56202a4caec2b5716816e8d69471e3"
+    sha256 cellar: :any,                 monterey:       "c4260dad2bfca1133bc167c632602c685abcd3372cd3a2f2c02d913a2ee0c6a6"
+    sha256 cellar: :any,                 big_sur:        "68afdf2fe3058e49234d468fe4e17508815d799cdff6883b29debb233690c5d2"
+    sha256 cellar: :any,                 catalina:       "9bb3ae4a8ae3c08d24e6a2b0d6823f8e3cc88edb4ac556c91ef1474b6f00c894"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "b34f238df3fca8b0446be087f81f1e5e10528a0efcda57e6fee97a78b2210259"
   end
 
   depends_on "cmake" => :build
 
   def install
     mkdir "build_osx" do
-      system "cmake", "..", *std_cmake_args
+      system "cmake", "..", *std_cmake_args, "-DCMAKE_EXE_LINKER_FLAGS=-Wl,-rpath,#{rpath}"
       system "make", "install"
+
+      bin.install "demo/c2demo"
+      bin.install Dir["src/c2*"]
     end
   end
 

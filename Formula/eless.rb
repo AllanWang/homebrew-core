@@ -1,10 +1,13 @@
 class Eless < Formula
   desc "Better `less` using Emacs view-mode and Bash"
   homepage "https://eless.scripter.co/"
-  url "https://github.com/kaushalmodi/eless/archive/v0.5.tar.gz"
-  sha256 "b4da2c7c223996681bb951d50e0d542d8df04baf765c16412fa0848cdb2b3a3d"
+  url "https://github.com/kaushalmodi/eless/archive/v0.7.tar.gz"
+  sha256 "de7a7891a20a5e7f25c0b5df812edaea87ab0d3336d41821a24e2d248aaf4abc"
+  license "MIT"
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "cc720394c1e88326fb9a2f76457a1edb4efa081313fe7fc914e1e9375b1e5ade"
+  end
 
   depends_on "emacs"
 

@@ -1,17 +1,30 @@
 class PgpoolIi < Formula
   desc "PostgreSQL connection pool server"
   homepage "https://www.pgpool.net/mediawiki/index.php/Main_Page"
-  url "https://www.pgpool.net/download.php?f=pgpool-II-3.7.5.tar.gz"
-  sha256 "510ac7cd00e2296dc50ad1ccbc86f9308dfc36cfa98d04066b9a37a5464c47c1"
+  url "https://www.pgpool.net/mediawiki/images/pgpool-II-4.3.1.tar.gz"
+  sha256 "b4416bf4507882847a0e72ebe80209a7bf3b104aef03837d528502d84203507a"
+
+  livecheck do
+    url "https://www.pgpool.net/mediawiki/index.php/Downloads"
+    regex(/href=.*?pgpool-II[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    sha256 "0b7d1c439f979d4301ac989192cc3f45117860c82821ea7897d0e9489f3feee0" => :mojave
-    sha256 "ef331729edaa2b021f3c1aa7f681aef91afeed1c953d07a0193d50e33c8def03" => :high_sierra
-    sha256 "a6971651f3305e14bd675eca89652722445d49e83dff68d5ebfdf7792a4171c9" => :sierra
-    sha256 "e277a0b2d1f240f4ba4047b48f03a852ea9c4b6b9dcc33b1b149938d0c0c7e20" => :el_capitan
+    sha256 arm64_monterey: "074b03b6c0e8d7b84f8e903ed560e2ce3cfe11c3b5e13876033e6b2135010987"
+    sha256 arm64_big_sur:  "c7b7bb9a3f1e2728cde2033e1307a3bfb1765ec3ebb1a67ea76f69822755b0f5"
+    sha256 monterey:       "f0e8e796d169bd27b1b8af149723d96caded0a85c219886a757dea79bb88685a"
+    sha256 big_sur:        "b17e928829e63bcfbdb05e6907d871444fd8298280fba54ea7431f790c22de12"
+    sha256 catalina:       "90de27f6ea8a5e8d5a3f71f2751571ff9b5de72cd45f0ebb9a9207f8cc8f90ea"
+    sha256 x86_64_linux:   "4f05dcf54d2066c9bd0f3b706e6b4e08c701ff25d71c0c0be62f86aa902c828c"
   end
 
   depends_on "postgresql"
+
+  # Fix -flat_namespace being used on Big Sur and later.
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-pre-0.4.2.418-big_sur.diff"
+    sha256 "83af02f2aa2b746bb7225872cab29a253264be49db0ecebb12f841562d9a2923"
+  end
 
   def install
     system "./configure", "--disable-dependency-tracking", "--prefix=#{prefix}",

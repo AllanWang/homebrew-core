@@ -1,24 +1,31 @@
 class Mtr < Formula
   desc "'traceroute' and 'ping' in a single tool"
   homepage "https://www.bitwizard.nl/mtr/"
-  url "https://github.com/traviscross/mtr/archive/v0.92.tar.gz"
-  sha256 "568a52911a8933496e60c88ac6fea12379469d7943feb9223f4337903e4bc164"
-  head "https://github.com/traviscross/mtr.git"
+  url "https://github.com/traviscross/mtr/archive/v0.95.tar.gz"
+  sha256 "12490fb660ba5fb34df8c06a0f62b4f9cbd11a584fc3f6eceda0a99124e8596f"
+  license "GPL-2.0-only"
+  head "https://github.com/traviscross/mtr.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "0ec13c29bb5e49ffbe0a9c83da77313c28b6bed60da1eb923945130f74158212" => :mojave
-    sha256 "3e426bdf04070ab31f2e70fae91a5b576ced3072733d5e9a0b617c75e97202bf" => :high_sierra
-    sha256 "0558426657c36a32f26d65c96b6111753f7189b5b198715df33b9a4f64e25732" => :sierra
-    sha256 "1700c0b67f337a9089de95ded89391be790ad440336b252be1d109b9b8352cc7" => :el_capitan
-    sha256 "90aa1e5d224e98d572525b09715390f0fbf2b72954cd3c0b87b9cd6af6ff8ac2" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "832e28a80e1b4340c19c4dc3511504672ec03ff5cb54d7294e932b7d9aa80085"
+    sha256 cellar: :any,                 arm64_big_sur:  "0e41037f1e0f662b87155307468c740594d2e16761e2b120a3086e0922c7bda5"
+    sha256 cellar: :any,                 monterey:       "8388e7af1b04e7749ffa93b3a9479df605cbe16d7a88c02625ecd229e36043f9"
+    sha256 cellar: :any,                 big_sur:        "bb07a178a739fc8c8a15fc7645efc7fe749b81663752bcd66cb1efcd47217371"
+    sha256 cellar: :any,                 catalina:       "7ee23cbae756e561d02a0ffe3b32476cd635b54f70240a937c43e7608c27766d"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "4b2707211f207742525047d68e4b3e870b524f093ea8ce8f76b8fb3999e6f8d5"
   end
 
   depends_on "autoconf" => :build
   depends_on "automake" => :build
   depends_on "pkg-config" => :build
+  depends_on "jansson"
 
   def install
+    # Fix UNKNOWN version reported by `mtr --version`.
+    inreplace "configure.ac",
+              "m4_esyscmd([build-aux/git-version-gen .tarball-version])",
+              version.to_s
+
     # We need to add this because nameserver8_compat.h has been removed in Snow Leopard
     ENV["LIBS"] = "-lresolv"
     args = %W[
@@ -32,13 +39,19 @@ class Mtr < Formula
     system "make", "install"
   end
 
-  def caveats; <<~EOS
-    mtr requires root privileges so you will need to run `sudo mtr`.
-    You should be certain that you trust any software you grant root privileges.
-  EOS
+  def caveats
+    <<~EOS
+      mtr requires root privileges so you will need to run `sudo mtr`.
+      You should be certain that you trust any software you grant root privileges.
+    EOS
   end
 
   test do
-    system sbin/"mtr", "--help"
+    # We patch generation of the version, so let's check that we did that properly.
+    assert_match "mtr #{version}", shell_output("#{sbin}/mtr --version")
+    # mtr will not run without root privileges
+    assert_match "Failure to open", shell_output("#{sbin}/mtr google.com 2>&1", 1)
+    # Check that the `--json` flag is recognised.
+    assert_match "Failure to open", shell_output("#{sbin}/mtr --json google.com 2>&1", 1)
   end
 end

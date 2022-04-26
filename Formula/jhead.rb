@@ -1,32 +1,31 @@
 class Jhead < Formula
   desc "Extract Digicam setting info from EXIF JPEG headers"
-  homepage "http://www.sentex.net/~mwandel/jhead/"
-  url "http://www.sentex.net/~mwandel/jhead/jhead-3.00.tar.gz"
-  sha256 "88cc01da018e242fe2e05db73f91b6288106858dd70f27506c4989a575d2895e"
-  revision 1
+  homepage "https://github.com/Matthias-Wandel/jhead"
+  url "https://github.com/Matthias-Wandel/jhead/archive/3.06.0.1.tar.gz"
+  sha256 "5c5258c3d7a840bf831e22174e4a24cb1de3baf442f7cb73d5ab31b4ae0b0058"
+  license :public_domain
 
   bottle do
-    cellar :any_skip_relocation
-    rebuild 1
-    sha256 "ad487e3a5d82f1b37c2018c5dceb001080cc058c21226db1b784a42705bb427f" => :mojave
-    sha256 "91644d47cff25c954cba7ccaa0c243dcbde63e626e9e749571042952d8ab3337" => :high_sierra
-    sha256 "1adb1ef54417bdf4bd235ab907e4c198508bc2cebadcb8602cdec7809bb9e3a6" => :sierra
-    sha256 "6a15b6b97fae6971752afbd05aa07e94ccebf1b216c9e36a2ba7bbf6523482bc" => :el_capitan
-    sha256 "b1d517e2de29ae9a906636f4ed18c99aa459b221d1bff65fc497f6e86eae53ba" => :yosemite
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "e473e54dcc077f4b803d1fa3acf390d8d74845f9c01e8316dbccf195844b5738"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "8ba17f494afc0590a876112f9f7f6b00664fbd1ad62ec3a9a21a5941188b9bbe"
+    sha256 cellar: :any_skip_relocation, monterey:       "cd587b58853b3f1adbdb7bf1cf7bf019d7f86354ffa4ba3de04ec60220858d6f"
+    sha256 cellar: :any_skip_relocation, big_sur:        "ff1612a2a1d386e153b934b790f6e3e4897a0cb9509805de91f0cf432a422f57"
+    sha256 cellar: :any_skip_relocation, catalina:       "57866edae4ac5a6b63988d3f7c9c1d261fa33eaff6dc1e6833a086fda2a7671f"
+    sha256 cellar: :any_skip_relocation, mojave:         "1d772617f005a7b1381d78c133e2745e9ca7e31cb6a5fd5428bd2f973bcfae45"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "15b04dc8681a47de34f7d95028ad979706403157d88bef21cdfc97b5f89393cf"
   end
 
-  # Patch to provide a proper install target to the Makefile. The patch has
-  # been submitted upstream through email. We need to carry this patch until
-  # upstream decides to incorporate it.
-  patch :DATA
-
+  # Patch to provide a proper install target to the Makefile. A variation
+  # of this patch has been submitted upstream at
+  # https://github.com/Matthias-Wandel/jhead/pull/45. We need to
+  # carry this patch until upstream decides to incorporate it.
   patch do
-    url "https://deb.debian.org/debian/pool/main/j/jhead/jhead_3.00-4.debian.tar.xz"
-    sha256 "d2553bb7e7e47c33fa1136841e4b5bfbad6b92edce1dcad639ab5d74ace606aa"
-    apply "patches/31_CVE-2016-3822"
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/e3288f753931921027d0def5e8d2c3dbf7073b10/jhead/3.06.0.1.patch"
+    sha256 "520929fe37097fde24f36d7e0fd59ded889d1a3cbea684133398492b14628179"
   end
 
   def install
+    ENV.deparallelize
     system "make", "install", "PREFIX=#{prefix}"
   end
 
@@ -35,37 +34,3 @@ class Jhead < Formula
     system "#{bin}/jhead", "-autorot", "test.jpg"
   end
 end
-
-__END__
---- a/makefile	2015-02-02 23:24:06.000000000 +0100
-+++ b/makefile	2015-02-25 16:31:21.000000000 +0100
-@@ -1,12 +1,18 @@
- #--------------------------------
- # jhead makefile for Unix
- #--------------------------------
-+PREFIX=$(DESTDIR)/usr/local
-+BINDIR=$(PREFIX)/bin
-+DOCDIR=$(PREFIX)/share/doc/jhead
-+MANDIR=$(PREFIX)/share/man/man1
- OBJ=.
- SRC=.
- CFLAGS:= $(CFLAGS) -O3 -Wall
-
- all: jhead
-
-+docs = $(SRC)/usage.html
-+
- objs = $(OBJ)/jhead.o $(OBJ)/jpgfile.o $(OBJ)/jpgqguess.o $(OBJ)/paths.o \
-	$(OBJ)/exif.o $(OBJ)/iptc.o $(OBJ)/gpsinfo.o $(OBJ)/makernote.o
-
-@@ -19,5 +25,8 @@
- clean:
-	rm -f $(objs) jhead
-
--install:
--	cp jhead ${DESTDIR}/usr/local/bin/
-+install: all
-+	install -d $(BINDIR) $(DOCDIR) $(MANDIR)
-+	install -m 0755 jhead $(BINDIR)
-+	install -m 0644 $(docs) $(DOCDIR)
-+	install -m 0644 jhead.1 $(MANDIR)

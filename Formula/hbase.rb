@@ -1,49 +1,67 @@
 class Hbase < Formula
   desc "Hadoop database: a distributed, scalable, big data store"
   homepage "https://hbase.apache.org"
-  url "https://www.apache.org/dyn/closer.cgi?path=hbase/hbase-1.3.4/hbase-1.3.4-bin.tar.gz"
-  mirror "https://archive.apache.org/dist/hbase/1.3.4/hbase-1.3.4-bin.tar.gz"
-  sha256 "cb4a90101d77b369e79f5c816b2c04be2e25d77c954560139608ae3cbf0c629f"
+  url "https://www.apache.org/dyn/closer.lua?path=hbase/2.4.10/hbase-2.4.10-bin.tar.gz"
+  mirror "https://archive.apache.org/dist/hbase/2.4.10/hbase-2.4.10-bin.tar.gz"
+  sha256 "7ea25b264c9d934f6d4ea25362ea8ede38b1c527747f55e4aa1ec9a700082219"
+  # We bundle hadoop-lzo which is GPL-3.0-or-later
+  license all_of: ["Apache-2.0", "GPL-3.0-or-later"]
 
   bottle do
-    sha256 "e1327223be7395aeb678ebc1d6984bbe5a5e4dfaefdab2522089458cb8e13204" => :mojave
-    sha256 "fa047bafe2cb95a57703eea0b15287cf0aefe384a4c07d2f579d75de73769e12" => :high_sierra
-    sha256 "450dcab9bd5639f0fc516e7ab293d049e4c3c0295986f25a18e9fe5ff7d25ab8" => :sierra
+    sha256 arm64_monterey: "68e832c4fe692e3623b29f86ed03ce08f6059f944e370d2d95e501e90f944ca4"
+    sha256 arm64_big_sur:  "8bfaf3f502b7a9c7c671573b8de8cff4fda1d1ce60326532e2234a965a82064d"
+    sha256 monterey:       "58ffd20595142d630cd5d302235f192cba177b52a39f6c70a842b2c58d7c0687"
+    sha256 big_sur:        "b3f30692842d918532e06b18658882d791121487cdfdc5f9a3beddfbf1c4d971"
+    sha256 catalina:       "06a7f7214e854fe14f963f31890b61c77e656c967b5b7d90e2b2900db63c30e3"
   end
 
   depends_on "ant" => :build
-  # 64 bit is required because of three things:
-  # the lzo jar has a native extension
-  # building native extensions requires a version of java that matches the architecture
-  # there is no 32 bit version of java for macOS since Java 1.7, and 1.8 is required for hbase
-  depends_on :arch => :x86_64
-  depends_on :java => "1.8"
   depends_on "lzo"
+  depends_on "openjdk@11"
+
+  uses_from_macos "netcat" => :test
 
   resource "hadoop-lzo" do
     url "https://github.com/cloudera/hadoop-lzo/archive/0.4.14.tar.gz"
     sha256 "aa8ddbb8b3f9e1c4b8cc3523486acdb7841cd97c002a9f2959c5b320c7bb0e6c"
+
+    patch do
+      url "https://raw.githubusercontent.com/Homebrew/formula-patches/b89da3afad84bbf69deed0611e5dddaaa5d39325/hbase/build.xml.patch"
+      sha256 "d1d65330a4367db3e17ee4f4045641b335ed42449d9e6e42cc687e2a2e3fa5bc"
+    end
+
+    # Fix -flat_namespace being used on Big Sur and later.
+    patch do
+      url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-pre-0.4.2.418-big_sur.diff"
+      sha256 "83af02f2aa2b746bb7225872cab29a253264be49db0ecebb12f841562d9a2923"
+      directory "src/native"
+    end
   end
 
   def install
+    java_home = Language::Java.java_home("11")
     rm_f Dir["bin/*.cmd", "conf/*.cmd"]
-    libexec.install %w[bin conf docs lib hbase-webapps]
+    libexec.install %w[bin conf lib hbase-webapps]
 
     # Some binaries have really generic names (like `test`) and most seem to be
     # too special-purpose to be permanently available via PATH.
     %w[hbase start-hbase.sh stop-hbase.sh].each do |script|
-      (bin/script).write_env_script "#{libexec}/bin/#{script}", Language::Java.java_home_env("1.8")
+      (bin/script).write_env_script libexec/"bin"/script, Language::Java.overridable_java_home_env("11")
     end
 
     resource("hadoop-lzo").stage do
-      # Fixed upstream: https://github.com/cloudera/hadoop-lzo/blob/master/build.xml#L235
-      inreplace "build.xml",
-                %r{(<class name="com.hadoop.compression.lzo.LzoDecompressor" />)},
-                "\\1\n<classpath refid=\"classpath\"/>"
+      # Help configure to find liblzo on Linux.
+      unless OS.mac?
+        inreplace "src/native/configure",
+        "#define HADOOP_LZO_LIBRARY ${ac_cv_libname_lzo2}",
+        "#define HADOOP_LZO_LIBRARY \"#{Formula["lzo"].opt_lib/shared_library("liblzo2")}\""
+      end
+
+      # Fixed upstream: https://github.com/cloudera/hadoop-lzo/blob/HEAD/build.xml#L235
       ENV["CLASSPATH"] = Dir["#{libexec}/lib/hadoop-common-*.jar"].first
       ENV["CFLAGS"] = "-m64"
       ENV["CXXFLAGS"] = "-m64"
-      ENV["CPPFLAGS"] = "-I/System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers"
+      ENV["CPPFLAGS"] = "-I#{Formula["openjdk@11"].include}"
       system "ant", "compile-native", "tar"
       (libexec/"lib").install Dir["build/hadoop-lzo-*/hadoop-lzo-*.jar"]
       (libexec/"lib/native").install Dir["build/hadoop-lzo-*/lib/native/*"]
@@ -53,12 +71,10 @@ class Hbase < Formula
       # upstream bugs for ipv6 incompatibility:
       # https://issues.apache.org/jira/browse/HADOOP-8568
       # https://issues.apache.org/jira/browse/HADOOP-3619
-      s.gsub!("export HBASE_OPTS=\"-XX:+UseConcMarkSweepGC\"",
+      s.gsub!(/^# export HBASE_OPTS$/,
               "export HBASE_OPTS=\"-Djava.net.preferIPv4Stack=true -XX:+UseConcMarkSweepGC\"")
-      s.gsub!("# export JAVA_HOME=/usr/java/jdk1.6.0/",
-              "export JAVA_HOME=\"$(/usr/libexec/java_home --version 1.8)\"")
-      # avoid deprecated-option warning issued by Java 8
-      s.gsub!(" -XX:PermSize=128m -XX:MaxPermSize=128m", "")
+      s.gsub!(/^# export JAVA_HOME=.*/,
+              "export JAVA_HOME=\"${JAVA_HOME:-#{java_home}}\"")
 
       # Default `$HBASE_HOME/logs` is unsuitable as it would cause writes to the
       # formula's prefix. Provide a better default but still allow override.
@@ -105,60 +121,38 @@ class Hbase < Formula
     (var/"run/hbase").mkpath
   end
 
-  plist_options :manual => "#{HOMEBREW_PREFIX}/opt/hbase/bin/start-hbase.sh"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-      <key>KeepAlive</key>
-      <true/>
-      <key>Label</key>
-      <string>#{plist_name}</string>
-      <key>EnvironmentVariables</key>
-      <dict>
-       <key>HBASE_MASTER_OPTS</key><string> -XX:PermSize=128m -XX:MaxPermSize=128m</string>
-       <key>HBASE_LOG_DIR</key><string>#{var}/hbase</string>
-       <key>HBASE_HOME</key><string>#{opt_libexec}</string>
-       <key>HBASE_SECURITY_LOGGER</key><string>INFO,RFAS</string>
-       <key>HBASE_PID_DIR</key><string>#{var}/run/hbase</string>
-       <key>HBASE_NICENESS</key><string>0</string>
-       <key>HBASE_IDENT_STRING</key><string>root</string>
-       <key>HBASE_REGIONSERVER_OPTS</key><string> -XX:PermSize=128m -XX:MaxPermSize=128m</string>
-       <key>HBASE_OPTS</key><string>-XX:+UseConcMarkSweepGC</string>
-       <key>HBASE_ROOT_LOGGER</key><string>INFO,RFA</string>
-       <key>HBASE_LOG_PREFIX</key><string>hbase-root-master</string>
-       <key>HBASE_LOGFILE</key><string>hbase-root-master.log</string>
-      </dict>
-      <key>ProgramArguments</key>
-      <array>
-        <string>#{opt_bin}/hbase</string>
-        <string>--config</string>
-        <string>#{opt_libexec}/conf</string>
-        <string>master</string>
-        <string>start</string>
-      </array>
-      <key>RunAtLoad</key>
-      <true/>
-      <key>WorkingDirectory</key>
-      <string>#{HOMEBREW_PREFIX}</string>
-      <key>StandardOutPath</key>
-      <string>#{var}/hbase/hbase.log</string>
-      <key>StandardErrorPath</key>
-      <string>#{var}/hbase/hbase.err</string>
-    </dict>
-    </plist>
-  EOS
+  service do
+    run [opt_bin/"hbase", "--config", opt_libexec/"conf", "master", "start"]
+    keep_alive true
+    working_dir HOMEBREW_PREFIX
+    log_path var/"hbase/hbase.log"
+    error_log_path var/"hbase/hbase.err"
+    environment_variables HBASE_HOME:              opt_libexec,
+                          HBASE_IDENT_STRING:      "root",
+                          HBASE_LOG_DIR:           var/"hbase",
+                          HBASE_LOG_PREFIX:        "hbase-root-master",
+                          HBASE_LOGFILE:           "hbase-root-master.log",
+                          HBASE_MASTER_OPTS:       " -XX:PermSize=128m -XX:MaxPermSize=128m",
+                          HBASE_NICENESS:          "0",
+                          HBASE_OPTS:              "-XX:+UseConcMarkSweepGC",
+                          HBASE_PID_DIR:           var/"run/hbase",
+                          HBASE_REGIONSERVER_OPTS: " -XX:PermSize=128m -XX:MaxPermSize=128m",
+                          HBASE_ROOT_LOGGER:       "INFO,RFA",
+                          HBASE_SECURITY_LOGGER:   "INFO,RFAS"
   end
 
   test do
+    port = free_port
     assert_match "HBase #{version}", shell_output("#{bin}/hbase version 2>&1")
 
     cp_r (libexec/"conf"), testpath
     inreplace (testpath/"conf/hbase-site.xml") do |s|
-      s.gsub! /(hbase.rootdir.*)\n.*/, "\\1\n<value>file://#{testpath}/hbase</value>"
-      s.gsub! /(hbase.zookeeper.property.dataDir.*)\n.*/, "\\1\n<value>#{testpath}/zookeeper</value>"
+      s.gsub!(/(hbase.rootdir.*)\n.*/, "\\1\n<value>file://#{testpath}/hbase</value>")
+      s.gsub!(/(hbase.zookeeper.property.dataDir.*)\n.*/, "\\1\n<value>#{testpath}/zookeeper</value>")
+      s.gsub!(/(hbase.zookeeper.property.clientPort.*)\n.*/, "\\1\n<value>#{port}</value>")
+
+      # Interface name is lo on Linux, not lo0.
+      s.gsub!("lo0", "lo") unless OS.mac?
     end
 
     ENV["HBASE_LOG_DIR"]  = testpath/"logs"
@@ -168,7 +162,7 @@ class Hbase < Formula
     system "#{bin}/start-hbase.sh"
     sleep 10
     begin
-      assert_match "Zookeeper", pipe_output("nc 127.0.0.1 2181 2>&1", "stats")
+      assert_match "Zookeeper", pipe_output("nc 127.0.0.1 #{port} 2>&1", "stats")
     ensure
       system "#{bin}/stop-hbase.sh"
     end

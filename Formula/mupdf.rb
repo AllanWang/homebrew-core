@@ -1,28 +1,41 @@
 class Mupdf < Formula
   desc "Lightweight PDF and XPS viewer"
   homepage "https://mupdf.com/"
-  url "https://mupdf.com/downloads/archive/mupdf-1.15.0-source.tar.xz"
-  sha256 "565036cf7f140139c3033f0934b72e1885ac7e881994b7919e15d7bee3f8ac4e"
-  head "https://git.ghostscript.com/mupdf.git"
+  url "https://mupdf.com/downloads/archive/mupdf-1.19.1-source.tar.xz"
+  sha256 "b5eac663fe74f33c430eda342f655cf41fa73d71610f0884768a856a82e3803e"
+  license "AGPL-3.0-or-later"
+  head "https://git.ghostscript.com/mupdf.git", branch: "master"
 
-  bottle do
-    cellar :any_skip_relocation
-    sha256 "6cb774dd8ded94ffd17aef311157a9cfcec3952eacd87bdbf8e3c3475fd7b6c8" => :mojave
-    sha256 "4b9193501ccd098036558168b3c587e1d82cb6b094817f783708938195793cbd" => :high_sierra
-    sha256 "2ba0dee72242bc80ef22288dc6fe3df890d262cb4b36c808ee9a529111f098e5" => :sierra
+  livecheck do
+    url "https://mupdf.com/downloads/archive/"
+    regex(/href=.*?mupdf[._-]v?(\d+(?:\.\d+)+)-source\.(?:t|zip)/i)
   end
 
-  depends_on "openssl"
-  depends_on :x11
+  bottle do
+    sha256 cellar: :any,                 arm64_monterey: "2d4d098f0541d95b2d3540af421bd8e835ac1a1192acb98312dc78b4e921e354"
+    sha256 cellar: :any,                 arm64_big_sur:  "7f544e397266ed96ccc842e534d083b50b44b524b8fca55848c671942da2af45"
+    sha256 cellar: :any,                 monterey:       "ff857e9ab23091ac27da6c85f318c3263fa2efd9051f4cfe2013b8b7f44c45be"
+    sha256 cellar: :any,                 big_sur:        "d7ba31afbad3e307b89f839dc32e3315951041c5da2d0c97b773121638b62f58"
+    sha256 cellar: :any,                 catalina:       "a05964e33ab125e327e0365a1de22588dadca8a9e88d39072f64ec16b13cde31"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "f0135bc4dfe4aa29f4a680829b1b7a18c0d66cde39856cd1bacdd8d1bac2be67"
+  end
+
+  depends_on "pkg-config" => :build
+  depends_on "freeglut"
+  depends_on "mesa"
 
   conflicts_with "mupdf-tools",
-    :because => "mupdf and mupdf-tools install the same binaries."
+    because: "mupdf and mupdf-tools install the same binaries"
 
   def install
+    glut_cflags = `pkg-config --cflags glut gl`.chomp
+    glut_libs = `pkg-config --libs glut gl`.chomp
     system "make", "install",
            "build=release",
            "verbose=yes",
            "CC=#{ENV.cc}",
+           "SYS_GLUT_CFLAGS=#{glut_cflags}",
+           "SYS_GLUT_LIBS=#{glut_libs}",
            "prefix=#{prefix}"
 
     # Symlink `mutool` as `mudraw` (a popular shortcut for `mutool draw`).

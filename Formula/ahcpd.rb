@@ -3,21 +3,33 @@ class Ahcpd < Formula
   homepage "https://www.irif.univ-paris-diderot.fr/~jch/software/ahcp/"
   url "https://www.irif.univ-paris-diderot.fr/~jch/software/files/ahcpd-0.53.tar.gz"
   sha256 "a4622e817d2b2a9b878653f085585bd57f3838cc546cca6028d3b73ffcac0d52"
+  license "MIT"
+
+  livecheck do
+    url "https://www.irif.fr/~jch/software/files/"
+    regex(/href=.*?ahcpd[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "8852e7e5e11d6ea413657d012e4d49ca0d9ac406e56da6bf7c0daa6d4d788a16" => :mojave
-    sha256 "ab3221a9f28ded916f8d2ef4b8377a2a793fa2fee5f891b9a97e3dede0d294ae" => :high_sierra
-    sha256 "d3a8a4efb712e2c6a8a055276e5d93d3275a638df4231a4dfe8d428a2606d776" => :sierra
-    sha256 "b37143ee365a4a3afd9623d5f49eab0bc4bdf9ac3662d22db9671cffa1078224" => :el_capitan
-    sha256 "36907bc1aadc9d9d874ebd74624d8c2c2e8b4057181df1e964720a41f72ccae8" => :yosemite
-    sha256 "8518f82187d2b8d2bc24648bd072f19073e159abb2bdaf5418ad31e3ab966d0b" => :mavericks
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "3ca4d84aac5c8fe54641405340ea2a397a5c6916913b4bd70392d6beb08f8f2f"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "49ef92eb18038f60e6419a5dfecd11be62f3b69cb4778c473050e5443e72ac06"
+    sha256 cellar: :any_skip_relocation, monterey:       "d715f5dc18a9b7dbc91fd34a767c22519f71aabcb62c6a479986b6f6472ad71a"
+    sha256 cellar: :any_skip_relocation, big_sur:        "3f3e332726a04e2cb6a639b18d0092a80cf8d83a9363e75c6579d73ba8ac4d16"
+    sha256 cellar: :any_skip_relocation, catalina:       "9320f1465296a364f0d55ffca9342f087b781f0853ad2213b278189bfc062202"
+    sha256 cellar: :any_skip_relocation, mojave:         "22a512b076e972064d6b0af3eb696a5d2ee62c06aadd2aea01a0bec886d28379"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "2007cca57256875a13c8dc554e48d2bbfc9b061101bbd2f24f07910b75f0aa00"
   end
 
   patch :DATA
 
   def install
-    system "make", "LDLIBS=''"
+    if OS.mac?
+      # LDLIBS='' fixes: ld: library not found for -lrt
+      system "make", "LDLIBS=''"
+    else
+      system "make"
+    end
     system "make", "install", "PREFIX=", "TARGET=#{prefix}"
   end
 

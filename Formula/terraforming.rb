@@ -2,14 +2,22 @@ class Terraforming < Formula
   desc "Export existing AWS resources to Terraform style (tf, tfstate)"
   homepage "https://terraforming.dtan4.net/"
   url "https://github.com/dtan4/terraforming.git",
-      :tag      => "v0.18.0",
-      :revision => "67cb9299f283bc16bd70c197f25edc419bee280f"
+      tag:      "v0.18.0",
+      revision: "67cb9299f283bc16bd70c197f25edc419bee280f"
+  license "MIT"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "e4997ba46e6e796833c2f881f68b20cd52006510371ede211d422190a5223454" => :mojave
-    sha256 "59001edf7447dbab2dd760fcec4fc0a77d711ec43e7d95658aa9c663f7baf44d" => :high_sierra
-    sha256 "f1d900508e9b2a38a1e417ee9f0faa050c89332cf9eff1a3de83c96eebead164" => :sierra
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "a999cfb15e43d21fccbed4c7ac4f570c192f7921f1948edd8e7da11ca7971ef9"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "c9b5cf64c7ba61284462a250ad49d2a397a67efa3c43d2d60b43bae20a9dbd92"
+    sha256 cellar: :any_skip_relocation, monterey:       "a999cfb15e43d21fccbed4c7ac4f570c192f7921f1948edd8e7da11ca7971ef9"
+    sha256 cellar: :any_skip_relocation, big_sur:        "c9b5cf64c7ba61284462a250ad49d2a397a67efa3c43d2d60b43bae20a9dbd92"
+    sha256 cellar: :any_skip_relocation, catalina:       "c9b5cf64c7ba61284462a250ad49d2a397a67efa3c43d2d60b43bae20a9dbd92"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "eff0a68d600af8a5176b41a04c443da66ae1b27884d31547c7c7010a7aa7704e"
+  end
+
+  on_linux do
+    depends_on "ruby@2.7"
   end
 
   resource "aws-sdk-autoscaling" do
@@ -113,7 +121,7 @@ class Terraforming < Formula
     system "gem", "install", "--ignore-dependencies",
            "terraforming-#{version}.gem"
     bin.install libexec/"bin/terraforming"
-    bin.env_script_all_files(libexec/"bin", :GEM_HOME => ENV["GEM_HOME"])
+    bin.env_script_all_files(libexec/"bin", GEM_HOME: ENV["GEM_HOME"])
   end
 
   test do

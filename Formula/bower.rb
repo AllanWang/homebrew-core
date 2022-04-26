@@ -3,15 +3,17 @@ require "language/node"
 class Bower < Formula
   desc "Package manager for the web"
   homepage "https://bower.io/"
-  # Use Github tarball to avoid bowers npm 4+ incompatible bundled dep usage
-  url "https://github.com/bower/bower/archive/v1.8.8.tar.gz"
-  sha256 "3faf6c6ba0f96a8ee7ca7329911e683131198cbdd9a25ee4976b46f90357d481"
+  url "https://registry.npmjs.org/bower/-/bower-1.8.14.tgz"
+  sha256 "00df3dcc6e8b3a4dd7668934a20e60e6fc0c4269790192179388c928553a3f7e"
+  license "MIT"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "82494967ba46ded634fb761e4fb166ab1d27605ba7514c4248ada0a00b1ce0cd" => :mojave
-    sha256 "077291dbebb25e070a3387fb9e38f3400a35d1551fbf97936643061be4d522b3" => :high_sierra
-    sha256 "2a5689573d8841a0ce8be340aea74f0585c3537340f9d53746fefd21cada43f5" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "4f83f0b7576c438668ad19edcfab2606901bcd5f9092cf62c45b70d8b4778235"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "4f83f0b7576c438668ad19edcfab2606901bcd5f9092cf62c45b70d8b4778235"
+    sha256 cellar: :any_skip_relocation, monterey:       "f155eb229286bef7f21e55ada513c525913b38cc8db1d86a3b47fc7ee9a1f1fe"
+    sha256 cellar: :any_skip_relocation, big_sur:        "f155eb229286bef7f21e55ada513c525913b38cc8db1d86a3b47fc7ee9a1f1fe"
+    sha256 cellar: :any_skip_relocation, catalina:       "f155eb229286bef7f21e55ada513c525913b38cc8db1d86a3b47fc7ee9a1f1fe"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "4f83f0b7576c438668ad19edcfab2606901bcd5f9092cf62c45b70d8b4778235"
   end
 
   depends_on "node"

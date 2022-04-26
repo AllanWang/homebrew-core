@@ -1,37 +1,26 @@
 class Html2text < Formula
   desc "Advanced HTML-to-text converter"
   homepage "http://www.mbayer.de/html2text/"
-  url "http://www.mbayer.de/html2text/downloads/html2text-1.3.2a.tar.gz"
-  sha256 "000b39d5d910b867ff7e087177b470a1e26e2819920dcffd5991c33f6d480392"
+  url "https://github.com/grobian/html2text/archive/v2.0.1.tar.gz"
+  sha256 "c52f16a282b69b9dc9f7b5fac7f44b15f90b74e012f0aa2d63fbf5b0fe5e5c49"
+  license "GPL-2.0"
+  head "https://github.com/grobian/html2text.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "c8b7e49edc4b7a234546fa7ae983cefd374b43254fcd197771c6178f4b8522d3" => :mojave
-    sha256 "651c7204ba8de17d552b8ccef6cb381f41bd1ca8f0f3b2577543e0daf4d92899" => :high_sierra
-    sha256 "8f0adab889fb872e10fd26d57d063b9501298e11db2f996d495db0951662596f" => :sierra
-    sha256 "766f16608d01f0fdf581e64e96a92d311cf96589b938cd87957d0543bb7fd1df" => :el_capitan
-    sha256 "103d5c3d14bb0b13b2c6fe20f9889ea1269d276a6d294dd058c7c75ea78bf7ae" => :yosemite
-    sha256 "b691a4fa679e2ae4562afe36d216b13ecaf2355167d4142bdb0f697f753eac19" => :mavericks
-  end
-
-  # Patch provided by author. See:
-  # http://www.mbayer.de/html2text/faq.shtml#sect6
-  patch do
-    url "http://www.mbayer.de/html2text/downloads/patch-utf8-html2text-1.3.2a.diff"
-    sha256 "be4e90094d2854059924cb2c59ca31a5e9e0e22d2245fa5dc0c03f604798c5d1"
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "e78419657ce5e06388abd3a41ec0322383aca2c2c71b2e45139ca78832d452f3"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "9c148cd0d5d064c8ad263ca7c12c9e4a73ce3ff5d1f9feebca0009e4a41add25"
+    sha256 cellar: :any_skip_relocation, monterey:       "bd43224481e6120f6f304b1861e514fdf4571d1f5b558c86827d55ada0682fbe"
+    sha256 cellar: :any_skip_relocation, big_sur:        "3f8d47270e3e7f0fdbb628cac56a9da064c70de4f1988a6dec2985bb5e5235f9"
+    sha256 cellar: :any_skip_relocation, catalina:       "5a236441829b3eaa51e021fda8e10bac0dc8b8ad80fa95fb268a7f21be18864c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "97fe7d5f5d6188936ffc827e284fd438cacf7d08a4bd0590d3724284b0f40eba"
   end
 
   def install
-    inreplace "configure",
-              'for i in "CC" "g++" "cc" "$CC"; do',
-              'for i in "g++"; do'
+    ENV.cxx11
 
     system "./configure"
     system "make", "all"
-
-    bin.install "html2text"
-    man1.install "html2text.1.gz"
-    man5.install "html2textrc.5.gz"
+    system "make", "install", "PREFIX=#{prefix}", "MANDIR=#{man}"
   end
 
   test do

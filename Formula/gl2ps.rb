@@ -1,34 +1,46 @@
 class Gl2ps < Formula
   desc "OpenGL to PostScript printing library"
   homepage "https://www.geuz.org/gl2ps/"
-  url "https://geuz.org/gl2ps/src/gl2ps-1.4.0.tgz"
-  sha256 "03cb5e6dfcd87183f3b9ba3b22f04cd155096af81e52988cc37d8d8efe6cf1e2"
+  url "https://geuz.org/gl2ps/src/gl2ps-1.4.2.tgz"
+  sha256 "8d1c00c1018f96b4b97655482e57dcb0ce42ae2f1d349cd6d4191e7848d9ffe9"
+  license "GL2PS"
+
+  livecheck do
+    url "https://geuz.org/gl2ps/src/"
+    regex(/href=.*?gl2ps[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "7bf3019a9fb17682cbe1c62be79fd48b5e46dd5fdeeb93dab65f10509f0da011" => :mojave
-    sha256 "58ccd9856c162d924115146e1ff050d364e6302d20cb7003645724e9418bedb5" => :high_sierra
-    sha256 "4481d5e37838c2189005dd2eadbc37f45e0a1189ea9565ab8dee60d010b96036" => :sierra
-    sha256 "e3a68d4e95ce16e3e144e42bc7c81282e7e495971cea02b0c8f39663425d2017" => :el_capitan
-    sha256 "c1131b4a3053bff982689fa05c75b97e612f4b1501900187c60481a5e51a382d" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "e08ec8cea6a733012aadbd5b2eeef661030005c1a7b24f77f5371385191ed921"
+    sha256 cellar: :any,                 arm64_big_sur:  "02cad33d0c39773c7a0c0983f125fc04fe86d265b31cac034be45379265e65be"
+    sha256 cellar: :any,                 monterey:       "be22c8b58f988c2ad5ca8527f374febb62193cec05c910c14d639101d9e32cc3"
+    sha256 cellar: :any,                 big_sur:        "4ad3d5fcf0a8393e77881e4ea73c160200f6573aa05f6db84e452d920a5f7185"
+    sha256 cellar: :any,                 catalina:       "dbdfe5d8458e1224941d6e5707b725ab6872333112dc408dbf35202eddbc8d15"
+    sha256 cellar: :any,                 mojave:         "bc857ec44c73448acf748dea7a699e1018a874196dec19659a63aa70a7b5e970"
+    sha256 cellar: :any,                 high_sierra:    "6c36dc780b0579f44057cadddb9e1a2e369e2ba9205b68d6c81ebd79defc45b4"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "e85c3e2f25855ef919358e1912f3190ba8e6890cfd5329931638b595cab962d1"
   end
 
   depends_on "cmake" => :build
   depends_on "libpng"
 
+  on_linux do
+    depends_on "freeglut"
+  end
+
   def install
-    # Prevent linking against X11's libglut.dylib when it's present
-    # Reported to upstream's mailing list gl2ps@geuz.org (1st April 2016)
-    # https://www.geuz.org/pipermail/gl2ps/2016/000433.html
-    # Reported to cmake's bug tracker, as well (1st April 2016)
-    # https://public.kitware.com/Bug/view.php?id=16045
-    system "cmake", ".", "-DGLUT_glut_LIBRARY=/System/Library/Frameworks/GLUT.framework", *std_cmake_args
+    system "cmake", ".", *std_cmake_args
     system "make", "install"
   end
 
   test do
+    glu = if OS.mac?
+      "GLUT"
+    else
+      "GL"
+    end
     (testpath/"test.c").write <<~EOS
-      #include <GLUT/glut.h>
+      #include <#{glu}/glut.h>
       #include <gl2ps.h>
 
       int main(int argc, char *argv[])
@@ -57,7 +69,15 @@ class Gl2ps < Formula
         return 0;
       }
     EOS
-    system ENV.cc, "-L#{lib}", "-lgl2ps", "-framework", "OpenGL", "-framework", "GLUT", "-framework", "Cocoa", "test.c", "-o", "test"
+    if OS.mac?
+      system ENV.cc, "-L#{lib}", "-lgl2ps", "-framework", "OpenGL", "-framework", "GLUT",
+                     "-framework", "Cocoa", "test.c", "-o", "test"
+    else
+      system ENV.cc, "test.c", "-o", "test", "-L#{lib}", "-lgl2ps", "-lglut", "-lGL"
+
+      # Fails without an X11 display: freeglut (./test): failed to open display ''
+      return if ENV["HOMEBREW_GITHUB_ACTIONS"]
+    end
     system "./test"
     assert_predicate testpath/"test.eps", :exist?
     assert_predicate File.size("test.eps"), :positive?

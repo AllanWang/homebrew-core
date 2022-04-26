@@ -3,27 +3,46 @@ class Gtksourceview < Formula
   homepage "https://projects.gnome.org/gtksourceview/"
   url "https://download.gnome.org/sources/gtksourceview/2.10/gtksourceview-2.10.5.tar.gz"
   sha256 "f5c3dda83d69c8746da78c1434585169dd8de1eecf2a6bcdda0d9925bf857c97"
-  revision 4
+  revision 6
+
+  livecheck do
+    url :stable
+    regex(/gtksourceview[._-]v?(2\.([0-8]\d*?)?[02468](?:\.\d+)*?)\.t/i)
+  end
 
   bottle do
-    sha256 "9370eb21569cf53d43593c7a07ed9694195622e46c6acb30e78848aa726ddf97" => :mojave
-    sha256 "9af07449473fb9355a5e28ab39c667bd32746fce27837c88338d5493461bf1ab" => :high_sierra
-    sha256 "8b1bb29b9d1fa1dda49752ac616b039a0b2eef6e03f443dd861a63201615ce87" => :sierra
+    sha256 arm64_monterey: "d48d0e57a52b6daa8a36000c39ae377cd4067a6dd2b3895d17bb6719dac8867c"
+    sha256 arm64_big_sur:  "3622986240ea216f4a404ea7e40d2099d94bc0f175bdb0ac0d8b242c29d81514"
+    sha256 monterey:       "1338c7b2359052b1ac5770afac61477898528766e3dff0fa489fdd00f132bd7e"
+    sha256 big_sur:        "146b08e9b6c084de86ed9de2783f50b4c564826f102b0d917579ffa19b60ab94"
+    sha256 catalina:       "633745bd26dcc7d96f3c102002a2cdfb1cb45ff2762a5c2c814d2af787b6a5c5"
+    sha256 mojave:         "e4acd9c34e98b342eac330a7c7393b1199441474be6e3d7523c6b173e609febe"
+    sha256 x86_64_linux:   "d37f90eecf7dbc89d89af0efa8fe6f78d8912dc77fd525dff5d3a181cff9e22e"
   end
 
   depends_on "intltool" => :build
   depends_on "pkg-config" => :build
   depends_on "gettext"
   depends_on "gtk+"
-  depends_on "gtk-mac-integration"
+
+  uses_from_macos "perl" => :build
+
+  on_macos do
+    depends_on "gtk-mac-integration"
+  end
 
   # patches added the ensure that gtk-mac-integration is supported properly instead
   # of the old released called ige-mac-integration.
   # These are already integrated upstream in their gnome-2-30 branch but a release of
   # this remains highly unlikely
-  patch :DATA
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/85fa66a9/gtksourceview/2.10.5.patch"
+    sha256 "1c91cd534d73a0f9b0189da572296c5bd9f99e0bb0d3004a5e9cbd9f828edfaf"
+  end
 
   def install
+    ENV.prepend_path "PERL5LIB", Formula["intltool"].libexec/"lib/perl5" unless OS.mac?
+
     system "./configure", "--disable-dependency-tracking",
                           "--prefix=#{prefix}"
     system "make", "install"
@@ -47,6 +66,7 @@ class Gtksourceview < Formula
     gettext = Formula["gettext"]
     glib = Formula["glib"]
     gtkx = Formula["gtk+"]
+    harfbuzz = Formula["harfbuzz"]
     libpng = Formula["libpng"]
     pango = Formula["pango"]
     pixman = Formula["pixman"]
@@ -61,6 +81,7 @@ class Gtksourceview < Formula
       -I#{glib.opt_lib}/glib-2.0/include
       -I#{gtkx.opt_include}/gtk-2.0
       -I#{gtkx.opt_lib}/gtk-2.0/include
+      -I#{harfbuzz.opt_include}/harfbuzz
       -I#{include}/gtksourceview-2.0
       -I#{libpng.opt_include}/libpng16
       -I#{pango.opt_include}/pango-1.0
@@ -76,103 +97,22 @@ class Gtksourceview < Formula
       -L#{pango.opt_lib}
       -latk-1.0
       -lcairo
-      -lgdk-quartz-2.0
       -lgdk_pixbuf-2.0
       -lgio-2.0
       -lglib-2.0
       -lgobject-2.0
-      -lgtk-quartz-2.0
       -lgtksourceview-2.0
-      -lintl
       -lpango-1.0
       -lpangocairo-1.0
     ]
+    if OS.mac?
+      flags += %w[
+        -lintl
+        -lgdk-quartz-2.0
+        -lgtk-quartz-2.0
+      ]
+    end
     system ENV.cc, "test.c", "-o", "test", *flags
     system "./test"
   end
 end
-__END__
-diff --git a/configure b/configure
-index ed522e5..5f51d4f 100755
---- a/configure
-+++ b/configure
-@@ -11220,12 +11220,12 @@ if test -n "$IGE_MAC_CFLAGS"; then
-     pkg_cv_IGE_MAC_CFLAGS="$IGE_MAC_CFLAGS"
-  elif test -n "$PKG_CONFIG"; then
-     if test -n "$PKG_CONFIG" && \
--    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"ige-mac-integration\""; } >&5
--  ($PKG_CONFIG --exists --print-errors "ige-mac-integration") 2>&5
-+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk-mac-integration-gtk2\""; } >&5
-+  ($PKG_CONFIG --exists --print-errors "gtk-mac-integration-gtk2") 2>&5
-   ac_status=$?
-   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-   test $ac_status = 0; }; then
--  pkg_cv_IGE_MAC_CFLAGS=`$PKG_CONFIG --cflags "ige-mac-integration" 2>/dev/null`
-+  pkg_cv_IGE_MAC_CFLAGS=`$PKG_CONFIG --cflags "gtk-mac-integration-gtk2" 2>/dev/null`
- else
-   pkg_failed=yes
- fi
-@@ -11236,12 +11236,12 @@ if test -n "$IGE_MAC_LIBS"; then
-     pkg_cv_IGE_MAC_LIBS="$IGE_MAC_LIBS"
-  elif test -n "$PKG_CONFIG"; then
-     if test -n "$PKG_CONFIG" && \
--    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"ige-mac-integration\""; } >&5
--  ($PKG_CONFIG --exists --print-errors "ige-mac-integration") 2>&5
-+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk-mac-integration-gtk2\""; } >&5
-+  ($PKG_CONFIG --exists --print-errors "gtk-mac-integration-gtk2") 2>&5
-   ac_status=$?
-   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-   test $ac_status = 0; }; then
--  pkg_cv_IGE_MAC_LIBS=`$PKG_CONFIG --libs "ige-mac-integration" 2>/dev/null`
-+  pkg_cv_IGE_MAC_LIBS=`$PKG_CONFIG --libs "gtk-mac-integration-gtk2" 2>/dev/null`
- else
-   pkg_failed=yes
- fi
-@@ -11261,14 +11261,14 @@ else
-         _pkg_short_errors_supported=no
- fi
-         if test $_pkg_short_errors_supported = yes; then
--	        IGE_MAC_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "ige-mac-integration" 2>&1`
-+	        IGE_MAC_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "gtk-mac-integration-gtk2" 2>&1`
-         else
--	        IGE_MAC_PKG_ERRORS=`$PKG_CONFIG --print-errors "ige-mac-integration" 2>&1`
-+	        IGE_MAC_PKG_ERRORS=`$PKG_CONFIG --print-errors "gtk-mac-integration-gtk2" 2>&1`
-         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$IGE_MAC_PKG_ERRORS" >&5
-
--	as_fn_error $? "Package requirements (ige-mac-integration) were not met:
-+	as_fn_error $? "Package requirements (gtk-mac-integration-gtk2) were not met:
-
- $IGE_MAC_PKG_ERRORS
-
-diff --git a/gtksourceview/gtksourceview-i18n.c b/gtksourceview/gtksourceview-i18n.c
-index e4db3eb..70f8f2c 100644
---- a/gtksourceview/gtksourceview-i18n.c
-+++ b/gtksourceview/gtksourceview-i18n.c
-@@ -24,7 +24,7 @@
- #endif
-
- #ifdef OS_OSX
--#include <ige-mac-bundle.h>
-+#include <gtkosxapplication.h>
- #endif
-
- #include <string.h>
-@@ -45,12 +45,10 @@ get_locale_dir (void)
-
-	g_free (win32_dir);
- #elif defined (OS_OSX)
--	IgeMacBundle *bundle = ige_mac_bundle_get_default ();
--
--	if (ige_mac_bundle_get_is_app_bundle (bundle))
--	{
--		locale_dir = g_strdup (ige_mac_bundle_get_localedir (bundle));
--	}
-+        if(gtkosx_application_get_bundle_id () != NULL)
-+ 	{
-+ 		locale_dir = g_strdup (gtkosx_application_get_resource_path ());
-+ 	}
-	else
-	{
-		locale_dir = g_build_filename (DATADIR, "locale", NULL);

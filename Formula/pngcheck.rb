@@ -1,19 +1,26 @@
 class Pngcheck < Formula
   desc "Print info and check PNG, JNG, and MNG files"
   homepage "http://www.libpng.org/pub/png/apps/pngcheck.html"
-  url "https://downloads.sourceforge.net/project/png-mng/pngcheck/2.3.0/pngcheck-2.3.0.tar.gz"
-  sha256 "77f0a039ac64df55fbd06af6f872fdbad4f639d009bbb5cd5cbe4db25690f35f"
-  revision 1
+  url "http://www.libpng.org/pub/png/src/pngcheck-3.0.3.tar.gz"
+  sha256 "c36a4491634af751f7798ea421321642f9590faa032eccb0dd5fb4533609dee6"
+  license all_of: ["MIT", "GPL-2.0-or-later"]
+
+  livecheck do
+    url :homepage
+    regex(/href=.*?pngcheck[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "22033aa6f7b96ecb9d7eb038b7103e5faa782f4d36c142c3220f1e1ff1fc9e9e" => :mojave
-    sha256 "f4cdf56cdf51ab156bcc1009cce5cdd46d86de12811549136d50a1a18295b7c7" => :high_sierra
-    sha256 "c98b0fd09e8b615f98d4ee9762485a8e9026c9cdb3dc576ef81ee0bbff6058d7" => :sierra
-    sha256 "98e0a49125511f279c09c99fdb33ea5e2d44f489be4a8a6d70ce9faba48e8b92" => :el_capitan
-    sha256 "2f8901f0259f2ec24478268e5fa4cd8fe904a160592f118efdddf4ba20221dd6" => :yosemite
-    sha256 "af2af2a3771b7730c0da6fe3c74f6044b3664498c0b9f5070be3cf4d7ec1274e" => :mavericks
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "25f8462c7bd187f4fca2429f6844652ba6f1cc18143028fdf3fdb2ca98afd8aa"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "a009523aaa8a5c8eb879fda99829ce1007b682b2caa2413af78112aa94ee741c"
+    sha256 cellar: :any_skip_relocation, monterey:       "c5d47d9ee6ecfe6704d146c78531ad34c42e62a43a0bbfd0adc01e6a570d5a65"
+    sha256 cellar: :any_skip_relocation, big_sur:        "8a025005cde9e8423606279cea498d921810f2334fe17a7bf23a1eba6ee54aef"
+    sha256 cellar: :any_skip_relocation, catalina:       "a4256bacc1a8025fa298b35d93af3ecf213449ab9118106530cdd29455293ead"
+    sha256 cellar: :any_skip_relocation, mojave:         "6423830817d3166ce48ea9cb88f3a83f1f7e381d8a1039c4db153e465450d5c5"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "bee1eb579044cbdf33c6e4f045a800debb49b2f9ca4d3517d718956872a58a97"
   end
+
+  uses_from_macos "zlib"
 
   def install
     system "make", "-f", "Makefile.unx", "ZINC=", "ZLIB=-lz"

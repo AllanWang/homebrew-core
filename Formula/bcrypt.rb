@@ -3,16 +3,26 @@ class Bcrypt < Formula
   homepage "https://bcrypt.sourceforge.io/"
   url "https://bcrypt.sourceforge.io/bcrypt-1.1.tar.gz"
   sha256 "b9c1a7c0996a305465135b90123b0c63adbb5fa7c47a24b3f347deb2696d417d"
+  license "BSD-3-Clause"
+
+  livecheck do
+    url :homepage
+    regex(/href=.*?bcrypt[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "ef0fbaf77cad63f0450bde11bd6ba89fe2217ecb0f95b1952dd93c56730f615e" => :mojave
-    sha256 "70235a007382bbbaeddbfc52b503e86b6cadcb7d07b752d97c8ce0861bccd3a8" => :high_sierra
-    sha256 "913cfce96b6de1fce20ee1ff771ef22e3663f3da6c7529d7efc3a43b0e1d92b8" => :sierra
-    sha256 "d674203ce681f17519eee1ce7a3258615b2de5a8a12460d7de284af09028d7da" => :el_capitan
-    sha256 "dbd530bd84a1e92120aacf07f60e3b6131c92421702ab8b9f9e02d3b72a00ad6" => :yosemite
-    sha256 "2a0a662d778677d75222745b30e6c5e825078855d303cf853609f50b1ceca4a6" => :mavericks
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "4f04889e8272f7ed1efdcf2abd53fc9a108d2a33c72ba75c7da9aca1030cee43"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "7b3e672ab9055b69dc1c7c5a7d13ad3a9a375f60de85cfcc5268f7eb139edcda"
+    sha256 cellar: :any_skip_relocation, monterey:       "4b2f21d383ed9a4319d26a8093d55702a34340f307148d2fbfa3d1084e7cd41d"
+    sha256 cellar: :any_skip_relocation, big_sur:        "9c3948e719b6b5cb195fc30c8e0fd555c35d9fcea7a5a6c607b094ce2e097f01"
+    sha256 cellar: :any_skip_relocation, catalina:       "132998cb8e196f506666943a94a26927a19899cb1e45ee8eaf65e5ad0ee7ef8d"
+    sha256 cellar: :any_skip_relocation, mojave:         "bb843c3b04f9adf57df1c2d07e30303626eedb0f45695dcaf38d0835ea3e35fd"
+    sha256 cellar: :any_skip_relocation, high_sierra:    "883a4a97b7275e91cd90ab9d1ca69fa2a3c0db3544a2d77863a37bda16c51667"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "fdc4ce5fa8dfa43b86a28d9f149ca0fe9ed94e698d4f3ca40c5352a9b912734e"
   end
+
+  uses_from_macos "zlib"
 
   def install
     system "make", "CC=#{ENV.cc}",

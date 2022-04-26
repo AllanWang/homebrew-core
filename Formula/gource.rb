@@ -1,14 +1,17 @@
 class Gource < Formula
   desc "Version Control Visualization Tool"
   homepage "https://github.com/acaudwell/Gource"
-  url "https://github.com/acaudwell/Gource/releases/download/gource-0.49/gource-0.49.tar.gz"
-  sha256 "a9dd23693861e224322708a8e26c9e3aaa3e4c9ec41264b1ee2d5dcd6e2c0e8a"
+  url "https://github.com/acaudwell/Gource/releases/download/gource-0.52/gource-0.52.tar.gz"
+  sha256 "92e713291936cc4688b6d3d52868f4cca4263c2efec9b3848086e93cd9935e08"
+  license "GPL-3.0-or-later"
 
   bottle do
-    rebuild 1
-    sha256 "f7b1c895b7c202aae26d1396b2634082ede889eb5c9bf0b2d7758e52f88c924e" => :mojave
-    sha256 "72e08ff92d3ac208ec5fcb9a6514ca0d47db160eb9cab604a236ea3a31a149de" => :high_sierra
-    sha256 "de278ad81dfaa50d78f66b307044464b3db7741f02b5933ea1046347775674b8" => :sierra
+    sha256 arm64_monterey: "1c73e63e38f78e848e9f3dbc4ee48c80eff0ca1c9c455bc871dbefa7ce9b05b1"
+    sha256 arm64_big_sur:  "5391072ce69057a19ba0270f3a174bbcf6ea3b87eb8a27f9c3338e9ed96c6b55"
+    sha256 monterey:       "e00886c4c8d3e3c024086da0811c629c4212a2bd28e3a43014a231a7d2980e68"
+    sha256 big_sur:        "0b3f32ffa9b3e5277fb860059121dd35e57cab39c859cec20ffa687648a4b8bd"
+    sha256 catalina:       "aca0d1acc8d793b57d1d9b1eaf0e23eff007168dfee847fd47ee5f6d741714a9"
+    sha256 x86_64_linux:   "48c6dbf70ab1ad72876b5806ca745e62762d12d3f894d7ecd9f8f22bbd43316e"
   end
 
   head do
@@ -25,7 +28,7 @@ class Gource < Formula
   depends_on "freetype"
   depends_on "glew"
   depends_on "libpng"
-  depends_on "pcre"
+  depends_on "pcre2"
   depends_on "sdl2"
   depends_on "sdl2_image"
 
@@ -33,6 +36,7 @@ class Gource < Formula
     # clang on Mt. Lion will try to build against libstdc++,
     # despite -std=gnu++0x
     ENV.libcxx
+    ENV.append "LDFLAGS", "-pthread" if OS.linux?
 
     system "autoreconf", "-f", "-i" if build.head?
 

@@ -1,14 +1,18 @@
 class Leveldb < Formula
   desc "Key-value storage library with ordered mapping"
   homepage "https://github.com/google/leveldb/"
-  url "https://github.com/google/leveldb/archive/1.22.tar.gz"
-  sha256 "55423cac9e3306f4a9502c738a001e4a339d1a38ffbee7572d4a07d5d63949b2"
+  url "https://github.com/google/leveldb/archive/1.23.tar.gz"
+  sha256 "9a37f8a6174f09bd622bc723b55881dc541cd50747cbd08831c2a82d620f6d76"
+  license "BSD-3-Clause"
 
   bottle do
-    cellar :any
-    sha256 "22e4a129bedd5030525f749a5b5ec978bf6da0a9b0625fe829da482a5ab85755" => :mojave
-    sha256 "b1cf697cad28caac418d2e0ef49bc90863f389402185d3cc0f1f7079516d02c2" => :high_sierra
-    sha256 "810dbeba5e3f7d72d4772b9eff4d9022a1240c0abc6235afbd343c199741e6f7" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "41f1ceea1e85dafe0552acf94a4903ef45fd54fc63e38c277b7d101c836e5801"
+    sha256 cellar: :any,                 arm64_big_sur:  "377ac4b779d9ac24295b99c5f859dc8f78f473e62a90849f09eeec7a72d872d2"
+    sha256 cellar: :any,                 monterey:       "3b4ce296ae8732cdec0b9fdc3623a5c12f8739b61c39cdb96be423e8004834be"
+    sha256 cellar: :any,                 big_sur:        "bb5f8bc871e315e4ae36f011052f2b92e35040cc03ef8d448093e7be1bdfe6ac"
+    sha256 cellar: :any,                 catalina:       "299f9004aa344b2ac164fdeee5a077c3e45335f3527cb8f2e67b46acf88b185a"
+    sha256 cellar: :any,                 mojave:         "b4d54e51eef8d5d538830f555561fa4cc5f1b275b45588eae364d79de6b1d716"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "c056f3b6a5e2b25d90b57255138ce65796615d0e66d7156821b13ebbe8f836cd"
   end
 
   depends_on "cmake" => :build
@@ -16,13 +20,20 @@ class Leveldb < Formula
   depends_on "snappy"
 
   def install
+    args = *std_cmake_args + %W[
+      -DLEVELDB_BUILD_TESTS=OFF
+      -DLEVELDB_BUILD_BENCHMARKS=OFF
+      -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+      -DCMAKE_INSTALL_RPATH=#{rpath}
+    ]
+
     mkdir "build" do
-      system "cmake", "..", *std_cmake_args, "-DBUILD_SHARED_LIBS=ON"
+      system "cmake", "..", *args, "-DBUILD_SHARED_LIBS=ON"
       system "make", "install"
       bin.install "leveldbutil"
 
       system "make", "clean"
-      system "cmake", "..", *std_cmake_args, "-DBUILD_SHARED_LIBS=OFF"
+      system "cmake", "..", *args, "-DBUILD_SHARED_LIBS=OFF"
       system "make"
       lib.install "libleveldb.a"
     end

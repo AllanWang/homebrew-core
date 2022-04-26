@@ -1,40 +1,44 @@
 class Skaffold < Formula
   desc "Easy and Repeatable Kubernetes Development"
-  homepage "https://github.com/GoogleContainerTools/skaffold"
+  homepage "https://skaffold.dev/"
   url "https://github.com/GoogleContainerTools/skaffold.git",
-      :tag      => "v0.33.0",
-      :revision => "68fe5670b38a19cc5f689040ad2088c5bdeea779"
-  head "https://github.com/GoogleContainerTools/skaffold.git"
+      tag:      "v1.38.0",
+      revision: "89b789ddcfe00d2fe7626fd86ef39a3eb6b455c5"
+  license "Apache-2.0"
+  head "https://github.com/GoogleContainerTools/skaffold.git", branch: "main"
 
-  bottle do
-    cellar :any_skip_relocation
-    sha256 "cb7ef0bc8ec208be2503586951dd4a056136a273de0598e2abc74304f3a55683" => :mojave
-    sha256 "2ef80fe21fa2f21c38f544b1763a1a28f35eac8587744fa1f07eede15083d33b" => :high_sierra
-    sha256 "7d79d76007390cd7ae56e7cbbfe6577191c688a2cb1a0a501ff8e934b6f3c239" => :sierra
+  # This uses the `GithubLatest` strategy to work around an old `v2.2.3` tag
+  # that is always seen as newer than the latest version. If Skaffold ever
+  # reaches version 2.2.3, we can switch back to the `Git` strategy.
+  livecheck do
+    url :stable
+    strategy :github_latest
   end
 
-  depends_on "go" => :build
+  bottle do
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "f5f86e0f2c7df648c93973f1d1f5bb3fd36a6e70732755ba8e0275fe6a9827cd"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "267f1056fb46f40e4b80385b65aeced63274b4834e84ca180a18c16500026260"
+    sha256 cellar: :any_skip_relocation, monterey:       "8aa5361678edd51d0186a62ce9846c0bd114bfa934dacc897d8cf5e050b232ba"
+    sha256 cellar: :any_skip_relocation, big_sur:        "86b4b0cf661910e5f405c55d5d6272a3a5bc5d5204a071e9580946ef03c089d1"
+    sha256 cellar: :any_skip_relocation, catalina:       "e7f0b3a1532b269a9779de0ed47116cccc2aa62df86b6f6ecd328c3d07a8182a"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "30fb90ce26b77c73a6acedf99b399558d1f5a02853862209dfac2e6cb53f1982"
+  end
+
+  # Bump to 1.18 on the next release, if possible.
+  depends_on "go@1.17" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-    dir = buildpath/"src/github.com/GoogleContainerTools/skaffold"
-    dir.install buildpath.children - [buildpath/".brew_home"]
-    cd dir do
-      system "make"
-      bin.install "out/skaffold"
-
-      output = Utils.popen_read("#{bin}/skaffold completion bash")
-      (bash_completion/"skaffold").write output
-
-      output = Utils.popen_read("#{bin}/skaffold completion zsh")
-      (zsh_completion/"_skaffold").write output
-
-      prefix.install_metafiles
-    end
+    system "make"
+    bin.install "out/skaffold"
+    output = Utils.safe_popen_read("#{bin}/skaffold", "completion", "bash")
+    (bash_completion/"skaffold").write output
+    output = Utils.safe_popen_read("#{bin}/skaffold", "completion", "zsh")
+    (zsh_completion/"_skaffold").write output
   end
 
   test do
-    output = shell_output("#{bin}/skaffold version --output {{.GitTreeState}}")
-    assert_match "clean", output
+    (testpath/"Dockerfile").write "FROM scratch"
+    output = shell_output("#{bin}/skaffold init --analyze").chomp
+    assert_equal '{"builders":[{"name":"Docker","payload":{"path":"Dockerfile"}}]}', output
   end
 end

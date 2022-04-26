@@ -3,12 +3,18 @@ class Pdfgrep < Formula
   homepage "https://pdfgrep.org/"
   url "https://pdfgrep.org/download/pdfgrep-2.1.2.tar.gz"
   sha256 "0ef3dca1d749323f08112ffe68e6f4eb7bc25f56f90a2e933db477261b082aba"
+  license "GPL-2.0-only"
+  revision 1
 
   bottle do
-    cellar :any
-    sha256 "4e6828ef5db24086dae00e10c9c18671352303c6e79a2148f62bd9104678ea08" => :mojave
-    sha256 "95ffadce5ed5baa82a48c71e1bb8915d080c9e9d4a14e63982945eb543e58b10" => :high_sierra
-    sha256 "b004e7801489c6cb0361c5032278d11cafd4ace151a02ee97214c79dba0f89be" => :sierra
+    rebuild 1
+    sha256 cellar: :any,                 arm64_monterey: "adfcd59692904387134b794317ee336369046ff154611b58b7f2a766ed84e406"
+    sha256 cellar: :any,                 arm64_big_sur:  "b4bf22a5e3b55fe230c32a72d6d58ff8ba432b976dd74c189999fe0308d49f19"
+    sha256 cellar: :any,                 monterey:       "cc197e6420090feed9a97f021642994beabb47feff2f87a6c172bdf53583983b"
+    sha256 cellar: :any,                 big_sur:        "626dcfe4a770d5fee8498dcc58aaa5152a4532c06a707b37d81076e6cd4b9ced"
+    sha256 cellar: :any,                 catalina:       "536c672e1e8cad042b151f9d82143b71019aedfea23ab3d34df1c7844fa9e568"
+    sha256 cellar: :any,                 mojave:         "f65e1a759163e3f50429241577b54fefc1b0640369129820979301156883e86d"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "ca757c071733afdc7b4b791d2fc81a87f48e599cb82e72dec3ea64dd0b458f27"
   end
 
   head do
@@ -22,6 +28,12 @@ class Pdfgrep < Formula
   depends_on "libgcrypt"
   depends_on "pcre"
   depends_on "poppler"
+
+  on_linux do
+    depends_on "gcc"
+  end
+
+  fails_with gcc: "5"
 
   def install
     ENV.cxx11

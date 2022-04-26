@@ -1,20 +1,24 @@
 class Tass64 < Formula
   desc "Multi pass optimizing macro assembler for the 65xx series of processors"
   homepage "https://tass64.sourceforge.io/"
-  url "https://downloads.sourceforge.net/project/tass64/source/64tass-1.54.1900-src.zip"
-  sha256 "5bf28dfcc7631a20a3ed7e308a50fe219d8a6417ad59d1d1162836ec3a1506ee"
+  url "https://downloads.sourceforge.net/project/tass64/source/64tass-1.56.2625-src.zip"
+  sha256 "c4e570c717c9500f3af61a3ad5d536f22415e2b29ed1eb09b1a955d310c9f3d3"
+  license all_of: ["GPL-2.0-or-later", "LGPL-2.0-or-later", "LGPL-2.1-only", "MIT"]
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "a50a7694850bb4da92edf5aa79e509935ae16951f1e362c31ffe22f2c15e9858" => :mojave
-    sha256 "db03b63e4f453c52de9b9b22c9596e8f3b45b71c1fcab8a039a71def6186906f" => :high_sierra
-    sha256 "ec0c831022ccc4446820bc73076dbb3c1f17c80cdcb3af8c21a62b801f27561b" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "a728bdf4efe32d5cfd7a15d502cd13d65e1ddec15998dd569d6fa94a7f4fd2f7"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "7468a371a0c4627bf592d4e6fe36b9c854def7caa2b7270faa20ff97ca2cc7df"
+    sha256 cellar: :any_skip_relocation, monterey:       "878ae43e115b1248160fbc7652f8024705162aa3263660a7e62382e14806b4e3"
+    sha256 cellar: :any_skip_relocation, big_sur:        "70f966e5974c671aac1c1209c2273325be29b5d56de851416344d0559c8b8c34"
+    sha256 cellar: :any_skip_relocation, catalina:       "e59c0c91030879fbc49cd205a1e5e0e5c0026434d1bff86a9742b4d00139824c"
+    sha256 cellar: :any_skip_relocation, mojave:         "a5be46e97063271c7bc9ddadc88e4b318193ee0f0556489593c3db9aed5ef03b"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "e5d380c36fde7617c613b0da5854de0f8b73150a3370f0f8b4d281191a67ed60"
   end
 
   def install
     system "make", "install", "CPPFLAGS=-D_XOPEN_SOURCE", "prefix=#{prefix}"
 
-    # `make install` does not install syntax highlighting defintions
+    # `make install` does not install syntax highlighting definitions
     pkgshare.install "syntax"
   end
 

@@ -1,14 +1,22 @@
 class Gitg < Formula
   desc "GNOME GUI client to view git repositories"
   homepage "https://wiki.gnome.org/Apps/Gitg"
-  url "https://download.gnome.org/sources/gitg/3.32/gitg-3.32.0.tar.xz"
-  sha256 "01d9b5ac385b383f3060c5d0b8c6cd7ef6b4d6bf13a2911c385c2800d7d9faf3"
-  revision 1
+  url "https://download.gnome.org/sources/gitg/41/gitg-41.tar.xz"
+  sha256 "7fb61b9fb10fbaa548d23d7065babd72ad63e621de55840c065ce6e3986c4629"
+  license "GPL-2.0-or-later"
+
+  livecheck do
+    url :stable
+    regex(/gitg[._-]v?(\d+(?:\.\d+)*)\.t/i)
+  end
 
   bottle do
-    sha256 "0a7fe76e7d11f34813f5378c4e0f9e47654168094fcac8e35efc37b99015e22e" => :mojave
-    sha256 "a150a053c87b14abd56be214710b14793ee98a235d84c3debb32d75d2c926216" => :high_sierra
-    sha256 "f0744c93db256a192fbfd2ac35fa4be8ac85c0cd58ad7d3376d567e22ab0f64d" => :sierra
+    sha256 arm64_monterey: "f68e86061156ba405410156aa3e4066015cdb9227162d68f2581664a6a7b4ba9"
+    sha256 arm64_big_sur:  "a2bf23c4cb3fdfdcdb05f250b5bf62d33bc60d01072f182f1209a40b604674df"
+    sha256 monterey:       "70d587c967403aafdff322736896ad013be0b1bc0a4a9fbe60329913a4f07fad"
+    sha256 big_sur:        "45de0fdc63fdd84c90e4ccfcbd99e7f2338b5d5510f7b8364fc32b49d6335528"
+    sha256 catalina:       "6243ae261e1994f5b72c79bb469c23270c67e25a1e0f1a4a1fa39f1f248fd3f4"
+    sha256 x86_64_linux:   "e25650fea8b7537a43e868afc3f0e1ac7aa1ed8153b655556bafe6fbdf883132"
   end
 
   depends_on "intltool" => :build
@@ -18,23 +26,30 @@ class Gitg < Formula
   depends_on "vala" => :build
   depends_on "adwaita-icon-theme"
   depends_on "gobject-introspection"
+  depends_on "gspell"
   depends_on "gtk+3"
-  depends_on "gtksourceview3"
-  depends_on "gtkspell3"
+  depends_on "gtksourceview4"
   depends_on "hicolor-icon-theme"
+  depends_on "json-glib"
   depends_on "libdazzle"
   depends_on "libgee"
   depends_on "libgit2"
   depends_on "libgit2-glib"
   depends_on "libpeas"
   depends_on "libsecret"
-  depends_on "libsoup"
+  depends_on "libsoup@2"
+
+  # Apply upstream commit to fix build.  Remove with next release.
+  patch do
+    url "https://gitlab.gnome.org/GNOME/gitg/-/commit/1978973b12848741b08695ec2020bac98584d636.diff"
+    sha256 "1787335100ab78bc044cda29613a40f3f85c3ef287646914e56b2ce578e05fdf"
+  end
 
   def install
     ENV["DESTDIR"] = "/"
 
     mkdir "build" do
-      system "meson", "--prefix=#{prefix}", "-Dpython=false", ".."
+      system "meson", *std_meson_args, "-Dpython=false", ".."
       system "ninja"
       system "ninja", "install"
     end
@@ -47,7 +62,8 @@ class Gitg < Formula
 
   test do
     # test executable
-    assert_match version.to_s, shell_output("#{bin}/gitg --version")
+    # Disable this part of test on Linux because display is not available.
+    assert_match version.to_s, shell_output("#{bin}/gitg --version") if OS.mac?
     # test API
     (testpath/"test.c").write <<~EOS
       #include <libgitg/libgitg.h>
@@ -73,7 +89,7 @@ class Gitg < Formula
     libgit2 = Formula["libgit2"]
     libgit2_glib = Formula["libgit2-glib"]
     libpng = Formula["libpng"]
-    libsoup = Formula["libsoup"]
+    libsoup = Formula["libsoup@2"]
     pango = Formula["pango"]
     pixman = Formula["pixman"]
     flags = %W[
@@ -129,10 +145,10 @@ class Gitg < Formula
       -lgobject-2.0
       -lgthread-2.0
       -lgtk-3
-      -lintl
       -lpango-1.0
       -lpangocairo-1.0
     ]
+    flags << "-lintl" if OS.mac?
     system ENV.cc, "test.c", "-o", "test", *flags
     system "./test"
   end

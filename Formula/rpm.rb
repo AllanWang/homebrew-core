@@ -1,31 +1,64 @@
 class Rpm < Formula
   desc "Standard unix software packaging tool"
   homepage "https://rpm.org/"
-  url "http://ftp.rpm.org/releases/rpm-4.14.x/rpm-4.14.2.1.tar.bz2"
-  sha256 "1139c24b7372f89c0a697096bf9809be70ba55e006c23ff47305c1849d98acda"
-  revision 1
+  url "http://ftp.rpm.org/releases/rpm-4.17.x/rpm-4.17.0.tar.bz2"
+  mirror "https://ftp.osuosl.org/pub/rpm/releases/rpm-4.17.x/rpm-4.17.0.tar.bz2"
+  sha256 "2e0d220b24749b17810ed181ac1ed005a56bbb6bc8ac429c21f314068dc65e6a"
+  license "GPL-2.0-only"
   version_scheme 1
 
-  bottle do
-    rebuild 1
-    sha256 "146272222c7a701f62bce7965157ebc6bf73d13d0a2f6afafbdeca177f57001e" => :mojave
-    sha256 "c0b83fa4507ba62ad669439b450e99fcf71a57c1d26632fba0b89e18c1e5167a" => :high_sierra
-    sha256 "49a5e6d1d9e54674ed2946d13ae939c21492903ad36aa55d89ff791d111f792f" => :sierra
+  livecheck do
+    url "https://rpm.org/download.html"
+    regex(/href=.*?rpm[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
+  bottle do
+    sha256 arm64_monterey: "dec1600907c7c9f4f60e133cc9f75ba72f57da692a5f3ca47c5d6429c52cfc5e"
+    sha256 arm64_big_sur:  "c4b10772346b10fce44ecb909a27701d8bd209b834755fd38abc325bcad4c75e"
+    sha256 monterey:       "0b379a488c105af62efe9e14e8508754d47bdc73334b0def3999278eee0321c9"
+    sha256 big_sur:        "6f857111ed59bf5efb8f97ad26c7ed52fb8e70a92d2978dc7d2f6173d14675cd"
+    sha256 catalina:       "29846a4e13dd2683318362442fe7a84c2b7cd71813291be24cc356bc657f8a8d"
+    sha256 mojave:         "aeab2644677216b3d631a4a1abb3d75aada85152f7f85a550ab43943b934f994"
+    sha256 x86_64_linux:   "1147c07948c53779fdf751623b349d6da6d6b4753103ce2c898da2cc68a0a041"
+  end
+
+  # We need autotools for the Lua patch below. Remove when the patch is no longer needed.
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
+  depends_on "libtool" => :build
   depends_on "berkeley-db"
   depends_on "gettext"
   depends_on "libarchive"
   depends_on "libmagic"
-  depends_on "lua@5.1"
-  depends_on "openssl"
+  depends_on "libomp"
+  depends_on "lua"
+  depends_on "openssl@1.1"
   depends_on "pkg-config"
   depends_on "popt"
+  depends_on "sqlite"
   depends_on "xz"
   depends_on "zstd"
 
+  # Fix `fstat64` detection for Apple Silicon.
+  # https://github.com/rpm-software-management/rpm/pull/1775
+  # https://github.com/rpm-software-management/rpm/pull/1897
+  if Hardware::CPU.arm?
+    patch do
+      url "https://github.com/rpm-software-management/rpm/commit/ad87ced3990c7e14b6b593fa411505e99412e248.patch?full_index=1"
+      sha256 "a129345c6ba026b337fe647763874bedfcaf853e1994cf65b1b761bc2c7531ad"
+    end
+  end
+
+  # Remove defunct Lua rex extension, which causes linking errors with Homebrew's Lua.
+  # https://github.com/rpm-software-management/rpm/pull/1797/files
+  patch do
+    url "https://github.com/rpm-software-management/rpm/commit/83d781c442158ce61286ac68cc350d10c2d3837e.patch?full_index=1"
+    sha256 "5dc9fb093ad46657575e5782d257d9b47d3c8119914283794464a84a7aef50b0"
+  end
+
   def install
-    ENV.prepend_path "PKG_CONFIG_PATH", Formula["lua@5.1"].opt_libexec/"lib/pkgconfig"
+    ENV.append "CPPFLAGS", "-I#{Formula["lua"].opt_include}/lua"
+    ENV.append "LDFLAGS", "-lomp"
 
     # only rpm should go into HOMEBREW_CELLAR, not rpms built
     inreplace ["macros.in", "platform.in"], "@prefix@", HOMEBREW_PREFIX
@@ -34,6 +67,9 @@ class Rpm < Formula
     inreplace "scripts/pkgconfigdeps.sh",
               "/usr/bin/pkg-config", Formula["pkg-config"].opt_bin/"pkg-config"
 
+    # Regenerate the `configure` script, since the lua patch touches luaext/Makefile.am.
+    # This also fixes the "-flat-namespace" bug. Remove `autoreconf` when the Lua patch is no longer needed.
+    system "autoreconf", "--force", "--install", "--verbose"
     system "./configure", "--disable-dependency-tracking",
                           "--disable-silent-rules",
                           "--prefix=#{prefix}",
@@ -46,15 +82,22 @@ class Rpm < Formula
                           "--with-external-db",
                           "--with-crypto=openssl",
                           "--without-apidocs",
-                          "--with-vendor=homebrew"
+                          "--with-vendor=#{tap.user.downcase}",
+                          # Don't allow superenv shims to be saved into lib/rpm/macros
+                          "__MAKE=/usr/bin/make",
+                          "__GIT=/usr/bin/git",
+                          "__LD=/usr/bin/ld",
+                          # GPG is not a strict dependency, so set stored GPG location to a decent default
+                          "__GPG=#{Formula["gpg"].opt_bin}/gpg"
+
     system "make", "install"
+
+    # NOTE: We need the trailing `/` to avoid leaving it behind.
+    inreplace lib/"rpm/macros", "#{Superenv.shims_path}/", ""
   end
 
   def post_install
     (var/"lib/rpm").mkpath
-
-    # Attempt to fix expected location of GPG to a sane default.
-    inreplace lib/"rpm/macros", "/usr/bin/gpg2", HOMEBREW_PREFIX/"bin/gpg"
   end
 
   def test_spec
@@ -90,14 +133,15 @@ class Rpm < Formula
 
   test do
     (testpath/"rpmbuild").mkpath
+
     (testpath/".rpmmacros").write <<~EOS
       %_topdir		#{testpath}/rpmbuild
-      %_tmppath		%{_topdir}/tmp
+      %_tmppath		%\{_topdir}/tmp
     EOS
 
     system "#{bin}/rpm", "-vv", "-qa", "--dbpath=#{testpath}/var/lib/rpm"
-    assert_predicate testpath/"var/lib/rpm/Packages", :exist?,
-                     "Failed to create 'Packages' file!"
+    assert_predicate testpath/"var/lib/rpm/rpmdb.sqlite", :exist?,
+                     "Failed to create 'rpmdb.sqlite' file"
     rpmdir("%_builddir").mkpath
     specfile = rpmdir("%_specdir")+"test.spec"
     specfile.write(test_spec)

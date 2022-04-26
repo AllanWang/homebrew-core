@@ -1,42 +1,41 @@
 class Pioneer < Formula
   desc "Game of lonely space adventure"
   homepage "https://pioneerspacesim.net/"
-  url "https://github.com/pioneerspacesim/pioneer/archive/20180203.tar.gz"
-  sha256 "19aa89e8ec0221b937b9279e0d4897b3016e0ce80858d03600d3e80cd7daa907"
-  head "https://github.com/pioneerspacesim/pioneer.git"
+  url "https://github.com/pioneerspacesim/pioneer/archive/20220203.tar.gz"
+  sha256 "415b55bab7f011f7244348428e13006fa67a926b9be71f2c4ad24e92cfeb051c"
+  license "GPL-3.0-only"
+  head "https://github.com/pioneerspacesim/pioneer.git", branch: "master"
 
   bottle do
-    sha256 "2166f735db89aa995b06055b23e94592a00a634d9791524ddd2560d5ebc4bad9" => :mojave
-    sha256 "fe7123f2a61de3bc5a367fbad1f1a61d554c59e3526e7d79e319fefb46d977d3" => :high_sierra
-    sha256 "24482bf17e5d4294e760a121e93949aa8c2bf6930629995f8693d23a549f13ca" => :sierra
-    sha256 "eb188ce5b4aff9025a664e4276f64fba3521b581eb1f13df610b83ae924ddf5d" => :el_capitan
+    sha256 arm64_monterey: "5577df2b19b517a48ee396f4845017b72ea189d5df6438f8386c81a1f4e33432"
+    sha256 arm64_big_sur:  "706079cb77f9fe77b3e93898d898891b7469b9a7e27cb69122d251c0b947df42"
+    sha256 monterey:       "b73fcfc1fe6b1c8976ed07b8ac0e82a390d972854483b2503437c04653a3dc95"
+    sha256 big_sur:        "f725756669261a1fee10c39fec3a79bdbe4a4aaed5bbcb4680d2cf3de86241ef"
+    sha256 catalina:       "45938119b01299002a7152f09472dc89afeba39473af90eb03b155c6b6b469f3"
   end
 
-  depends_on "autoconf" => :build
-  depends_on "automake" => :build
+  depends_on "cmake" => :build
   depends_on "pkg-config" => :build
   depends_on "assimp"
   depends_on "freetype"
+  depends_on "glew"
   depends_on "libpng"
-  depends_on "libsigc++"
+  depends_on "libsigc++@2"
   depends_on "libvorbis"
   depends_on "sdl2"
   depends_on "sdl2_image"
 
   def install
     ENV.cxx11
-    ENV["PIONEER_DATA_DIR"] = "#{pkgshare}/data"
 
-    system "./bootstrap"
-    system "./configure", "--disable-dependency-tracking",
-                          "--disable-silent-rules",
-                          "--prefix=#{prefix}",
-                          "--with-version=#{version}"
+    # Set PROJECT_VERSION to be the date of release, not the build date
+    inreplace "CMakeLists.txt", "string(TIMESTAMP PROJECT_VERSION \"\%Y\%m\%d\")", "set(PROJECT_VERSION #{version})"
+    system "cmake", ".", *std_cmake_args
     system "make", "install"
   end
 
   test do
-    assert_equal "#{name} #{version}", shell_output("#{bin}/pioneer -v 2>&1").chomp
-    assert_equal "modelcompiler #{version}", shell_output("#{bin}/modelcompiler -v 2>&1").chomp
+    assert_match "#{name} #{version}", shell_output("#{bin}/pioneer -v 2>&1").chomp
+    assert_match "modelcompiler #{version}", shell_output("#{bin}/modelcompiler -v 2>&1").chomp
   end
 end

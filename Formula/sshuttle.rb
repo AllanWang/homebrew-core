@@ -3,19 +3,21 @@ class Sshuttle < Formula
 
   desc "Proxy server that works as a poor man's VPN"
   homepage "https://github.com/sshuttle/sshuttle"
-  url "https://github.com/sshuttle/sshuttle.git",
-      :tag      => "v0.78.5",
-      :revision => "752a95310198886515577463a4a7e36d7f218018"
-  head "https://github.com/sshuttle/sshuttle.git"
+  url "https://files.pythonhosted.org/packages/c5/a1/6691395e9b3ad453947fea7192744f316ba3d020d295370db55ba0b48573/sshuttle-1.1.0.tar.gz"
+  sha256 "21fb91bdf392b50e78db6b8d75e95b73ac9dafd361e2657e784e674561219315"
+  license "LGPL-2.1-or-later"
+  head "https://github.com/sshuttle/sshuttle.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "dff7259d647fd392e53de03660ece7be96452882938f387c199938f8054f4c2b" => :mojave
-    sha256 "28f3d7fc8858779cb6020908302fb185810d574e8023e935b8410d0660973d49" => :high_sierra
-    sha256 "04e8f60acb5131f58a0fbe66d7c8d847c4d423db3edb2671ff1319fc499a2c5f" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "7b299c6218a70d6f0113d6b6d75657151300a972df475ba0fcfd1226f87dfd9f"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "7b299c6218a70d6f0113d6b6d75657151300a972df475ba0fcfd1226f87dfd9f"
+    sha256 cellar: :any_skip_relocation, monterey:       "3fe6a89f52a734870e0969f6851220ee507939a71d14de5606d2894006630139"
+    sha256 cellar: :any_skip_relocation, big_sur:        "3fe6a89f52a734870e0969f6851220ee507939a71d14de5606d2894006630139"
+    sha256 cellar: :any_skip_relocation, catalina:       "3fe6a89f52a734870e0969f6851220ee507939a71d14de5606d2894006630139"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "55882097e3b4b8337d1b16a908504e6ee935587c31833fecd6d5a0d18f8de2e2"
   end
 
-  depends_on "python"
+  depends_on "python@3.10"
 
   def install
     # Building the docs requires installing

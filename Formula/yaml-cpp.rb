@@ -1,29 +1,24 @@
 class YamlCpp < Formula
   desc "C++ YAML parser and emitter for YAML 1.2 spec"
   homepage "https://github.com/jbeder/yaml-cpp"
-  url "https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.2.tar.gz"
-  sha256 "e4d8560e163c3d875fd5d9e5542b5fd5bec810febdcba61481fe5fc4e6b1fd05"
-  revision 1
+  url "https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.7.0.tar.gz"
+  sha256 "43e6a9fcb146ad871515f0d0873947e5d497a1c9c60c58cb102a97b47208b7c3"
+  license "MIT"
 
   bottle do
-    cellar :any
-    sha256 "0ce658deb59e0d2fc5268fbc4f02923770b5be7867ab10e2d2bba339d71bd593" => :mojave
-    sha256 "cbcedc236b8ec1dbd389de60327e59fc546cf116cccd5d7d5da786fe52a4e7c0" => :high_sierra
-    sha256 "b332f87fbdda1324e819dd9e4c4f388b58e9c19159b97afe92b2992a17add1b9" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "870e42a85ee38ad3e908d2316f084ea62d01ee79aaa99975226457acdc0267df"
+    sha256 cellar: :any,                 arm64_big_sur:  "73eb2c62c966671c744577b1ee6661edd0c1f993756ecdd68845aed7d67cc89a"
+    sha256 cellar: :any,                 monterey:       "352369aa5a46cbbc4f28296f51707ac0adfe30884a11d8b3e75b6a877d5f92e4"
+    sha256 cellar: :any,                 big_sur:        "d78ff4565c1d214901754ec12f0e410d60c907a9a312ea246197bbf18fca4e8c"
+    sha256 cellar: :any,                 catalina:       "7b8fb20fdf64723b7aa72127d070484ec9e3e3225c4ab5f3c6247743b987e9f6"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "16923a628827f80bea57cad5c5a2ca222b2b00d0105367cb265f6c3df7f4b5c2"
   end
 
   depends_on "cmake" => :build
 
-  # Upstream commit from Sep 3 2018 "Improvements to CMake buildsystem"
-  # which fixes the unexpected installation of Google Test.
-  # See https://github.com/jbeder/yaml-cpp/issues/539
-  patch do
-    url "https://github.com/jbeder/yaml-cpp/commit/5e79f5eed3d86125468681116e92814d2cf40067.patch?full_index=1"
-    sha256 "52da989f0dcaca68ae9ee6334155954639506e16cbe3b9bd007dace9e171e4bd"
-  end
-
   def install
-    system "cmake", ".", *std_cmake_args, "-DBUILD_SHARED_LIBS=ON"
+    system "cmake", ".", *std_cmake_args, "-DYAML_BUILD_SHARED_LIBS=ON",
+                                          "-DYAML_CPP_BUILD_TESTS=OFF"
     system "make", "install"
   end
 

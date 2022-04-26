@@ -1,12 +1,21 @@
 class Jflex < Formula
   desc "Lexical analyzer generator for Java, written in Java"
   homepage "https://jflex.de/"
-  url "https://jflex.de/release/jflex-1.7.0.zip"
-  sha256 "833ea6371a4b5ee16023f328fbf7babd41a71e93155cf869c53f3ff670508107"
+  url "https://jflex.de/release/jflex-1.8.2.tar.gz"
+  sha256 "a1e0d25e341d01de6b93ec32b45562905e69d06598113934b74f76b1be7927ab"
+  revision 1
 
-  bottle :unneeded
+  livecheck do
+    url "https://jflex.de/download.html"
+    regex(/href=.*?jflex[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
-  depends_on :java => "1.7+"
+  bottle do
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, all: "81555ae7265b0427f2aaa6df7ee70e4a292630f1ac70151f61c3fb6e9af7203d"
+  end
+
+  depends_on "openjdk"
 
   def install
     pkgshare.install "examples"
@@ -15,7 +24,7 @@ class Jflex < Formula
   end
 
   test do
-    system bin/"jflex", "-d", testpath, pkgshare/"examples/java/java.flex"
-    assert_match /public static void/, (testpath/"Scanner.java").read
+    system bin/"jflex", "-d", testpath, pkgshare/"examples/cup-java/src/main/jflex/java.flex"
+    assert_match "public static void", (testpath/"Scanner.java").read
   end
 end

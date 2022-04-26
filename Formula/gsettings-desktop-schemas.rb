@@ -1,14 +1,17 @@
 class GsettingsDesktopSchemas < Formula
   desc "GSettings schemas for desktop components"
   homepage "https://download.gnome.org/sources/gsettings-desktop-schemas/"
-  url "https://download.gnome.org/sources/gsettings-desktop-schemas/3.32/gsettings-desktop-schemas-3.32.0.tar.xz"
-  sha256 "2d59b4b3a548859dfae46314ee4666787a00d5c82db382e97df7aa9d0e310a35"
+  url "https://download.gnome.org/sources/gsettings-desktop-schemas/42/gsettings-desktop-schemas-42.0.tar.xz"
+  sha256 "6686335a9ed623f7ae2276fefa50a410d4e71d4231880824714070cb317323d2"
+  license "LGPL-2.1-or-later"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "b2873d19eca42edb79cbf3055f0814eb66314edd60df6400ce91a3119661a3a9" => :mojave
-    sha256 "b2873d19eca42edb79cbf3055f0814eb66314edd60df6400ce91a3119661a3a9" => :high_sierra
-    sha256 "efa60ccb64f70f0a0d0e73df86d3989592205eabaaa186e0d3d50f705cdb27eb" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "20d3476344356c605545eb88740d06692e630cb59c90561a43ec15e8cc775ec9"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "20d3476344356c605545eb88740d06692e630cb59c90561a43ec15e8cc775ec9"
+    sha256 cellar: :any_skip_relocation, monterey:       "20d3476344356c605545eb88740d06692e630cb59c90561a43ec15e8cc775ec9"
+    sha256 cellar: :any_skip_relocation, big_sur:        "20d3476344356c605545eb88740d06692e630cb59c90561a43ec15e8cc775ec9"
+    sha256 cellar: :any_skip_relocation, catalina:       "20d3476344356c605545eb88740d06692e630cb59c90561a43ec15e8cc775ec9"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "ff08511c0988eec4bbe0c5a37bbbcbc7070ead8581d9e7ffa49fbe842d6bd562"
   end
 
   depends_on "gobject-introspection" => :build
@@ -17,11 +20,13 @@ class GsettingsDesktopSchemas < Formula
   depends_on "pkg-config" => :build
   depends_on "glib"
 
+  uses_from_macos "expat"
+
   def install
     ENV["DESTDIR"] = "/"
 
     mkdir "build" do
-      system "meson", "--prefix=#{prefix}", ".."
+      system "meson", *std_meson_args, ".."
       system "ninja", "-v"
       system "ninja", "install", "-v"
     end

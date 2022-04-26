@@ -1,21 +1,26 @@
 class Flac < Formula
   desc "Free lossless audio codec"
   homepage "https://xiph.org/flac/"
-  url "https://downloads.xiph.org/releases/flac/flac-1.3.2.tar.xz"
-  mirror "https://downloads.sourceforge.net/project/flac/flac-src/flac-1.3.2.tar.xz"
-  sha256 "91cfc3ed61dc40f47f050a109b08610667d73477af6ef36dcad31c31a4a8d53f"
-  revision 1
+  url "https://downloads.xiph.org/releases/flac/flac-1.3.4.tar.xz", using: :homebrew_curl
+  mirror "https://ftp.osuosl.org/pub/xiph/releases/flac/flac-1.3.4.tar.xz"
+  sha256 "8ff0607e75a322dd7cd6ec48f4f225471404ae2730d0ea945127b1355155e737"
+
+  livecheck do
+    url "https://ftp.osuosl.org/pub/xiph/releases/flac/?C=M&O=D"
+    regex(/href=.*?flac[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "e3972de751c58d0b835ef606f5d21c4ef22bbac927b17f75440259fb2da06bd6" => :mojave
-    sha256 "b439d1a0321f9488ad0a2edfe3307402cca4e7f5e560a833078fa29561fadacd" => :high_sierra
-    sha256 "27aef309b675e9946f6ac4d090a0322d0888789087b2e38cbaaabc527eb3f22b" => :sierra
-    sha256 "17fb6eec1e71416a0000e507953babd4fca2a0204f48ae064d02b76b906dc096" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "ca0f491b3a3c353e7562d0e8f25a1b54d07c760d4164251ab328239d276ba600"
+    sha256 cellar: :any,                 arm64_big_sur:  "7e13abd55a15c99201005e8f311c0015225f59c82f7408e314d3cbfb5f98f06e"
+    sha256 cellar: :any,                 monterey:       "cf8ac3c3150544be3b809a549c7cf7bb71344904e1b4d4c9c9970c38aa7b2072"
+    sha256 cellar: :any,                 big_sur:        "2edc8dddafb0731d45237cdcb5036ff60988575fa9171691b7dc9aa8215430e4"
+    sha256 cellar: :any,                 catalina:       "48463384c101270b29fb1b436443ee8b67dec9af0830c58adce44225142de8a3"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "7dab52777c3c995c3d7b93b5a86d2ca6ad1e9f5be97f993132ace30c50cc3af5"
   end
 
   head do
-    url "https://git.xiph.org/flac.git"
+    url "https://gitlab.xiph.org/xiph/flac.git"
 
     depends_on "autoconf" => :build
     depends_on "automake" => :build
@@ -38,7 +43,9 @@ class Flac < Formula
   end
 
   test do
-    system "#{bin}/flac", "--decode", "--force-raw", "--endian=little", "--sign=signed", "--output-name=out.raw", test_fixtures("test.flac")
-    system "#{bin}/flac", "--endian=little", "--sign=signed", "--channels=1", "--bps=8", "--sample-rate=8000", "--output-name=out.flac", "out.raw"
+    system "#{bin}/flac", "--decode", "--force-raw", "--endian=little", "--sign=signed",
+                          "--output-name=out.raw", test_fixtures("test.flac")
+    system "#{bin}/flac", "--endian=little", "--sign=signed", "--channels=1", "--bps=8",
+                          "--sample-rate=8000", "--output-name=out.flac", "out.raw"
   end
 end

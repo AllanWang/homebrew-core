@@ -1,16 +1,24 @@
 class Innoextract < Formula
   desc "Tool to unpack installers created by Inno Setup"
   homepage "https://constexpr.org/innoextract/"
-  url "https://constexpr.org/innoextract/files/innoextract-1.7.tar.gz"
-  sha256 "c1efb732f2bc3a80065c5f51a0d4ea6027aebf528c609d3f336aea2055d2f0a4"
-  head "https://github.com/dscharrer/innoextract.git"
+  url "https://constexpr.org/innoextract/files/innoextract-1.9.tar.gz"
+  sha256 "6344a69fc1ed847d4ed3e272e0da5998948c6b828cb7af39c6321aba6cf88126"
+  license "Zlib"
+  revision 1
+  head "https://github.com/dscharrer/innoextract.git", branch: "master"
+
+  livecheck do
+    url :homepage
+    regex(/href=.*?innoextract[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "5830af5a88bb0556f417c8138932d8e0a05f037cc69948ec2fa1b78ca69ca1f3" => :mojave
-    sha256 "335b723497138e18a8b9b6545c646a72cf4fabfd45aef47959b1a3c37043aab8" => :high_sierra
-    sha256 "d0945359761fca563e0a2c42f8283db4d35edfb6c43f9de1865c43a43bd08573" => :sierra
-    sha256 "e4df8d0d57062480392e178596d0fba27121af745ba5651a88fd1059330d7129" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "8d3c333b0f91323d054686301631c0a05dd7dd86043f381391c5fcf610d4a6dd"
+    sha256 cellar: :any,                 arm64_big_sur:  "1ae6aa03dc3ce7eeb8fbab79a58152f64ea662c241209adba2ef1459e6bbe6b7"
+    sha256 cellar: :any,                 monterey:       "7206f8b88483356746d682b1e631d214e6172b808bd7b8b0567cb9c0f0906abb"
+    sha256 cellar: :any,                 big_sur:        "cf14268447df754abb74356d322fba5d79498a5f4c84712dd025f6deb569d6bc"
+    sha256 cellar: :any,                 catalina:       "86e50d088f0fd4cc1e4827d311f7f2747ee6768ebffc45c23db652ab2154f0e2"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "5a50fce1d709021b5cc8f2e004e2a0b61544235b0354193b7e1ea38c7c6c5f15"
   end
 
   depends_on "cmake" => :build
@@ -18,8 +26,11 @@ class Innoextract < Formula
   depends_on "xz"
 
   def install
-    system "cmake", ".", *std_cmake_args
-    system "make", "install"
+    mkdir "build" do
+      system "cmake", "..", *std_cmake_args
+      system "make"
+      system "make", "install"
+    end
   end
 
   test do

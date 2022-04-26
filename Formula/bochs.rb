@@ -1,29 +1,30 @@
 class Bochs < Formula
   desc "Open source IA-32 (x86) PC emulator written in C++"
   homepage "https://bochs.sourceforge.io/"
-  url "https://downloads.sourceforge.net/project/bochs/bochs/2.6.9/bochs-2.6.9.tar.gz"
-  sha256 "ee5b677fd9b1b9f484b5aeb4614f43df21993088c0c0571187f93acb0866e98c"
-  revision 2
+  url "https://downloads.sourceforge.net/project/bochs/bochs/2.7/bochs-2.7.tar.gz"
+  sha256 "a010ab1bfdc72ac5a08d2e2412cd471c0febd66af1d9349bc0d796879de5b17a"
+  license "LGPL-2.0-or-later"
+
+  livecheck do
+    url :stable
+    regex(%r{url=.*?/bochs[._-]v?(\d+(?:\.\d+)+)\.t}i)
+  end
 
   bottle do
-    rebuild 1
-    sha256 "e891728542536430a5d04c6fcd645e53fe3521d9a4f0aa4f3ba7eff175b1066b" => :mojave
-    sha256 "2c21df2f382582ab435e1f9534aea7609a59c080d581ca0b1963f0e1720cdc66" => :high_sierra
-    sha256 "5a80b2f0e3447bebc7c29ba7f3b19b1038e84409f5c33766fb029a49ea64ad5a" => :sierra
+    sha256 arm64_monterey: "e148150828ea9d230cf350212dc8d415e3442ff04e285f4cdc358d0477d282b6"
+    sha256 arm64_big_sur:  "413baabcb17f8a7da9b41306215280ef7fe9e898477c31eed66f483cfb15475a"
+    sha256 monterey:       "7846c1280fc53365233026350c900bbc481de62b54bce1f454441331e82ce597"
+    sha256 big_sur:        "6e644ff1b857016a22941d01d7136a94c39a790dd6ce0f358da5b5b5ab14af78"
+    sha256 catalina:       "a903d4549d08e804de103c69866708ac5a993f7a4006687e9465e67991494cb4"
+    sha256 mojave:         "8428e13cd552af48b539231826a222f4b74801688aa0e74c2de40c201cb68e30"
+    sha256 x86_64_linux:   "e681cbd2cb984ea659bad90239ba755b4fca333be1a4831513b53f461974a98b"
   end
 
   depends_on "pkg-config" => :build
   depends_on "libtool"
   depends_on "sdl2"
 
-  # Fix pointer cast issue
-  # https://sourceforge.net/p/bochs/patches/537/
-  if DevelopmentTools.clang_build_version >= 900
-    patch do
-      url "https://raw.githubusercontent.com/Homebrew/formula-patches/e9b520dd4c/bochs/xcode9.patch"
-      sha256 "373c670083a3e96f4012cfe7356d8b3584e2f0d10196b4294d56670124f5e5e7"
-    end
-  end
+  uses_from_macos "ncurses"
 
   def install
     args = %W[
@@ -33,6 +34,7 @@ class Bochs < Formula
       --enable-alignment-check
       --enable-all-optimizations
       --enable-avx
+      --enable-evex
       --enable-cdrom
       --enable-clgd54xx
       --enable-cpu-level=6
@@ -48,7 +50,6 @@ class Bochs < Formula
       --enable-plugins
       --enable-readline
       --enable-show-ips
-      --enable-smp
       --enable-usb
       --enable-vmx=2
       --enable-x86-64

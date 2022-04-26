@@ -1,21 +1,25 @@
 class Tenyr < Formula
   desc "32-bit computing environment (including simulated CPU)"
-  homepage "http://tenyr.info/"
-  url "https://github.com/kulp/tenyr/archive/v0.9.6.tar.gz"
-  sha256 "04b92514927abfb5b7814a203bd296e8b528ae759c755402427db4cbc3ddbc47"
-  head "https://github.com/kulp/tenyr.git", :branch => "develop"
+  homepage "https://tenyr.info/"
+  url "https://github.com/kulp/tenyr/archive/v0.9.9.tar.gz"
+  sha256 "29010e3df8449e9210faf96ca5518d573af4ada4939fe1e7cfbc169fe9179224"
+  license "MIT"
+  head "https://github.com/kulp/tenyr.git", branch: "develop"
 
   bottle do
-    cellar :any
-    sha256 "79f1f08181a4a3563a95e002068cde55db5dd83f1e67e4baa10937659d72bb97" => :mojave
-    sha256 "7ed5a7f7573c9970216c21dc1586fef1107ea97e20f143dd11ee41c6627d13b3" => :high_sierra
-    sha256 "0b734e40019ad537072b648526d08c6d34c669251ca5bb8b4c22a3c2bd3ea745" => :sierra
-    sha256 "1b09019bb0131b4ce6599612e55a828d22390757473c22dceab47aa30671fd1f" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "7423a06a07cb6618597fb303682fcd78cd017265f221c41002bc334f180bc7c1"
+    sha256 cellar: :any,                 arm64_big_sur:  "7b8b35a252d9db09b9ab058ffde1bef392c747b7e2940e9f35c436bf8329e1e4"
+    sha256 cellar: :any,                 monterey:       "d7835b60738972c5deb0bac9cd4a2cf0b7a6cec663aeec0260a2024b25b5e476"
+    sha256 cellar: :any,                 big_sur:        "ba35781ed62b538a435c64602786456562d489eb4e9b70c6393e512cb2e86815"
+    sha256 cellar: :any,                 catalina:       "f98eebfa349c23b2ed1ee5cdd0bb7882fb7469e93ce5fd253fbdadb0cb96c4d8"
+    sha256 cellar: :any,                 mojave:         "725a4444c154dcbe5c2c835a82c246e044ab71d1769c240a0fc376af0c36a71c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "386367651c0bfc95ebe005843ccd093350a508b0c6e8a0f848c5c9e79dea68cf"
   end
 
   depends_on "bison" => :build # tenyr requires bison >= 2.5
-  depends_on "pkg-config" => :build
   depends_on "sdl2_image"
+
+  uses_from_macos "flex" => :build
 
   def install
     system "make", "BISON=#{Formula["bison"].opt_bin}/bison",
@@ -24,7 +28,7 @@ class Tenyr < Formula
     pkgshare.install "rsrc", "plugins"
     cd "build/homebrew" do
       bin.install "tsim", "tas", "tld"
-      lib.install Dir["*.dylib"]
+      lib.install Dir[shared_library("*")]
     end
   end
 

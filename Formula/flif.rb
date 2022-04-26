@@ -1,36 +1,39 @@
 class Flif < Formula
   desc "Free Loseless Image Format"
   homepage "https://flif.info/"
-  # When updating, please check if FLIF switched to CMake yet
-  url "https://github.com/FLIF-hub/FLIF/archive/v0.3.tar.gz"
-  sha256 "aa02a62974d78f8109cff21ecb6d805f1d23b05b2db7189cfdf1f0d97ff89498"
-  head "https://github.com/FLIF-hub/FLIF.git"
+  url "https://github.com/FLIF-hub/FLIF/archive/v0.4.tar.gz"
+  sha256 "cc98313ef0dbfef65d72bc21f730edf2a97a414f14bd73ad424368ce032fdb7f"
+  license "LGPL-3.0-or-later"
+  head "https://github.com/FLIF-hub/FLIF.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "41d1a634a2442550395bd454b84606570cc9f670fa2df158d39fddb70de39367" => :mojave
-    sha256 "40b85a93738e195a6eec2b3bf9bfe7b2831f74d464e1e5145681f9ec2c3cfe68" => :high_sierra
-    sha256 "756f685e55f7c798743756723815fb3f39d82ef92f5cc78eb175d8cea52498a3" => :sierra
-    sha256 "3fd4e69366470a6810815d111a8e0188c627fe7d50375cd93c0da00ad6617fb2" => :el_capitan
-    sha256 "bbd4e35f6947e3b304469031f42c3720a94c10d9fb7540eed9e7b08bef6ee319" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "20c8b44c6ce76226aa53c3dc217bfe4ed82e7f181fb6122df515bf86e4e434f9"
+    sha256 cellar: :any,                 arm64_big_sur:  "3d0d4c63012d30413c24e8b5e16829801d53887da55766e8143bbcc837875303"
+    sha256 cellar: :any,                 monterey:       "dfb3655e7c80bec23170595b2188ad897fd2e0e69af28711e6734f25b3c0db4e"
+    sha256 cellar: :any,                 big_sur:        "41d2cd255724005a767991ab0bf3b7ae5f8ad9767a1413c9efa92bf6ba47af9f"
+    sha256 cellar: :any,                 catalina:       "e757a4df0939f225afceae1b632542b9689f3fc9fcee7cf0364e463c1be778bc"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "4c76e5794a775d5d5d8b0dc8c92960ffdf5641b302132279a1a57a67e3e41550"
   end
 
+  depends_on "cmake" => :build
   depends_on "pkg-config" => :build
   depends_on "libpng"
   depends_on "sdl2"
 
-  resource "test_c" do
+  resource "homebrew-test_c" do
     url "https://raw.githubusercontent.com/FLIF-hub/FLIF/dcc2011/tools/test.c"
     sha256 "a20b625ba0efdb09ad21a8c1c9844f686f636656f0e9bd6c24ad441375223afe"
   end
 
   def install
-    system "make", "PREFIX=#{prefix}", "install", "install-dev"
+    system "cmake", "-S", "src", "-B", "build", *std_cmake_args
+    system "cmake", "--build", "build"
+    system "cmake", "--install", "build"
     doc.install "doc/flif.pdf"
   end
 
   test do
-    testpath.install resource("test_c")
+    testpath.install resource("homebrew-test_c")
     system ENV.cc, "test.c", "-I#{include}", "-L#{lib}", "-lflif", "-o", "test"
     system "./test", "dummy.flif"
     system bin/"flif", "-i", "dummy.flif"

@@ -1,15 +1,19 @@
 class LibbitcoinConsensus < Formula
   desc "Bitcoin Consensus Library (optional)"
   homepage "https://github.com/libbitcoin/libbitcoin-consensus"
-  url "https://github.com/libbitcoin/libbitcoin-consensus/archive/v3.5.0.tar.gz"
-  sha256 "bb29761d4275a9c993151707557008b23572a3d9adecc0e36a3075cfb101dd1e"
+  url "https://github.com/libbitcoin/libbitcoin-consensus/archive/v3.6.0.tar.gz"
+  sha256 "a4252f40910fcb61da14cf8028bf3824125bacb0fc251491c9bb4e2818065fca"
+  license "AGPL-3.0"
+  revision 2
 
   bottle do
-    cellar :any
-    sha256 "3e84a8b81167e6cbf98cbba5fcd6f40741758704e9acec422b7399604449b74b" => :mojave
-    sha256 "36e607d57dcf9347cedede744be5461c8c9e866047d4b31942987110153c9bfe" => :high_sierra
-    sha256 "0ed7771f106cd05c2413b9da72013f168077dc8f6a21d5a01806c715d038e680" => :sierra
-    sha256 "1306b0c9f124e71aeaa22825c0d0f13c49d747ad762ea1fc6a8ea0853d47c4c7" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "1a6488ba887d026f465280fc3f2c27847d539eca7c3ab733eff3e4bed89d6c26"
+    sha256 cellar: :any,                 arm64_big_sur:  "b2a70f871df4a376246e9882383751a65d04e7f30ff1b0c7abab507cf3d80e49"
+    sha256 cellar: :any,                 monterey:       "357a443d52c298a45747b15297806704f3bcf81c43f0ccf7066f9e4653356e5a"
+    sha256 cellar: :any,                 big_sur:        "31b62a85a41d440a6f2772c348288c89b8ff0de5c6eaaf911b4891a3796c6c60"
+    sha256 cellar: :any,                 catalina:       "c45b5944cedcd5ad9733ea30e49a644851264abf40f8d38cbc8b67ddf33ce21c"
+    sha256 cellar: :any,                 mojave:         "b6d7bed977f2e337a0fd2da7f56035323ba8c1d59503ccdb3fef5f6033cf7eef"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "5ccf6f4e46745f168dbf5c77f36d30041138b8c0a9a7c3de27060fd5627b7270"
   end
 
   depends_on "autoconf" => :build
@@ -24,6 +28,7 @@ class LibbitcoinConsensus < Formula
   end
 
   def install
+    ENV.cxx11
     resource("secp256k1").stage do
       system "./autogen.sh"
       system "./configure", "--disable-dependency-tracking",
@@ -39,7 +44,8 @@ class LibbitcoinConsensus < Formula
     system "./autogen.sh"
     system "./configure", "--disable-dependency-tracking",
                           "--disable-silent-rules",
-                          "--prefix=#{prefix}"
+                          "--prefix=#{prefix}",
+                          "--with-boost-libdir=#{Formula["boost"].opt_lib}"
     system "make", "install"
   end
 

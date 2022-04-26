@@ -1,16 +1,19 @@
 class Ideviceinstaller < Formula
-  desc "Cross-platform library for communicating with iOS devices"
+  desc "Tool for managing apps on iOS devices"
   homepage "https://www.libimobiledevice.org/"
-  url "https://www.libimobiledevice.org/downloads/ideviceinstaller-1.1.0.tar.bz2"
-  sha256 "0821b8d3ca6153d9bf82ceba2706f7bd0e3f07b90a138d79c2448e42362e2f53"
-  revision 4
+  url "https://github.com/libimobiledevice/ideviceinstaller/releases/download/1.1.1/ideviceinstaller-1.1.1.tar.bz2"
+  sha256 "deb883ec97f2f88115aab39f701b83c843e9f2b67fe02f5e00a9a7d6196c3063"
+  license "GPL-2.0"
 
   bottle do
-    cellar :any
-    sha256 "e65331be443285a8aa2cd22f90104aca31197a6419bcbccb60e3e6f39a3c8773" => :mojave
-    sha256 "a67c1699f0c03461f57e2232b44d175f2f38f4288ac3a3db6d92f90e299da786" => :high_sierra
-    sha256 "4651061aec01678c5feb365acc989aa211602cb62e32a1498bd4a52de217aa82" => :sierra
-    sha256 "8821769d4434688cc64aa3e63bb4f426d37d416b2dca3c935f1293ae1bddad22" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "e5bf0e5ed6aad688593878bdf8e78c5aa84530ee053f5ea21ad433cf99f59873"
+    sha256 cellar: :any,                 arm64_big_sur:  "30f56186281509d1f77d7a00cbcd1f313cd80135e3f9e2a235ca649f9a23e5f1"
+    sha256 cellar: :any,                 monterey:       "e6e374f35c4eeb37763e7755228c108ee96024b8599943fa741450be35915d93"
+    sha256 cellar: :any,                 big_sur:        "6d98523b90770662e350311c375f1157ac0c708769ce2145036aeed451e26621"
+    sha256 cellar: :any,                 catalina:       "6ee12db78e8c224c0eb0cf88eb4f43242eb1ba672eb006636273b99b75b02a87"
+    sha256 cellar: :any,                 mojave:         "6ed5e4f7ace33fd5f4d1b4c6b9f0fd519836080e170b981e63942087698351c6"
+    sha256 cellar: :any,                 high_sierra:    "0dfe944eaa47cad87ad22f70dbbcefdb6b27bbeb83ca1f7a229827c03054c07c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "e225e3d9f0e6508b4fb73d9e7ea5eaec71b75d9d7ca7ac591adcfb3b9fd324fc"
   end
 
   head do
@@ -22,6 +25,7 @@ class Ideviceinstaller < Formula
 
   depends_on "pkg-config" => :build
   depends_on "libimobiledevice"
+  depends_on "libplist"
   depends_on "libzip"
 
   def install

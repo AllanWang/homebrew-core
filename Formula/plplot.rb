@@ -3,12 +3,16 @@ class Plplot < Formula
   homepage "https://plplot.sourceforge.io"
   url "https://downloads.sourceforge.net/project/plplot/plplot/5.15.0%20Source/plplot-5.15.0.tar.gz"
   sha256 "b92de4d8f626a9b20c84fc94f4f6a9976edd76e33fb1eae44f6804bdcc628c7b"
-  revision 1
+  revision 3
 
   bottle do
-    sha256 "c9787b7555f0ccf504bdf2a457fb52699b03ecdacf09bd743f1b69158e556f75" => :mojave
-    sha256 "c359058b80b9607c1dcae070f96f2fde9c080bdc7ba9903f9afcdb16a6388c77" => :high_sierra
-    sha256 "bf4193d1d8f9beee8beb8163612df7a997b206dd8a97c5ab56265351d2ad84b4" => :sierra
+    sha256 arm64_monterey: "1cfe623096b2cff3c653cf9c99952615023ce2243e0ffd2e568e2f0ada54174c"
+    sha256 arm64_big_sur:  "8d088f536d53da047d2031923ef00ceaa57745c80fa59913b1bebe89b2f3b1b7"
+    sha256 monterey:       "d9b7ea973efc0112daf0b647c1601035126c4255a205d1740925938d1bb008f6"
+    sha256 big_sur:        "68234fbf98737c25674da67d4a207a52bb19119e3e71eaf6d4e5948167502fc5"
+    sha256 catalina:       "3f1ac3dcde8f3eec89b1abc4237e0eb386a2e8c72f08515c52f185e083fd3c73"
+    sha256 mojave:         "6adc5277a905f281ec0498843ecfcf16a6300fa656f749173ac7c8af28dab157"
+    sha256 x86_64_linux:   "61fcc3fc9e8109fe643af6a9f4367ff5e8c20fb77cb0754b6ee074fad5af33c2"
   end
 
   depends_on "cmake" => :build
@@ -37,9 +41,20 @@ class Plplot < Formula
       -DPLD_xwin=OFF
     ]
 
+    # std_cmake_args tries to set CMAKE_INSTALL_LIBDIR to a prefix-relative
+    # directory, but plplot's cmake scripts don't like that
+    args.map! { |x| x.start_with?("-DCMAKE_INSTALL_LIBDIR=") ? "-DCMAKE_INSTALL_LIBDIR=#{lib}" : x }
+
+    # Also make sure it already exists:
+    lib.mkdir
+
     mkdir "plplot-build" do
       system "cmake", "..", *args
       system "make"
+      # These example files end up with references to the Homebrew build
+      # shims unless we tweak them:
+      inreplace "examples/c/Makefile.examples", %r{^CC = .*/}, "CC = "
+      inreplace "examples/c++/Makefile.examples", %r{^CXX = .*/}, "CXX = "
       system "make", "install"
     end
 

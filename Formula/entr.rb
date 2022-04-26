@@ -1,20 +1,23 @@
 class Entr < Formula
   desc "Run arbitrary commands when files change"
-  homepage "http://entrproject.org/"
-  url "http://entrproject.org/code/entr-4.1.tar.gz"
-  sha256 "c503c93ccffc1e6b2da979cdcb88c5a686e261103501eede7077fa089cdfef78"
+  homepage "https://eradman.com/entrproject/"
+  url "https://eradman.com/entrproject/code/entr-5.1.tar.gz"
+  sha256 "0f87f577bce87641c525addb9bcc60bbaa579fe981dab759043e3ce1556dbb92"
+  license "ISC"
+  head "https://github.com/eradman/entr.git", branch: "master"
 
-  bottle do
-    cellar :any_skip_relocation
-    sha256 "ebeddbb2db1e63b3b272ffae240e493baa883a3b24bbbf7efdfd7a354503d8a5" => :mojave
-    sha256 "52b11e50b2d4be63553eed9a303932a4f1da19fe0969d6846f38a28b26ea8fcc" => :high_sierra
-    sha256 "ec7a54d7b401a96eb335cd18869c528378196ea185fdba7d00de8a38b626868c" => :sierra
-    sha256 "5547fc0dd281c1478b87d53f6de5502bbab1738aa3301beea655485404b23077" => :el_capitan
+  livecheck do
+    url "https://eradman.com/entrproject/code/"
+    regex(/href=.*?entr[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
-  head do
-    url "https://bitbucket.org/eradman/entr", :using => :hg
-    depends_on "mercurial" => :build
+  bottle do
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "56f8366e478c99ffb084ac134a200c4d32be0180269efe00cae21595a32230f4"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "534fd8c1d47267ac699b82147088e7553fcc140f954bdd8e71fed39445a23fdf"
+    sha256 cellar: :any_skip_relocation, monterey:       "e98f5922ee52c2d99169c6f950d6fdd678bad77f8649a5ab1e78422aab816640"
+    sha256 cellar: :any_skip_relocation, big_sur:        "e497cfe6f336396b7a7b112764c4846ed8e40d1123f1b9e823a642253a562d81"
+    sha256 cellar: :any_skip_relocation, catalina:       "9d0c6a219c54e065abfc84b4f0c75c460288ef81dbe889005014f1ed699d4c4c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "038b376d5d99370b2532bd6cfdae9a7d01b644c196c110c3371da799a24e0c98"
   end
 
   def install
@@ -31,6 +34,6 @@ class Entr < Formula
       sleep 0.5
       touch testpath/"test.2"
     end
-    assert_equal "New File", pipe_output("#{bin}/entr -p -d echo 'New File'", testpath).strip
+    assert_equal "New File", pipe_output("#{bin}/entr -n -p -d echo 'New File'", testpath).strip
   end
 end

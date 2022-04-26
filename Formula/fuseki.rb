@@ -1,10 +1,16 @@
 class Fuseki < Formula
   desc "SPARQL server"
   homepage "https://jena.apache.org/documentation/fuseki2/"
-  url "https://www.apache.org/dyn/closer.lua?path=/jena/binaries/apache-jena-fuseki-3.12.0.tar.gz"
-  sha256 "60ae78b13f60b4edc20b2699d7366003e0b7f6e8b5409d731794dcb7491e57c8"
+  url "https://www.apache.org/dyn/closer.lua?path=jena/binaries/apache-jena-fuseki-4.4.0.tar.gz"
+  mirror "https://archive.apache.org/dist/jena/binaries/apache-jena-fuseki-4.4.0.tar.gz"
+  sha256 "ae946f8b902ca2dfc59ae3495f327779e62597547c0922154d543af74f704a16"
+  license "Apache-2.0"
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "6974307c9eec4188dc412367deca839cfb6ccfe91dfed176a5761706d52f0a98"
+  end
+
+  depends_on "openjdk"
 
   def install
     prefix.install "bin"
@@ -12,15 +18,16 @@ class Fuseki < Formula
     %w[fuseki-server fuseki].each do |exe|
       libexec.install exe
       (bin/exe).write_env_script(libexec/exe,
-                                 :FUSEKI_BASE => var/"fuseki",
-                                 :FUSEKI_HOME => libexec,
-                                 :FUSEKI_LOGS => var/"log/fuseki",
-                                 :FUSEKI_RUN  => var/"run")
+                                 JAVA_HOME:   Formula["openjdk"].opt_prefix,
+                                 FUSEKI_BASE: var/"fuseki",
+                                 FUSEKI_HOME: libexec,
+                                 FUSEKI_LOGS: var/"log/fuseki",
+                                 FUSEKI_RUN:  var/"run")
+      (libexec/exe).chmod 0755
     end
 
     # Non-symlinked binaries and application files
     libexec.install "fuseki-server.jar",
-                    "fuseki.war",
                     "webapp"
   end
 
@@ -31,26 +38,8 @@ class Fuseki < Formula
     (var/"log/fuseki").mkpath
   end
 
-  plist_options :manual => "fuseki start"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>RunAtLoad</key>
-        <true/>
-        <key>KeepAlive</key>
-        <false/>
-        <key>ProgramArguments</key>
-        <array>
-          <string>#{opt_bin}/fuseki-server</string>
-        </array>
-      </dict>
-    </plist>
-  EOS
+  service do
+    run opt_bin/"fuseki-server"
   end
 
   test do

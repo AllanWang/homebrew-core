@@ -1,28 +1,31 @@
 class Icecream < Formula
   desc "Distributed compiler with a central scheduler to share build load"
   homepage "https://en.opensuse.org/Icecream"
-  url "https://github.com/icecc/icecream/archive/1.2.tar.gz"
-  sha256 "12d4132e5aacf6907877b691a8ac09e3e2f704ca016c49bc5eb566fc9185f544"
-  revision 1
+  url "https://github.com/icecc/icecream/archive/1.4.tar.gz"
+  sha256 "249dcf74f0fc477ff9735ff0bdcdfaa4c257a864c4db5255d8b25c9f4fd20b6b"
+  license "GPL-2.0-or-later"
 
   bottle do
-    sha256 "2118015d81859d3149fcc2ca0cc46f3c33962196763926296adf13eb3e8f6872" => :mojave
-    sha256 "3bf33081248ecf62d9023e72e7a46601768fae1863a9c01cda22a5ca35612dd7" => :high_sierra
-    sha256 "b1a775dafdaf583d71357f389c6851c397e8e56cbbca41f3d426915d74c3a1be" => :sierra
+    sha256 arm64_monterey: "053f5583b18d4201020f59f9d4481a2d6c0b584c5bb3297038ddd9653d70998e"
+    sha256 arm64_big_sur:  "1a26f6bb194f5e27212c555783574c81d56f4fcb5e3bdc410278f8f74b128016"
+    sha256 monterey:       "781ad1cb41ba91d5bd7b2f6763807b3fd89a0ff30b572b8ec77273d713867c1e"
+    sha256 big_sur:        "076868e850f3b6b5ae814e19b03528143ea5bb3f903edcdca14cac7ce3fbf4e8"
+    sha256 catalina:       "a85e725c50fc4fad0d28621cd9c241326c516b3bfb32e01a4710615b0bcec4f5"
+    sha256 x86_64_linux:   "9eef6bec6b3f10bb768c84872285e4ffe45e45ffcd4e05c4e7727c702875d044"
   end
 
   depends_on "autoconf" => :build
   depends_on "automake" => :build
   depends_on "docbook2x" => :build
   depends_on "libtool" => :build
+  depends_on "pkg-config" => :build
+  depends_on "libarchive"
   depends_on "lzo"
+  depends_on "zstd"
 
-  # Backport https://github.com/icecc/icecream/pull/467
-  # Total memory was not correctly detected on macOS, resulting in a hard limit of 100MB
-  # being set. Remove in next stable release.
-  patch do
-    url "https://github.com/icecc/icecream/commit/1af3a23521cfd7dc1a067625f311ebc5d4f34a08.patch?full_index=1"
-    sha256 "a21b05bc18dfff8e29d0d0f6f7acdfc2fcfe3a7daaf7646340bc51cf28186445"
+  on_linux do
+    depends_on "llvm" => :test
+    depends_on "libcap-ng"
   end
 
   def install
@@ -37,54 +40,38 @@ class Icecream < Formula
     system "./configure", *args
     system "make", "install"
 
-    (prefix/"org.opensuse.icecc.plist").write iceccd_plist
-    (prefix/"org.opensuse.icecc-scheduler.plist").write scheduler_plist
+    # Manually install scheduler property list
+    (prefix/"#{plist_name}-scheduler.plist").write scheduler_plist
   end
 
-  def caveats; <<~EOS
-    To override the toolset with icecc, add to your path:
-      #{opt_libexec}/icecc/bin
-
-    To have launchd start the icecc daemon at login:
-      cp #{opt_prefix}/org.opensuse.icecc.plist ~/Library/LaunchAgents/
-      launchctl load -w ~/Library/LaunchAgents/org.opensuse.icecc.plist
-  EOS
+  def caveats
+    <<~EOS
+      To override the toolset with icecc, add to your path:
+        #{opt_libexec}/icecc/bin
+    EOS
   end
 
-  def iceccd_plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-        <key>Label</key>
-        <string>Icecc Daemon</string>
-        <key>ProgramArguments</key>
-        <array>
-        <string>#{sbin}/iceccd</string>
-        </array>
-        <key>RunAtLoad</key>
-        <true/>
-    </dict>
-    </plist>
-  EOS
+  service do
+    run opt_sbin/"iceccd"
   end
 
-  def scheduler_plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-        <key>Label</key>
-        <string>Icecc Scheduler</string>
-        <key>ProgramArguments</key>
-        <array>
-        <string>#{sbin}/icecc-scheduler</string>
-        </array>
-        <key>RunAtLoad</key>
-        <true/>
-    </dict>
-    </plist>
-  EOS
+  def scheduler_plist
+    <<~EOS
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+          <key>Label</key>
+          <string>#{plist_name}-scheduler</string>
+          <key>ProgramArguments</key>
+          <array>
+          <string>#{sbin}/icecc-scheduler</string>
+          </array>
+          <key>RunAtLoad</key>
+          <true/>
+      </dict>
+      </plist>
+    EOS
   end
 
   test do

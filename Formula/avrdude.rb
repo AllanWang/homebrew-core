@@ -1,16 +1,33 @@
 class Avrdude < Formula
   desc "Atmel AVR MCU programmer"
   homepage "https://savannah.nongnu.org/projects/avrdude/"
-  url "https://download.savannah.gnu.org/releases/avrdude/avrdude-6.3.tar.gz"
-  mirror "https://download-mirror.savannah.gnu.org/releases/avrdude/avrdude-6.3.tar.gz"
-  sha256 "0f9f731b6394ca7795b88359689a7fa1fba818c6e1d962513eb28da670e0a196"
+  license "GPL-2.0-or-later"
   revision 1
 
+  stable do
+    url "https://download.savannah.gnu.org/releases/avrdude/avrdude-6.4.tar.gz"
+    mirror "https://download-mirror.savannah.gnu.org/releases/avrdude/avrdude-6.4.tar.gz"
+    sha256 "a9be7066f70a9dcf4bf0736fcf531db6a3250aed1a24cc643add27641b7110f9"
+
+    # Fix -flat_namespace being used on Big Sur and later.
+    patch do
+      url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+      sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+    end
+  end
+
+  livecheck do
+    url "https://download.savannah.gnu.org/releases/avrdude/"
+    regex(/href=.*?avrdude[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
+
   bottle do
-    sha256 "65fe6de6f540eb1c6ad94d35c847f8a5921cc9059ff044d1bc78f68cc8b8334b" => :mojave
-    sha256 "b0cb94b5c4f01fcc870f286bca293218c98fda23d76397db8a831272f7087038" => :high_sierra
-    sha256 "e8e26af5565cd897867d4e6e71e66e6e946e1e21eb4e27d3cd49f199f088fc5d" => :sierra
-    sha256 "c953526dc893a9b162a109d074edf8bb71d7049c63990282edc994c63de90c44" => :el_capitan
+    sha256                               arm64_monterey: "88e4777272b8683adae663acb706cf43beb2028c710d1992427c5f707f4f8b29"
+    sha256                               arm64_big_sur:  "5bc7fc2c1788569a0cc0bb6ec92e4d0b3524ff79f811fbeac7a67fca7c5d71bc"
+    sha256                               monterey:       "46ddac33efce94c5b7d02e2110050473ea98a0ad63a4162689d758e4c699103c"
+    sha256                               big_sur:        "bf71cc8ec0970e78c6a2a081f6b99946ffa7405714708841e5b65c993af27da6"
+    sha256                               catalina:       "f7c8d3e57f8ac80d916e4974009c8032e4e981f91d56aa016c3fd8cfe13e8723"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "8c0284a107537fce66117114410df6989a15acf66e03e6016be19986041877bf"
   end
 
   head do
@@ -21,18 +38,37 @@ class Avrdude < Formula
     depends_on "libtool" => :build
   end
 
-  depends_on "libelf"
+  depends_on "automake" => :build
+  depends_on "hidapi"
   depends_on "libftdi0"
   depends_on "libhid"
   depends_on "libusb-compat"
 
+  uses_from_macos "bison"
+  uses_from_macos "flex"
+
+  on_macos do
+    depends_on "libelf"
+  end
+
+  on_linux do
+    depends_on "elfutils"
+  end
+
   def install
+    # Workaround for ancient config files not recognizing aarch64 macos.
+    am = Formula["automake"]
+    am_share = am.opt_share/"automake-#{am.version.major_minor}"
+    %w[config.guess config.sub].each do |fn|
+      chmod "u+w", fn
+      cp am_share/fn, fn
+    end
+
     if build.head?
       inreplace "bootstrap", /libtoolize/, "glibtoolize"
       system "./bootstrap"
     end
-    system "./configure", "--disable-dependency-tracking",
-                          "--prefix=#{prefix}"
+    system "./configure", *std_configure_args
     system "make"
     system "make", "install"
   end

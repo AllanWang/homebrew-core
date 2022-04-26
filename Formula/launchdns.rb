@@ -1,68 +1,73 @@
 class Launchdns < Formula
   desc "Mini DNS server designed solely to route queries to localhost"
   homepage "https://github.com/josh/launchdns"
-  url "https://github.com/josh/launchdns/archive/v1.0.3.tar.gz"
-  sha256 "c34bab9b4f5c0441d76fefb1ee16cb0279ab435e92986021c7d1d18ee408a5dd"
-  revision 1
-  head "https://github.com/josh/launchdns.git"
+  url "https://github.com/josh/launchdns/archive/v1.0.4.tar.gz"
+  sha256 "60f6010659407e3d148c021c88e1c1ce0924de320e99a5c58b21c8aece3888aa"
+  license "MIT"
+  revision 2
+  head "https://github.com/josh/launchdns.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "e2a8dcea6e56a04b35be6ac1c1aa740425b621714633681056a1c5447b11eeec" => :mojave
-    sha256 "1433f1e56fadabccda5b41a26c69259f5d834d6f6321c2512a9c40eb963f89bd" => :high_sierra
-    sha256 "a03349824b4a84565409acc38ec7e2360a96d9de0cc6b3caab1abe0b8b480955" => :sierra
-    sha256 "50463d3643f6dda3f4a363ee4efb37fbded8d975ef20cbb49ce0a05a0f26a33f" => :el_capitan
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "76976e31629220e8697a50b0e52d080cef29a6b761a987175b07438d35225ff8"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "1b7e3e37f394c83c8957c6c2253260805a3abcbb843890c90208d7d743da3328"
+    sha256 cellar: :any_skip_relocation, monterey:       "7883b009f177ae1ede81bc9d27706e26fc8d8bde4cd3e1c45c5cd8f4021cbafd"
+    sha256 cellar: :any_skip_relocation, big_sur:        "87785cae4d4966c318e8fb8424749261b16bb543576e1c45d5fa2bae7f4c3f0e"
+    sha256 cellar: :any_skip_relocation, catalina:       "ebae3446c46a7a6662c3e9b95d61bbee372f1f277a07a4beea1eafc00d64570a"
+    sha256 cellar: :any_skip_relocation, mojave:         "38ad8be46847983774ec6b50896560517bb027b6fe5e5543395f168e489c9c27"
   end
-
-  depends_on :macos => :yosemite
 
   def install
     ENV["PREFIX"] = prefix
     system "./configure", "--with-launch-h", "--with-launch-h-activate-socket"
     system "make", "install"
 
-    (prefix/"etc/resolver/localhost").write("nameserver 127.0.0.1\nport 55353\n")
+    (prefix/"etc/resolver/localhost").write <<~EOS
+      nameserver 127.0.0.1
+      port 55353
+    EOS
   end
 
-  plist_options :manual => "launchdns"
+  plist_options manual: "launchdns"
 
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>ProgramArguments</key>
-        <array>
-          <string>#{opt_bin}/launchdns</string>
-          <string>--socket=Listeners</string>
-          <string>--timeout=30</string>
-        </array>
-        <key>Sockets</key>
+  def plist
+    <<~EOS
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
         <dict>
-          <key>Listeners</key>
+          <key>Label</key>
+          <string>#{plist_name}</string>
+          <key>ProgramArguments</key>
+          <array>
+            <string>#{opt_bin}/launchdns</string>
+            <string>--socket=Listeners</string>
+            <string>--timeout=30</string>
+          </array>
+          <key>Sockets</key>
           <dict>
-            <key>SockType</key>
-            <string>dgram</string>
-            <key>SockNodeName</key>
-            <string>127.0.0.1</string>
-            <key>SockServiceName</key>
-            <string>55353</string>
+            <key>Listeners</key>
+            <dict>
+              <key>SockType</key>
+              <string>dgram</string>
+              <key>SockNodeName</key>
+              <string>127.0.0.1</string>
+              <key>SockServiceName</key>
+              <string>55353</string>
+            </dict>
           </dict>
+          <key>StandardErrorPath</key>
+          <string>#{var}/log/launchdns.log</string>
+          <key>StandardOutPath</key>
+          <string>#{var}/log/launchdns.log</string>
         </dict>
-        <key>StandardErrorPath</key>
-        <string>#{var}/log/launchdns.log</string>
-        <key>StandardOutPath</key>
-        <string>#{var}/log/launchdns.log</string>
-      </dict>
-    </plist>
-  EOS
+      </plist>
+    EOS
   end
 
   test do
     output = shell_output("#{bin}/launchdns --version")
-    assert_no_match(/without socket activation/, output)
+    refute_match(/without socket activation/, output)
     system bin/"launchdns", "-p0", "-t1"
   end
 end

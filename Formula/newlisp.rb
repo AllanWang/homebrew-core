@@ -1,14 +1,23 @@
 class Newlisp < Formula
   desc "Lisp-like, general-purpose scripting language"
   homepage "http://www.newlisp.org/"
-  url "http://www.newlisp.org/downloads/newlisp-10.7.1.tgz"
-  sha256 "2e300c8bed365a564d284bf3ad6c49e036256e7fc3f469ebda0b45e6e196a7cc"
-  revision 1
+  url "http://www.newlisp.org/downloads/newlisp-10.7.5.tgz"
+  sha256 "dc2d0ff651c2b275bc4af3af8ba59851a6fb6e1eaddc20ae75fb60b1e90126ec"
+
+  livecheck do
+    url "http://www.newlisp.org/index.cgi?Downloads"
+    regex(/href=.*?newlisp[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    sha256 "7b9a804b9fdb3836b57cc58dd42208e18697fd7ce6b0b9dfcc7dcb1c3deca4d1" => :mojave
-    sha256 "59d93234b8ba1351198d2507b83e4aed14520d0b8b04bb8710e4f52e53f7b128" => :high_sierra
-    sha256 "c7a87aae1ccad6074557bd9fa227295517e176236bdcedb8f29ade5c36e62bba" => :sierra
+    sha256 arm64_monterey: "1fb90e4713da55257988e767547c82613586e3a441e007a629e878644955cc89"
+    sha256 arm64_big_sur:  "24b3c02002fa7c832d9a817c552b19bd520ae06f82ab526b8e993ae0a3d77d99"
+    sha256 monterey:       "e7e6ab4d066923848b35a24c5a85cb357be0ab15d76fc9dbe5c87e2625c18b1a"
+    sha256 big_sur:        "509f6892a0eabf53cebe424f2f2163ded090b7942e8fe8e43047f43781b0535e"
+    sha256 catalina:       "62fd116459d24ab0db976221fb16fd83a7a7db5447298bcc7f8b0dbf9a55f91f"
+    sha256 mojave:         "179146b49c20011f3da4dbdb9b66a6ed66d5dd9f15d07aeca9b8717219a62eeb"
+    sha256 high_sierra:    "5a0d4085a0e7fc364b3165be7e92a9dfeb2f4882e1971663ac74c70348a5c4a4"
+    sha256 x86_64_linux:   "27f5be3e4e9319afe264a0394127ddbfdaf6d4f8da25b790af9b25d559c23c13"
   end
 
   depends_on "readline"
@@ -17,22 +26,17 @@ class Newlisp < Formula
     # Required to use our configuration
     ENV.append_to_cflags "-DNEWCONFIG -c"
 
-    # fix the prefix in a source file
-    inreplace "guiserver/newlisp-edit.lsp" do |s|
-      s.gsub! "#!/usr/local/bin/newlisp", "#!/usr/bin/env newlisp"
-      s.gsub! "/usr/local/bin/newlisp", "#{opt_bin}/newlisp"
-    end
-
     system "./configure-alt", "--prefix=#{prefix}", "--mandir=#{man}"
     system "make"
     system "make", "check"
     system "make", "install"
   end
 
-  def caveats; <<~EOS
-    If you have brew in a custom prefix, the included examples
-    will need to be be pointed to your newlisp executable.
-  EOS
+  def caveats
+    <<~EOS
+      If you have brew in a custom prefix, the included examples
+      will need to be be pointed to your newlisp executable.
+    EOS
   end
 
   test do

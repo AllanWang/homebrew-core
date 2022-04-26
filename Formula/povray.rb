@@ -1,25 +1,33 @@
 class Povray < Formula
   desc "Persistence Of Vision RAYtracer (POVRAY)"
   homepage "https://www.povray.org/"
-  url "https://github.com/POV-Ray/povray/archive/v3.7.0.8.tar.gz"
-  sha256 "53d11ebd2972fc452af168a00eb83aefb61387662c10784e81b63e44aa575de4"
+  url "https://github.com/POV-Ray/povray/archive/v3.7.0.10.tar.gz"
+  sha256 "7bee83d9296b98b7956eb94210cf30aa5c1bbeada8ef6b93bb52228bbc83abff"
+  license "AGPL-3.0-or-later"
   revision 1
+  head "https://github.com/POV-Ray/povray.git", branch: "master"
+
+  livecheck do
+    url :stable
+    regex(/^v?(\d+(?:\.\d+)+\.\d{1,4})$/i)
+  end
 
   bottle do
-    rebuild 1
-    sha256 "eae4cf975215cdfdeadb665c53061c6ed2b4f9fa95121e7145222409b0e44c56" => :mojave
-    sha256 "4472bb00380eb26d3045dd5e67effa4f75934936263129009f9a80bbf5290633" => :high_sierra
-    sha256 "f21cb29c30c8367aa14f6a4485bf03377f23e30b2e7178be466d12bb84be26a9" => :sierra
-    sha256 "f2f0bf20fbe2d5b1ce91ecdf4eca52e4a544323910febae396d8b9fb1c0044ec" => :el_capitan
+    sha256 arm64_monterey: "86cff67d1cc28d4da2cf009ccaa095338cc361a83a8e77533e241a0a9483b171"
+    sha256 arm64_big_sur:  "323a45aa39fc07851a6ff9e0c5c52df5e79db3885ffa5a92e9848a7aa0b1cd6a"
+    sha256 monterey:       "42aff4310d6e07f5992311c44666ee751c75907ec2cc8def1e78b5d4f7794bf0"
+    sha256 big_sur:        "411a4d7227b73cc564ab110bc223b53f29bd6bd29a05127fbd02bfdd5cf468b9"
+    sha256 catalina:       "78e8ed7577c8d5640365d09edc79ad55e43deccb5c181fc8a537ad0f31685954"
+    sha256 x86_64_linux:   "3c721140cae7a89f1e0517b9241610ab8b981627c326a7801e68d9754f66fdf6"
   end
 
   depends_on "autoconf" => :build
   depends_on "automake" => :build
   depends_on "boost"
+  depends_on "imath"
   depends_on "jpeg"
   depends_on "libpng"
   depends_on "libtiff"
-
   depends_on "openexr"
 
   def install

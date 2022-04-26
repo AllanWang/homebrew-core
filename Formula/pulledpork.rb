@@ -1,19 +1,22 @@
 class Pulledpork < Formula
   desc "Snort rule management"
   homepage "https://github.com/shirkdog/pulledpork"
-  url "https://github.com/shirkdog/pulledpork/archive/v0.7.3.tar.gz"
-  sha256 "48c66dc9abb7545186d4fba497263c1d1b247c0ea7f0953db4d515e7898461a2"
-  revision 1
-  head "https://github.com/shirkdog/pulledpork.git"
+  url "https://github.com/shirkdog/pulledpork/archive/v0.7.4.tar.gz"
+  sha256 "f0149eb6f723b622024295e0ee00e1acade93fae464b9fdc323fdf15e99c388c"
+  license "GPL-2.0-or-later"
+  head "https://github.com/shirkdog/pulledpork.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "729c107b7df7b94421cf1b0b928aa5645df19709e20466e82a8b08787d59d62e" => :mojave
-    sha256 "aada89892608c0411260a165a404f372983873187703643bb9e57239b907cbd3" => :high_sierra
-    sha256 "ba233cd6ace4db24faf5dd0b36523ef4d53ac1c92ba2f5ef54040883f07daf5f" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_big_sur: "035ca3f72d7950b0446825984e779be22a25b2b8b180f226eb7589120092673e"
+    sha256 cellar: :any_skip_relocation, big_sur:       "0fef43eada21d5f8e2adb9f4d69a4baf81626734cf732c4c2f630b176a70b58b"
+    sha256 cellar: :any_skip_relocation, catalina:      "f1e692043de24e99030c5e07a4c11269e091af1748f2bf910048f016358581b6"
+    sha256 cellar: :any_skip_relocation, mojave:        "8f4884077fee641db519a021f0b47c739165546b8dd8b07a4ea4d1a2f8918aaf"
+    sha256 cellar: :any_skip_relocation, high_sierra:   "00f4875c0b5e47644250f39845f90f9a78f10152f489d5c103046f48cd0d5f0a"
   end
 
-  depends_on "openssl"
+  depends_on "openssl@1.1"
+
+  uses_from_macos "perl"
 
   resource "Switch" do
     url "https://cpan.metacpan.org/authors/id/C/CH/CHORNY/Switch-2.17.tar.gz"
@@ -30,9 +33,11 @@ class Pulledpork < Formula
       end
     end
 
+    inreplace "pulledpork.pl", "#!/usr/bin/env perl", "#!/usr/bin/perl"
+
     chmod 0755, "pulledpork.pl"
     bin.install "pulledpork.pl"
-    bin.env_script_all_files(libexec/"bin", :PERL5LIB => ENV["PERL5LIB"])
+    bin.env_script_all_files(libexec/"bin", PERL5LIB: ENV["PERL5LIB"])
     doc.install Dir["doc/*"]
     (etc/"pulledpork").install Dir["etc/*"]
   end

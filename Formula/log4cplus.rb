@@ -1,15 +1,23 @@
 class Log4cplus < Formula
   desc "Logging Framework for C++"
   homepage "https://sourceforge.net/p/log4cplus/wiki/Home/"
-  url "https://downloads.sourceforge.net/project/log4cplus/log4cplus-stable/2.0.2/log4cplus-2.0.2.tar.xz"
-  sha256 "8ff4055be749f17f3648694bd5778bfd86d33158cceaa616a50c0299d6035b41"
+  url "https://downloads.sourceforge.net/project/log4cplus/log4cplus-stable/2.0.7/log4cplus-2.0.7.tar.xz"
+  sha256 "8f74a0a5920ba044b24e2ebeb0f1e5e36d85d5c23ed48d9fe328882b16130db8"
+  license all_of: ["Apache-2.0", "BSD-2-Clause"]
+
+  livecheck do
+    url :stable
+    regex(/url=.*?log4cplus-stable.*?log4cplus[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "05ce5c61a86267690e5cf4944f4e9d55f1f568b44b4a4f0e6d0730c2c387b2c2" => :mojave
-    sha256 "7f166f2c75fb63279d4e41d41c81d0f4aaea13f403662e52f032af5d551d308f" => :high_sierra
-    sha256 "ce5afae2358928cb515d77e3c13288ec60c3859519253ef0d14ce792c88153a3" => :sierra
-    sha256 "3a3f4952bf0064e0cd81b0e8c538ca7f49434cfb387a4f9e8441f7dbddeb6d33" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "b344dde7e0bfeb671a7edfc8706a98d1ac2cc8850e7030f9508846876fe42c79"
+    sha256 cellar: :any,                 arm64_big_sur:  "765dbf204776bc9b7b5f69223bd0f6c8d530e78b20e66bfe52a1d3a98f6304df"
+    sha256 cellar: :any,                 monterey:       "095da8330cf32913b779971ed13206f34f312c09924c6e4a35d3121260a29a52"
+    sha256 cellar: :any,                 big_sur:        "020f5bb424ba5b13c36a031d0faffbf0bae4132aca32dc8fbb8020e30ac82260"
+    sha256 cellar: :any,                 catalina:       "0ca8fc813a82137c28138a19d602344756233447b8b0789880f911e7e597b9e7"
+    sha256 cellar: :any,                 mojave:         "b1bd74384498b0fa7617a0fbd70e56af32d2c84d7c3552cae86cbdca52dcf323"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "65982c47478a5a2d7fe345429ddbe7a076734948425a42a988749ab4d627e003"
   end
 
   def install
@@ -40,7 +48,7 @@ class Log4cplus < Formula
       }
     EOS
     system ENV.cxx, "-std=c++11", "-I#{include}", "-L#{lib}",
-                    "-llog4cplus", "test.cpp", "-o", "test"
+                    "test.cpp", "-o", "test", "-llog4cplus"
     assert_match "Hello, World!", shell_output("./test")
   end
 end

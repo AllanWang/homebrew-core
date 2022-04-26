@@ -1,16 +1,25 @@
 class Libswiften < Formula
   desc "C++ library for implementing XMPP applications"
-  homepage "https://swift.im/swiften"
+  homepage "https://swift.im/swiften.html"
   url "https://swift.im/downloads/releases/swift-4.0/swift-4.0.tar.gz"
   sha256 "50b7b2069005b1474147110956f66fdde0afb2cbcca3d3cf47de56dc61217319"
   revision 4
 
-  bottle do
-    cellar :any
-    sha256 "489821c365b23676ac84c6f9ecc2157edaebd6d0025fa75b5f5e972078dead88" => :mojave
-    sha256 "3ec7dc4286e4651d14188794f22d4d89fa1284b999c7134416abcdd02d880744" => :high_sierra
-    sha256 "07e2d9467520a4c814e15b5328bec8b989449284161c66e120b036f09eed8d14" => :sierra
+  livecheck do
+    url "https://swift.im/downloads.html"
+    regex(/href=.*?swift[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
+
+  bottle do
+    sha256 cellar: :any, catalina:    "919e570b27576a942a2dd08c190f188cf8f0deb00950dc0b5956478da38091ed"
+    sha256 cellar: :any, mojave:      "489821c365b23676ac84c6f9ecc2157edaebd6d0025fa75b5f5e972078dead88"
+    sha256 cellar: :any, high_sierra: "3ec7dc4286e4651d14188794f22d4d89fa1284b999c7134416abcdd02d880744"
+    sha256 cellar: :any, sierra:      "07e2d9467520a4c814e15b5328bec8b989449284161c66e120b036f09eed8d14"
+  end
+
+  # All the scons scripts are Python 2 only
+  # Upstream does not look active with no release in the last 4 years
+  disable! date: "2022-01-17", because: :does_not_build
 
   depends_on "scons" => :build
   depends_on "boost"
@@ -68,9 +77,9 @@ class Libswiften < Formula
         return 0;
       }
     EOS
-    cflags = `#{bin}/swiften-config --cflags`
-    ldflags = `#{bin}/swiften-config --libs`
-    system "#{ENV.cxx} -std=c++11 test.cpp #{cflags.chomp} #{ldflags.chomp} -o test"
+    cflags = `#{bin}/swiften-config --cflags`.chomp.split
+    ldflags = `#{bin}/swiften-config --libs`.chomp.split
+    system ENV.cxx, "-std=c++11", "test.cpp", *cflags, *ldflags, "-o", "test"
     system "./test"
   end
 end

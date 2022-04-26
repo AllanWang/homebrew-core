@@ -1,18 +1,30 @@
 class PureFtpd < Formula
   desc "Secure and efficient FTP server"
   homepage "https://www.pureftpd.org/"
-  url "https://download.pureftpd.org/pub/pure-ftpd/releases/pure-ftpd-1.0.49.tar.gz"
-  sha256 "767bf458c70b24f80c0bb7a1bbc89823399e75a0a7da141d30051a2b8cc892a5"
+  url "https://download.pureftpd.org/pub/pure-ftpd/releases/pure-ftpd-1.0.50.tar.gz"
+  sha256 "abe2f94eb40b330d4dc22b159991f44e5e515212f8e887049dccdef266d0ea23"
+  license all_of: ["BSD-2-Clause", "BSD-3-Clause", "BSD-4-Clause", "ISC"]
+
+  livecheck do
+    url "https://download.pureftpd.org/pub/pure-ftpd/releases/"
+    regex(/href=.*?pure-ftpd[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "207ef2785d4784e944e3bf370336d806d2349cdcd0aeb572af8fcf213477dc8a" => :mojave
-    sha256 "6da126ad5fbab609e9c550b4d8a07cb218b163fd1761ef96a06ee3d7204e00ec" => :high_sierra
-    sha256 "5b264d98d7ed6e2fce4ba8e7e9aafab27be763e345c8c58f29a8f755e57e403d" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "37b7a18770c4050e170e73e9f91b0c4e89796b27b4bc97383f4c01e5d1b845c2"
+    sha256 cellar: :any,                 arm64_big_sur:  "be2354790a43f2530fade9684e49afdf6127e720e8a1a3396b284aa21e230a48"
+    sha256 cellar: :any,                 monterey:       "31ec7d058a66adc3e31d5b550e9dffa8d9d4388d125e25a701ac46e6b4f1480a"
+    sha256 cellar: :any,                 big_sur:        "f8a22572ca75768fa21b1177c77f8f222429726dbc21b8cd9fa061ddb3ecaaaf"
+    sha256 cellar: :any,                 catalina:       "a3cfa341bc66691b8f5962d493799c5f2f2c68114cc7a101493728991f18b423"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "97e9bebb7b6f9e9348e1151637f7d1ad046550426cc0b2e80186cd06205ad93d"
   end
 
   depends_on "libsodium"
-  depends_on "openssl"
+  depends_on "openssl@1.1"
+
+  on_linux do
+    depends_on "linux-pam"
+  end
 
   def install
     args = %W[
@@ -30,36 +42,13 @@ class PureFtpd < Formula
     system "make", "install"
   end
 
-  plist_options :manual => "pure-ftpd"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>KeepAlive</key>
-        <true/>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>ProgramArguments</key>
-        <array>
-          <string>#{opt_sbin}/pure-ftpd</string>
-          <string>--chrooteveryone</string>
-          <string>--createhomedir</string>
-          <string>--allowdotfiles</string>
-          <string>--login=puredb:#{etc}/pureftpd.pdb</string>
-        </array>
-        <key>RunAtLoad</key>
-        <true/>
-        <key>WorkingDirectory</key>
-        <string>#{var}</string>
-        <key>StandardErrorPath</key>
-        <string>#{var}/log/pure-ftpd.log</string>
-        <key>StandardOutPath</key>
-        <string>#{var}/log/pure-ftpd.log</string>
-      </dict>
-    </plist>
-  EOS
+  service do
+    run [opt_sbin/"pure-ftpd", "--chrooteveryone", "--createhomedir", "--allowdotfiles",
+         "--login=puredb:#{etc}/pureftpd.pdb"]
+    keep_alive true
+    working_dir var
+    log_path var/"log/pure-ftpd.log"
+    error_log_path var/"log/pure-ftpd.log"
   end
 
   test do

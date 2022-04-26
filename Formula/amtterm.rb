@@ -3,15 +3,28 @@ class Amtterm < Formula
   homepage "https://www.kraxel.org/blog/linux/amtterm/"
   url "https://www.kraxel.org/releases/amtterm/amtterm-1.6.tar.gz"
   sha256 "1242cea467827aa1e2e91b41846229ca0a5b3f3e09260b0df9d78dc875075590"
-  head "https://www.kraxel.org/cgit/amtterm", :using => :git
+  license "GPL-2.0"
+  head "https://git.kraxel.org/git/amtterm/", branch: "master", using: :git
+
+  livecheck do
+    url "https://www.kraxel.org/releases/amtterm/"
+    regex(/href=.*?amtterm[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "f8ed67be384a24abd8114f058092b923e101a2991f32f712d437c6a292b40a12" => :mojave
-    sha256 "eef6949767ce3e19a88f0eb4b146b1444ea39541ab7a075311a8bf11a327f781" => :high_sierra
-    sha256 "256736b4dd1d0b427bdb7ca2f9931cc1c403ffe1e43695920160f4f3ffabfe88" => :sierra
-    sha256 "4035d9bcb4f6785255a5ea3df1dcc309dbf69441b69dde15b1936e8522fc8e95" => :el_capitan
-    sha256 "387897642ba8bcb6daff01adae021264eaf9deea1f264e210e9592b6bc5cc44a" => :yosemite
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "3a59e80adf7dd88384f4020c67177de6876f431769b7bd3274759b29bda7204b"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "7130d5cc879edc7425791e096234f76891e742ebcfcc5c9a7043ebad0fbf8afd"
+    sha256 cellar: :any_skip_relocation, monterey:       "c4380ecc8551ea99925203823a63706e8ecdd23b010459528b7a3efc8acb8169"
+    sha256 cellar: :any_skip_relocation, big_sur:        "3de2c8131b610bcf1d4d9cf1bb537d2a66b19dbc49e76f26e0ca280e48c1827c"
+    sha256 cellar: :any_skip_relocation, catalina:       "ed7067b9e98f43c6a13bd5dc43b5467508e33f209399b4e276da21091ae74907"
+    sha256 cellar: :any_skip_relocation, mojave:         "aab6ab711f9b407ef0df77a386b005cc8d10f7c0fb3c9c581659fea65e0edd00"
+    sha256 cellar: :any_skip_relocation, high_sierra:    "29180333af292e440f077a00a958ceb6f0035bcee9945233bc33177d0b3549f2"
+  end
+
+  on_linux do
+    depends_on "gtk+3"
+    depends_on "vte3"
   end
 
   resource "SOAP::Lite" do
@@ -20,7 +33,7 @@ class Amtterm < Formula
   end
 
   def install
-    ENV.prepend_create_path "PERL5LIB", libexec+"lib/perl5"
+    ENV.prepend_create_path "PERL5LIB", libexec/"lib/perl5"
 
     resource("SOAP::Lite").stage do
       system "perl", "Makefile.PL", "INSTALL_BASE=#{libexec}"
@@ -28,8 +41,12 @@ class Amtterm < Formula
       system "make", "install"
     end
 
+    # On Linux, @echo -e accidentally prepends "-e" to the beginning of Make.config
+    # which causes the build to fail with an "empty variable" error.
+    inreplace "mk/Autoconf.mk", "@echo -e", "@echo" unless OS.mac?
+
     system "make", "prefix=#{prefix}", "install"
-    bin.env_script_all_files(libexec+"bin", :PERL5LIB => ENV["PERL5LIB"])
+    bin.env_script_all_files(libexec+"bin", PERL5LIB: ENV["PERL5LIB"])
   end
 
   test do

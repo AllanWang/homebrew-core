@@ -1,11 +1,21 @@
 class Byteman < Formula
   desc "Java bytecode manipulation tool for testing, monitoring and tracing"
   homepage "https://byteman.jboss.org/"
-  url "https://downloads.jboss.org/byteman/4.0.7/byteman-download-4.0.7-bin.zip"
-  sha256 "f6eb620c4a420e445eaf9889efc7c54becd0579fb1c1a30b41b1dd71f3f50b05"
+  url "https://downloads.jboss.org/byteman/4.0.18/byteman-download-4.0.18-bin.zip"
+  sha256 "668d93a9e84695b637998143be723aa5cb984133b7dad5515634ae7f5fe116d4"
+  license "LGPL-2.1-or-later"
+  head "https://github.com/bytemanproject/byteman.git", branch: "main"
 
-  bottle :unneeded
-  depends_on :java => "1.6+"
+  livecheck do
+    url "https://byteman.jboss.org/downloads.html"
+    regex(/href=.*?byteman-download[._-]v?(\d+(?:\.\d+)+)-bin\.zip/i)
+  end
+
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "ea0b256d9b446bd1881395c70dc3dedce8e1553aed493878bb2b450e0854c82a"
+  end
+
+  depends_on "openjdk"
 
   def install
     rm_rf Dir["bin/*.bat"]
@@ -13,7 +23,7 @@ class Byteman < Formula
     libexec.install ["bin", "lib", "contrib"]
     pkgshare.install ["sample"]
 
-    env = Language::Java.java_home_env("1.6+").merge(:BYTEMAN_HOME => libexec)
+    env = { JAVA_HOME: "${JAVA_HOME:-#{Formula["openjdk"].opt_prefix}}", BYTEMAN_HOME: libexec }
     Pathname.glob("#{libexec}/bin/*") do |file|
       target = bin/File.basename(file, File.extname(file))
       # Drop the .sh from the scripts
@@ -47,15 +57,10 @@ class Byteman < Formula
       DO traceln("Exiting main")
       ENDRULE
     EOS
-    # Compile example
-    system "javac", "src/main/java/BytemanHello.java"
-    # Expected successful output when Byteman runs example
-    expected = <<~EOS
-      Entering main
-      Hello, Brew!
-      Exiting main
-    EOS
+
+    system "#{Formula["openjdk"].bin}/javac", "src/main/java/BytemanHello.java"
+
     actual = shell_output("#{bin}/bmjava -l brew.btm -cp src/main/java BytemanHello")
-    assert_equal(expected, actual)
+    assert_match("Hello, Brew!", actual)
   end
 end

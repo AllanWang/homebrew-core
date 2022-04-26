@@ -3,22 +3,34 @@ class Advancemame < Formula
   homepage "https://www.advancemame.it/"
   url "https://github.com/amadvance/advancemame/releases/download/v3.9/advancemame-3.9.tar.gz"
   sha256 "3e4628e1577e70a1dbe104f17b1b746745b8eda80837f53fbf7b091c88be8c2b"
+  license "GPL-2.0"
+  revision 1
+
+  livecheck do
+    url :stable
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
+  end
 
   bottle do
-    sha256 "95f2cdff91ff98c3c9f65a0751d7948cefb3829d96e1977b5b8869163eba0790" => :mojave
-    sha256 "9c5e0a9f81f43ec02eb951b82b4930639dafcdbacbeadf7bcc5e74f2e2ec7c45" => :high_sierra
-    sha256 "6ba2c02db07a9ef7ddf561dbc2cde3904abe0b1b0ab9c9469020fdeced72e011" => :sierra
+    sha256 arm64_monterey: "0345ac679c13343cc595026f63d7fa90992935964ae4f949abf6b047ebafd06d"
+    sha256 arm64_big_sur:  "8ac0b808eb5358417c5c2aab31e53cca0031a0dd4abb922d7eea5c52622e8f08"
+    sha256 monterey:       "f3e7d8dd40e68328a8135949522fe2873a2bd6d8c2271300a74fcb8156e186d3"
+    sha256 big_sur:        "8b2d656d506250066ce382a3f538d9476034fa3cf4fcddb87a61ecc84cd4c5d6"
+    sha256 catalina:       "6afeb2ebbdbb73b15b5771e33c5da13283b21a8fc26250f0db0cdecd5f41fb9f"
+    sha256 x86_64_linux:   "5e416d1d1d749bf88a0a97db5175a22755a200f7db388743b32284ac91b50513"
   end
 
   depends_on "pkg-config" => :build
   depends_on "freetype"
-  depends_on "sdl"
+  depends_on "sdl2"
 
-  conflicts_with "advancemenu", :because => "both install `advmenu` binaries"
+  uses_from_macos "expat"
+  uses_from_macos "ncurses"
 
   def install
-    ENV.delete "SDKROOT" if MacOS.version == :yosemite
-    system "./configure", "--prefix=#{prefix}"
+    system "./configure", "--prefix=#{prefix}",
+                          "--enable-freetype",
+                          "--enable-sdl2"
     system "make", "install", "LDFLAGS=#{ENV.ldflags}", "mandir=#{man}", "docdir=#{doc}"
   end
 

@@ -1,25 +1,30 @@
 class AzureStorageCpp < Formula
   desc "Microsoft Azure Storage Client Library for C++"
   homepage "https://azure.github.io/azure-storage-cpp"
-  url "https://github.com/Azure/azure-storage-cpp/archive/v6.1.0.tar.gz"
-  sha256 "a0b6107372125f756783bf6e5d57d24e2c8330a4941f4c72e8ddcf13c31618ed"
+  url "https://github.com/Azure/azure-storage-cpp/archive/v7.5.0.tar.gz"
+  sha256 "446a821d115949f6511b7eb01e6a0e4f014b17bfeba0f3dc33a51750a9d5eca5"
+  license "Apache-2.0"
   revision 1
 
   bottle do
-    cellar :any
-    sha256 "525a7514af0f5104afda2edcdcd9d8fff687aea7147d97024b57f2eac4d77f2e" => :mojave
-    sha256 "d1caa4407556007dfb7e9122b1a473c2466357e91fa37812fb9f407159b959fa" => :high_sierra
-    sha256 "113b891093b364bd479ea9af644d24379debd158f1f21a2f4e1b0018fd0c20d3" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "bf2dc9dc42639f6a174ed7a18fb098aebebd65fc8042b90a512a3d3c455b3cb1"
+    sha256 cellar: :any,                 arm64_big_sur:  "44c92708a069bfbb747e7710ce65e20262dfd4bb67311b832639ba201a72ea7a"
+    sha256 cellar: :any,                 monterey:       "04721a7d666cb92d8ac4b4484be3ee76d745cd1a5bd08cdae2683e1c15704a84"
+    sha256 cellar: :any,                 big_sur:        "2c530902c523c7ccdb2d4514145c5c86191e530b0d88d1594f5f2716f6fc87c7"
+    sha256 cellar: :any,                 catalina:       "161ddefac718948838ab878191c45a1b6180f05598ae121401ca63e3da1b672c"
+    sha256 cellar: :any,                 mojave:         "4abae4ebc74f4758f5be5fbc7846467eb5bf429b596c31eec32f53026d65251e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "aaf06755b0fc3414ff7abe7b9a7bbfbc61d62c86f0512fbfbe5cb4023500a7ac"
   end
 
   depends_on "cmake" => :build
   depends_on "boost"
   depends_on "cpprestsdk"
   depends_on "gettext"
-  depends_on "openssl"
+  depends_on "openssl@1.1"
 
-  # patch submitted upstream at https://github.com/Azure/azure-storage-cpp/pull/261
-  patch :DATA
+  on_linux do
+    depends_on "util-linux"
+  end
 
   def install
     system "cmake", "Microsoft.WindowsAzure.Storage",
@@ -43,47 +48,17 @@ class AzureStorageCpp < Formula
         catch(...){ return 1; }
       }
     EOS
-    flags = ["-stdlib=libc++", "-std=c++11", "-I#{include}",
+    flags = ["-std=c++11", "-I#{include}",
              "-I#{Formula["boost"].include}",
-             "-I#{Formula["openssl"].include}",
+             "-I#{Formula["openssl@1.1"].include}",
              "-I#{Formula["cpprestsdk"].include}",
              "-L#{Formula["boost"].lib}",
              "-L#{Formula["cpprestsdk"].lib}",
-             "-L#{Formula["openssl"].lib}",
+             "-L#{Formula["openssl@1.1"].lib}",
              "-L#{lib}",
-             "-lcpprest", "-lboost_system-mt", "-lssl", "-lcrypto", "-lazurestorage"] + ENV.cflags.to_s.split
+             "-lcpprest", "-lboost_system-mt", "-lssl", "-lcrypto", "-lazurestorage"]
+    flags << "-stdlib=libc++" if OS.mac?
     system ENV.cxx, "-o", "test_azurestoragecpp", "test.cpp", *flags
     system "./test_azurestoragecpp"
   end
 end
-
-__END__
-diff --git a/Microsoft.WindowsAzure.Storage/cmake/Modules/FindUUID.cmake b/Microsoft.WindowsAzure.Storage/cmake/Modules/FindUUID.cmake
-index 9171f8c..a427288 100644
---- a/Microsoft.WindowsAzure.Storage/cmake/Modules/FindUUID.cmake
-+++ b/Microsoft.WindowsAzure.Storage/cmake/Modules/FindUUID.cmake
-@@ -63,6 +63,12 @@ else (UUID_LIBRARIES AND UUID_INCLUDE_DIRS)
-       /usr/freeware/lib64
-   )
-
-+  if (APPLE)
-+    if (NOT UUID_LIBRARY)
-+      set(UUID_LIBRARY  "")
-+    endif (NOT UUID_LIBRARY)
-+  endif (APPLE)
-+
-   find_library(UUID_LIBRARY_DEBUG
-     NAMES
-       uuidd
-@@ -88,9 +94,9 @@ else (UUID_LIBRARIES AND UUID_INCLUDE_DIRS)
-   set(UUID_INCLUDE_DIRS ${UUID_INCLUDE_DIR})
-   set(UUID_LIBRARIES ${UUID_LIBRARY})
-
--  if (UUID_INCLUDE_DIRS AND UUID_LIBRARIES)
-+  if (UUID_INCLUDE_DIRS AND (APPLE OR UUID_LIBRARIES))
-      set(UUID_FOUND TRUE)
--  endif (UUID_INCLUDE_DIRS AND UUID_LIBRARIES)
-+  endif (UUID_INCLUDE_DIRS AND (APPLE OR UUID_LIBRARIES))
-
-   if (UUID_FOUND)
-     if (NOT UUID_FIND_QUIETLY)

@@ -1,14 +1,18 @@
 class Sfcgal < Formula
   desc "C++ wrapper library around CGAL"
   homepage "http://sfcgal.org/"
-  url "https://github.com/Oslandia/SFCGAL/archive/v1.3.7.tar.gz"
-  sha256 "30ea1af26cb2f572c628aae08dd1953d80a69d15e1cac225390904d91fce031b"
+  url "https://gitlab.com/Oslandia/SFCGAL/-/archive/v1.4.1/SFCGAL-v1.4.1.tar.gz"
+  sha256 "1800c8a26241588f11cddcf433049e9b9aea902e923414d2ecef33a3295626c3"
+  license "LGPL-2.0-or-later"
   revision 1
 
   bottle do
-    sha256 "1fcacf1736448f1490a29abf188bb00499bef52f7dfe6d11adb7bb9f7d6b1730" => :mojave
-    sha256 "be74e088dc8b81771e8ece9a79e3ba93f8338e764bb70b173ea045037d4b1790" => :high_sierra
-    sha256 "49f796b256dd748214d8b2d8a954daa3b1f01c6ae3bd96bc1dff2a3364e57c63" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "ecc07da7084fd82a31bb7f559078f0c33e3ae555a1d75b9ef4c4630442db7bf8"
+    sha256 cellar: :any,                 arm64_big_sur:  "f7011cca82cb20daa201c9a651b09e6648c1bf0b21388d3b45a4d93832e88386"
+    sha256 cellar: :any,                 monterey:       "0949359cfb9e3b10cb4e1b8287e2221e2b4aa473bd85f885a2400d56ac80b5e0"
+    sha256 cellar: :any,                 big_sur:        "744d2cc9163d8c828b97802b9f936e224a2094766ecea4a28dce3a22f5688008"
+    sha256 cellar: :any,                 catalina:       "6149c424f58cc50e2538ccfaed3e2aa664b06c720a05659bffa5e7833e69941d"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "c6b5af527fb033f3c79ba7e47d5718cac20c89e83109aa35b452f5db7ded3d3a"
   end
 
   depends_on "cmake" => :build
@@ -17,9 +21,17 @@ class Sfcgal < Formula
   depends_on "gmp"
   depends_on "mpfr"
 
+  on_linux do
+    depends_on "gcc"
+  end
+
+  # error: array must be initialized with a brace-enclosed initializer
+  fails_with gcc: "5"
+
   def install
-    system "cmake", ".", *std_cmake_args
-    system "make", "install"
+    system "cmake", "-S", ".", "-B", "build", *std_cmake_args
+    system "cmake", "--build", "build"
+    system "cmake", "--install", "build"
   end
 
   test do

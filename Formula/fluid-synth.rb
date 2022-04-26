@@ -1,15 +1,18 @@
 class FluidSynth < Formula
   desc "Real-time software synthesizer based on the SoundFont 2 specs"
-  homepage "http://www.fluidsynth.org"
-  url "https://github.com/FluidSynth/fluidsynth/archive/v2.0.5.tar.gz"
-  sha256 "69b244512883491e7e66b4d0151c61a0d6d867d4d2828c732563be0f78abcc51"
-  head "https://github.com/FluidSynth/fluidsynth.git"
+  homepage "https://www.fluidsynth.org"
+  url "https://github.com/FluidSynth/fluidsynth/archive/v2.2.7.tar.gz"
+  sha256 "460d86d8d687f567dc4780890b72538c7ff6b2082080ef2f9359d41670a309cf"
+  license "LGPL-2.1-or-later"
+  head "https://github.com/FluidSynth/fluidsynth.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "0dad5a2972f67dbb9d9b8a1b44474e2c54991a5e3dce18cb0baaa2712023f70c" => :mojave
-    sha256 "7733d5ba43ad6d8424375fdd174c4c30e137a29d91fb6d0db90f0531f30b9967" => :high_sierra
-    sha256 "a3285524c60d898d66435e6c0ac5e6b0a86081ffa9c364bfd7139d8f4b4f7a2a" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "23526c8b54833babced5175acf047e1e0da4d4a488085e5867b499b4f9db9093"
+    sha256 cellar: :any,                 arm64_big_sur:  "9dbbff6586fe7aba8af9635e7eaa232a72003f7184b184779b4dbe362e9af84a"
+    sha256 cellar: :any,                 monterey:       "19ac15d032be1590d3ed9a7f0f560340c9c28b3e5aa94e1c31df925509892d9e"
+    sha256 cellar: :any,                 big_sur:        "d0f2842b70fe5325c57a4c21aca4308285749da5a0c53d7c33cd5a8e6ad445f6"
+    sha256 cellar: :any,                 catalina:       "bcdca41f4d49b87d87481188f11542191bba347085767c0a5b78797935e74a04"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "749ad0826b928f51ee9a5d4c11385f754d0cb1b0715400d41b68ade0ddbdf6c6"
   end
 
   depends_on "cmake" => :build
@@ -17,6 +20,11 @@ class FluidSynth < Formula
   depends_on "glib"
   depends_on "libsndfile"
   depends_on "portaudio"
+
+  resource "homebrew-test" do
+    url "https://upload.wikimedia.org/wikipedia/commons/6/61/Drum_sample.mid"
+    sha256 "a1259360c48adc81f2c5b822f221044595632bd1a76302db1f9d983c44f45a30"
+  end
 
   def install
     args = std_cmake_args + %w[
@@ -31,9 +39,15 @@ class FluidSynth < Formula
       system "cmake", "..", *args
       system "make", "install"
     end
+
+    pkgshare.install "sf2"
   end
 
   test do
-    assert_match /#{version}/, shell_output("#{bin}/fluidsynth --version")
+    # Synthesize wav file from example midi
+    resource("homebrew-test").stage testpath
+    wavout = testpath/"Drum_sample.wav"
+    system bin/"fluidsynth", "-F", wavout, pkgshare/"sf2/VintageDreamsWaves-v2.sf2", testpath/"Drum_sample.mid"
+    assert_predicate wavout, :exist?
   end
 end

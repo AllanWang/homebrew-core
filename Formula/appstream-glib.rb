@@ -1,14 +1,19 @@
 class AppstreamGlib < Formula
   desc "Helper library for reading and writing AppStream metadata"
   homepage "https://github.com/hughsie/appstream-glib"
-  url "https://github.com/hughsie/appstream-glib/archive/appstream_glib_0_7_15.tar.gz"
-  sha256 "ad4463e96870accc9a179849555f5c5c4146ec412ec3ecf3c594dce85e027d59"
+  url "https://github.com/hughsie/appstream-glib/archive/appstream_glib_0_7_18.tar.gz"
+  sha256 "73b8c10273c4cdd8f6de03c2524fedad64e34ccae08ee847dba804bb15461f6e"
+  license "LGPL-2.1-or-later"
+  revision 1
 
   bottle do
-    cellar :any
-    sha256 "567caa84b4a6d0ffcffed0b0fdb78bbb0d04529e49acd34753c7f0181439e7f8" => :mojave
-    sha256 "4b2514928e260215f3a6258167e0544f587f73a9ab3f202bebafc4c66765752e" => :high_sierra
-    sha256 "d11c16c5b3300d4933b83af64cf68ecc4ee77a3f93dd6b8b4c5c459b37d2cc79" => :sierra
+    rebuild 1
+    sha256 cellar: :any, arm64_monterey: "8e8bc17a4e8db65f27b2021ec044bed07fe3230cf7418669b245b855e40f3a52"
+    sha256 cellar: :any, arm64_big_sur:  "7389aa5d3dc05124ddab77a39fcde0b5b44c74b4ef6bb283f652cfc1f1de5175"
+    sha256 cellar: :any, monterey:       "53220b9e712d6a473fd09d9a82df67c7d7b93b9eb171978f0e8180055166ebb5"
+    sha256 cellar: :any, big_sur:        "1aded5fd6345ce3337cea5141bded4945f481392bf8686532f211d8b5bb2a777"
+    sha256 cellar: :any, catalina:       "2382482db7b4ef8f7b3682014498eb1e49ec626a88d9baa6e3bc71d9ad23c13b"
+    sha256               x86_64_linux:   "c9a65c92ae6b80096abf132de339721f0c5e709310105fa47313b1c2d6b0eed1"
   end
 
   depends_on "docbook" => :build
@@ -21,7 +26,7 @@ class AppstreamGlib < Formula
   depends_on "glib"
   depends_on "json-glib"
   depends_on "libarchive"
-  depends_on "libsoup"
+  depends_on "libsoup@2"
   depends_on "util-linux"
 
   # see https://github.com/hughsie/appstream-glib/issues/258
@@ -32,7 +37,7 @@ class AppstreamGlib < Formula
     ENV["XML_CATALOG_FILES"] = "#{etc}/xml/catalog"
 
     mkdir "build" do
-      system "meson", "--prefix=#{prefix}", "-Dbuilder=false", "-Drpm=false", "-Ddep11=false", "-Dstemmer=false", ".."
+      system "meson", *std_meson_args, "-Dbuilder=false", "-Drpm=false", "-Ddep11=false", "-Dstemmer=false", ".."
       system "ninja", "-v"
       system "ninja", "install", "-v"
     end
@@ -67,8 +72,8 @@ class AppstreamGlib < Formula
       -lgio-2.0
       -lglib-2.0
       -lgobject-2.0
-      -lintl
     ]
+    flags << "-lintl" if OS.mac?
     system ENV.cc, "test.c", "-o", "test", *flags
     system "./test"
     system "#{bin}/appstream-util", "--help"

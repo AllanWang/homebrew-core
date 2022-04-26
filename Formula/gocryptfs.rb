@@ -1,29 +1,40 @@
 class Gocryptfs < Formula
   desc "Encrypted overlay filesystem written in Go"
   homepage "https://nuetzlich.net/gocryptfs/"
-  url "https://github.com/rfjakob/gocryptfs/releases/download/v1.7/gocryptfs_v1.7_src-deps.tar.gz"
-  version "1.7"
-  sha256 "2d1a2cfd072d554a28ee6e6807474b00ac710fb1aaf7aa81f3d8e94e80f6a703"
+  url "https://github.com/rfjakob/gocryptfs/releases/download/v2.0.1/gocryptfs_v2.0.1_src-deps.tar.gz"
+  sha256 "31be3f3a9400bd5eb8a4d5f86f7aee52a488207e12d312f2601ae08e7e26dd02"
+  license "MIT"
 
   bottle do
-    cellar :any
-    sha256 "8d6983f1264b86e94e945a5e9577c5b79cb7488d4e8cbd717d6fa0c705d5e5e0" => :mojave
-    sha256 "f5e8c9ef52adee8a36f8d3068426db475ad5c836d4119ad96ca33df19c69b774" => :high_sierra
-    sha256 "32490efe5a1080007c61c664eb952c5114c717162547ce32fcffb823abe700e1" => :sierra
+    sha256 cellar: :any_skip_relocation, x86_64_linux: "43d8cf09fcd4cb76ac51246225cd30c68ea4abe9c944843a9788534e09ea9e18"
   end
 
   depends_on "go" => :build
   depends_on "pkg-config" => :build
-  depends_on "openssl"
-  depends_on :osxfuse
+  depends_on "openssl@1.1"
+
+  on_macos do
+    disable! date: "2021-04-08", because: "requires closed-source macFUSE"
+  end
+
+  on_linux do
+    depends_on "libfuse"
+  end
 
   def install
-    ENV["GOPATH"] = buildpath
-    (buildpath/"src/github.com/rfjakob/gocryptfs").install buildpath.children
-    cd "src/github.com/rfjakob/gocryptfs" do
-      system "./build.bash"
-      bin.install "gocryptfs"
-      prefix.install_metafiles
+    system "./build.bash"
+    bin.install "gocryptfs"
+  end
+
+  def caveats
+    on_macos do
+      <<~EOS
+        The reasons for disabling this formula can be found here:
+          https://github.com/Homebrew/homebrew-core/pull/64491
+
+        An external tap may provide a replacement formula. See:
+          https://docs.brew.sh/Interesting-Taps-and-Forks
+      EOS
     end
   end
 

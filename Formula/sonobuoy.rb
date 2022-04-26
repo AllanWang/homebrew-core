@@ -1,43 +1,32 @@
 class Sonobuoy < Formula
   desc "Kubernetes component that generates reports on cluster conformance"
-  homepage "https://github.com/heptio/sonobuoy"
-  url "https://github.com/heptio/sonobuoy/archive/v0.15.0.tar.gz"
-  sha256 "fce6a25e9e486c43f0962ed6b5f574c528c7d10530fdae98c7d4e5bf11117448"
+  homepage "https://github.com/vmware-tanzu/sonobuoy"
+  url "https://github.com/vmware-tanzu/sonobuoy/archive/v0.56.4.tar.gz"
+  sha256 "5c3175d3aca408ff8e4e77b716b95ca0be0859fe600912919d3897cdbbf77bb2"
+  license "Apache-2.0"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "70d4ef4f83b992572fdec4621c6b7f80f320717b3176c37e6d0945cf5f1dfc82" => :mojave
-    sha256 "e24048249d20a6782e59fc35c3275f297a24a71241d4e749a1799b6f3e045a05" => :high_sierra
-    sha256 "6b1cda3fcb820ccc5c5c6f7c10a7f267a85942244c59d337ef1ec60195951c7b" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "22643fb291902c896897832b0a8dd451ee6f02e9420b3720dc9f45ec224f7352"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "e71a07fb9d03d175f0111607cbc0c07bfc1cd663fa6a1a03d69a64333d7b2ded"
+    sha256 cellar: :any_skip_relocation, monterey:       "84ee96c38ba58776fa0a6565195efa38d34d568d0e2d3f259fea692885d17c58"
+    sha256 cellar: :any_skip_relocation, big_sur:        "47977b64f18f2cec3fb0bee24436225083fc5190a27a247a96908dfca62f5ac1"
+    sha256 cellar: :any_skip_relocation, catalina:       "ea127d38edc308d882edc8c227ff58ee85982c5218e113e61ef91af2e58e5965"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "b9cb85110f52994c7d95b1c44f514e27d2b8095a0568b79b17577bf38cf9d9a8"
   end
 
-  depends_on "go" => :build
-
-  resource "sonobuoyresults" do
-    url "https://raw.githubusercontent.com/heptio/sonobuoy/master/pkg/client/results/testdata/results-0.10.tar.gz"
-    sha256 "a945ba4d475e33820310a6138e3744f301a442ba01977d38f2b635d2e6f24684"
-  end
+  # Segfaults on Go 1.18 - try test it again when updating this formula.
+  depends_on "go@1.17" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-    (buildpath/"src/github.com/heptio/sonobuoy").install buildpath.children
-
-    cd "src/github.com/heptio/sonobuoy" do
-      system "go", "build", "-o", bin/"sonobuoy", "-installsuffix", "static",
-                   "-ldflags",
-                   "-s -w -X github.com/heptio/sonobuoy/pkg/buildinfo.Version=#{version}",
-                   "./"
-      prefix.install_metafiles
-    end
+    system "go", "build", *std_go_args(ldflags: "-s -w -X github.com/vmware-tanzu/sonobuoy/pkg/buildinfo.Version=v#{version}")
   end
 
   test do
-    output = shell_output("#{bin}/sonobuoy 2>&1")
-    assert_match "Sonobuoy is an introspective kubernetes component that generates reports on cluster conformance", output
-    assert_match version.to_s, shell_output("#{bin}/sonobuoy version 2>&1")
-    output = shell_output("#{bin}/sonobuoy gen --kube-conformance-image-version=v1.12 2>&1")
-    assert_match "name: heptio-sonobuoy", output
-    output = shell_output("#{bin}/sonobuoy e2e --show=all " + resource("sonobuoyresults").cached_download + " 2>&1")
-    assert_match "all tests", output
+    assert_match "Sonobuoy is a Kubernetes component that generates reports on cluster conformance",
+      shell_output("#{bin}/sonobuoy 2>&1")
+    assert_match version.to_s,
+      shell_output("#{bin}/sonobuoy version 2>&1")
+    assert_match "name: sonobuoy",
+      shell_output("#{bin}/sonobuoy gen --kubernetes-version=v1.21 2>&1")
   end
 end

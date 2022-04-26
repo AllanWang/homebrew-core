@@ -2,22 +2,27 @@ class Cspice < Formula
   desc "Observation geometry system for robotic space science missions"
   homepage "https://naif.jpl.nasa.gov/naif/toolkit.html"
   url "https://naif.jpl.nasa.gov/pub/naif/toolkit/C/MacIntel_OSX_AppleC_64bit/packages/cspice.tar.Z"
-  mirror "https://dl.bintray.com/homebrew/mirror/cspice-66.tar.Z"
-  version "66"
-  sha256 "f5d48c4b0d558c5d71e8bf6fcdf135b0943210c1ff91f8191dfc447419a6b12e"
+  version "67"
+  sha256 "6f4980445fee4d363dbce6f571819f4a248358d2c1bebca47e0743eedfe9935e"
 
-  bottle do
-    cellar :any_skip_relocation
-    sha256 "dac29486067ad080407dfd76641a8902103ce333750d5e2c9723409806f2ab61" => :high_sierra
-    sha256 "5ffb3eec6da9aa84ff58330734d024df9ea1378b1cc93365736b66d4315c47b9" => :sierra
-    sha256 "ceec1738779c07c06bd21b5c81816fb66854b728a1a098fe5ac1f37a176ee32f" => :el_capitan
-    sha256 "ff72f9d54707e03e86016b286117528720134acd4f23bd6e6b4402c8cd4def73" => :yosemite
+  # The `stable` tarball is unversioned, so we have to identify the latest
+  # version from text on the homepage.
+  livecheck do
+    url :homepage
+    regex(/current SPICE Toolkit version is (?:<[^>]+?>)?N0*(\d+)/im)
   end
 
-  conflicts_with "openhmd", :because => "both install `simple` binaries"
-  conflicts_with "libftdi0", :because => "both install `simple` binaries"
-  conflicts_with "enscript", :because => "both install `states` binaries"
-  conflicts_with "fondu", :because => "both install `tobin` binaries"
+  bottle do
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "4a3e9574c472567a3814aed8f11bcc0874d6dc4ce2e1e867351e5668366d60a6"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "27847bdbb741a1195069b815bef8bcbdbcbc183ab3b7034a83eb7854348d7f04"
+    sha256 cellar: :any_skip_relocation, monterey:       "b6317d5408e0c56164299671a459ed55c3581a219b4e0b7c699c08fe6abbcb3d"
+    sha256 cellar: :any_skip_relocation, big_sur:        "081d234c0862319ab53275de9eb9f6e006d53afe43c63d53425bd089ea9b493c"
+    sha256 cellar: :any_skip_relocation, catalina:       "900cfe839cf53dc03c1e227332d24849e55209a606dba515412ae74a955144f9"
+  end
+
+  conflicts_with "openhmd", because: "both install `simple` binaries"
+  conflicts_with "libftdi0", because: "both install `simple` binaries"
+  conflicts_with "enscript", because: "both install `states` binaries"
 
   def install
     rm_f Dir["lib/*"]

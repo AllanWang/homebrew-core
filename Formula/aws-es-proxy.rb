@@ -1,30 +1,26 @@
 class AwsEsProxy < Formula
   desc "Small proxy between HTTP client and AWS Elasticsearch"
   homepage "https://github.com/abutaha/aws-es-proxy"
-  url "https://github.com/abutaha/aws-es-proxy/archive/v0.9.tar.gz"
-  sha256 "c5a2943c79737874b7fc84ee298925e33aeece58fcf0e2b8b7d2f416bc872491"
+  url "https://github.com/abutaha/aws-es-proxy/archive/v1.3.tar.gz"
+  sha256 "bf20710608b7615da937fb3507c67972cd0d9b6cb45df5ddbc66bc5606becebf"
+  license "Apache-2.0"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "35421935cd1cdb758564d9fb6328aea304d2d1850539e5e407e2496f3963842c" => :mojave
-    sha256 "f8f4c0fc627d3a2319b4ddd51c692040f97fae904a3c4840890740a0a3a0d3ff" => :high_sierra
-    sha256 "a7909d452eae3f5f34f982f98af35be8c814d9b9476c3c7a2f479fa6f5e9f631" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "b053918e93c51c2b3a562dc30cfbcf30f07f2c10b841b5c61ab146595920368d"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "9ae9e19bb22445be989da3b8407bc42fba17a3f512d692bd8d727751b1703757"
+    sha256 cellar: :any_skip_relocation, monterey:       "d6b34390ba856f75db3adf881e2659bf48c6d420abe8d4de1226e59c607e0a41"
+    sha256 cellar: :any_skip_relocation, big_sur:        "5d172bf29028041152acbd6635aee845193fc19f0b8d4e086ed4a28ee9354a37"
+    sha256 cellar: :any_skip_relocation, catalina:       "1e1cb5b16185e9948621055c4960b608973110c5d68ab10cc07c61f52d456010"
+    sha256 cellar: :any_skip_relocation, mojave:         "a30caee0acb5d3c89764be328025d84c9cbeb2adce32a97b78048c399576bff0"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "927e9fcca53a19b16b22d363737b24111ecfd333dc9f969086b0e312c3d30a74"
   end
 
-  depends_on "glide" => :build
-  depends_on "go" => :build
+  # Bump to 1.18 on the next release, if possible.
+  depends_on "go@1.17" => :build
 
   def install
-    ENV["GLIDE_HOME"] = buildpath/"glide_home"
-    ENV["GOPATH"] = buildpath
-    (buildpath/"src/github.com/abutaha/aws-es-proxy").install buildpath.children
-    cd "src/github.com/abutaha/aws-es-proxy" do
-      system "glide", "install"
-      system "go", "build", "-o", "aws-es-proxy"
-
-      bin.install "aws-es-proxy"
-      prefix.install_metafiles
-    end
+    system "go", "build", *std_go_args
+    prefix.install_metafiles
   end
 
   def caveats
@@ -37,14 +33,13 @@ class AwsEsProxy < Formula
   end
 
   test do
-    begin
-      io = IO.popen("#{bin}/aws-es-proxy -endpoint https://dummy-host.eu-west-1.es.amazonaws.com", :err => [:child, :out])
-      sleep 2
-    ensure
-      Process.kill("SIGINT", io.pid)
-      Process.wait(io.pid)
-    end
+    address = "127.0.0.1:#{free_port}"
+    endpoint = "https://dummy-host.eu-west-1.es.amazonaws.com"
 
-    assert_match "Listening on", io.read
+    fork { exec "#{bin}/aws-es-proxy", "-listen=#{address}", "-endpoint=#{endpoint}" }
+    sleep 2
+
+    output = shell_output("curl --silent #{address}")
+    assert_match "Failed to sign", output
   end
 end

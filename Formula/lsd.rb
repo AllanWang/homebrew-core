@@ -1,20 +1,28 @@
 class Lsd < Formula
   desc "Clone of ls with colorful output, file type icons, and more"
   homepage "https://github.com/Peltoche/lsd"
-  url "https://github.com/Peltoche/lsd/archive/0.15.1.tar.gz"
-  sha256 "849ad168171737ef1ca74b762b3d9fb885c936cb9a753eca07426886478ad2de"
+  url "https://github.com/Peltoche/lsd/archive/0.21.0.tar.gz"
+  sha256 "f500c18221f9c3fd45f88f6f764001e99cf9d6d74af9172cbb9a9ff32f3e5c7d"
+  license "Apache-2.0"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "d0b8a591c3f298ad1ca6c827e8b556aec7d763d5af4d2ea4b0301f2f89ba3f96" => :mojave
-    sha256 "c508d0f378344fa96d2623103a181b91296e9237c52d2b80bc3906c17e32a72f" => :high_sierra
-    sha256 "adcbf3b22c7804550f386545b4e5cac22e6bcba5e80c36e45dc3e03f93ec0dc7" => :sierra
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "fb1ae021488b265d2f05e71b9c1b79ffa6113c2cac1f77e7287b9525315add2b"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "706fdc3ceb41d2ad2ebdbc11b3930d87c5546d109331c9b965cb7d29875bd100"
+    sha256 cellar: :any_skip_relocation, monterey:       "1b8a883d68c3ea85695a5e33602e99b3d6f8866f34444eeedbb4d9131112af90"
+    sha256 cellar: :any_skip_relocation, big_sur:        "d14efa8c804908f25d88f0cea0ecea253d6a059d971de1f630ffb29af2f691d8"
+    sha256 cellar: :any_skip_relocation, catalina:       "b42295c9884214ecf4e6afc90aca429d739cd509f72f54e8ee590e6afc26aed4"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "90f92d5c4d38f5c3e84c13bc171c3bdae04f50da02a7fc2bd6680ea82368f3fe"
   end
 
   depends_on "rust" => :build
 
   def install
-    system "cargo", "install", "--root", prefix, "--path", "."
+    ENV["SHELL_COMPLETIONS_DIR"] = buildpath
+    system "cargo", "install", *std_cargo_args
+    bash_completion.install "lsd.bash"
+    fish_completion.install "lsd.fish"
+    zsh_completion.install "_lsd"
   end
 
   test do

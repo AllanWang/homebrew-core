@@ -1,28 +1,53 @@
 class GoogleJavaFormat < Formula
+  include Language::Python::Shebang
+
   desc "Reformats Java source code to comply with Google Java Style"
   homepage "https://github.com/google/google-java-format"
-  url "https://github.com/google/google-java-format/archive/google-java-format-1.7.tar.gz"
-  sha256 "199c70851146bc15c8e828f5ca78d6c2d7b338def9cc70786ac3ef5967796399"
+  url "https://github.com/google/google-java-format/releases/download/v1.15.0/google-java-format-1.15.0-all-deps.jar"
+  sha256 "a356bb0236b29c57a3ab678f17a7b027aad603b0960c183a18f1fe322e4f38ea"
+  license "Apache-2.0"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "bb1fcc168016355d6f847b858018f6c5b188f41e9461aa956a1541e609406d93" => :mojave
-    sha256 "c8f23d50f6512d56d4402cb0b2325d7e01563625104579f4ea52a1f47e7f2802" => :high_sierra
-    sha256 "fdd74a17bb5743a854e81d1d163f020f12d469d278bcddd1e8527c12a3752bad" => :sierra
+    sha256 cellar: :any_skip_relocation, all: "0148b7af6496e069695eda9f889999cd942ab795e9ce8a8d911906d1b79b8b05"
   end
 
-  depends_on "maven" => :build
+  depends_on "openjdk"
+  depends_on "python@3.10"
+
+  resource "google-java-format-diff" do
+    url "https://raw.githubusercontent.com/google/google-java-format/v1.15.0/scripts/google-java-format-diff.py"
+    sha256 "4c46a4ed6c39c2f7cbf2bc7755eefd7eaeb0a3db740ed1386053df822f15782b"
+  end
 
   def install
-    system "mvn", "versions:set", "-DnewVersion=#{version}"
-    system "mvn", "install", "-DskipTests=true", "-Dmaven.javadoc.skip=true", "-B"
-    libexec.install "core/target/google-java-format-#{version}-all-deps.jar"
-
-    bin.write_jar_script libexec/"google-java-format-#{version}-all-deps.jar", "google-java-format"
+    libexec.install "google-java-format-#{version}-all-deps.jar" => "google-java-format.jar"
+    bin.write_jar_script libexec/"google-java-format.jar", "google-java-format"
+    resource("google-java-format-diff").stage do
+      bin.install "google-java-format-diff.py" => "google-java-format-diff"
+      rewrite_shebang detected_python_shebang, bin/"google-java-format-diff"
+    end
   end
 
   test do
     (testpath/"foo.java").write "public class Foo{\n}\n"
     assert_match "public class Foo {}", shell_output("#{bin}/google-java-format foo.java")
+    (testpath/"bar.java").write <<~BAR
+      class Bar{
+        int  x;
+      }
+    BAR
+    patch = <<~PATCH
+      --- a/bar.java
+      +++ b/bar.java
+      @@ -1,0 +2 @@ class Bar{
+      +  int x  ;
+    PATCH
+    `echo '#{patch}' | #{bin}/google-java-format-diff -p1 -i`
+    assert_equal <<~BAR, File.read(testpath/"bar.java")
+      class Bar{
+        int x;
+      }
+    BAR
+    assert_equal version, resource("google-java-format-diff").version
   end
 end

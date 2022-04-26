@@ -3,13 +3,17 @@ class Hesiod < Formula
   homepage "https://github.com/achernya/hesiod"
   url "https://github.com/achernya/hesiod/archive/hesiod-3.2.1.tar.gz"
   sha256 "813ccb091ad15d516a323bb8c7693597eec2ef616f36b73a8db78ff0b856ad63"
+  license "BSD-2-Clause"
   revision 1
 
   bottle do
-    sha256 "4b2e392609aad28f223135fe351688d9b104517ba7574f0b9166a3159136f56f" => :mojave
-    sha256 "7eb0a5a6ef9a8c9ad568ab371ac8186499f7616265a86f8fc3d28c2ed5ce9cfe" => :high_sierra
-    sha256 "62ea1a19f382f4b07888c5bd286939e6fe055e6755ae7c702b16867a1854f40d" => :sierra
-    sha256 "71c59e1287dd90d1cef092e87f1e05ab408fbd85ca101b6093d1513a4d63ffdc" => :el_capitan
+    rebuild 1
+    sha256 cellar: :any,                 arm64_big_sur: "66f05bed0ecbd7328400f142a7864ec972fd3573d284375c222ff963a5ae7875"
+    sha256 cellar: :any,                 big_sur:       "8b396dffcf3d833f50169ee20ae3ae126775cb40430ee4d2d967ba459834815a"
+    sha256 cellar: :any,                 catalina:      "2e077b355ca0ed9f0bbadfc7b54ef681fc11f58c324ce19d3131fb61b99f15d2"
+    sha256 cellar: :any,                 mojave:        "76748e285f22aed694c2933e4cd3a1469398ea254671755e6f89ad07e76b7f73"
+    sha256 cellar: :any,                 high_sierra:   "de927a6526209db3673aa9e426d7e32f53b7a278798f07d6dc1c5069e816d09a"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:  "3f798b02cd050763429e1db3c6e8afbb591bca678a8352fa8305cdbaa544a3f9"
   end
 
   depends_on "autoconf" => :build

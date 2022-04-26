@@ -1,41 +1,50 @@
 class Aqbanking < Formula
   desc "Generic online banking interface"
   homepage "https://www.aquamaniac.de/sites/aqbanking/"
-  url "https://www.aquamaniac.de/sites/download/download.php?package=03&release=217&file=02&dummy=aqbanking-5.7.8.tar.gz"
-  sha256 "16f86e4cc49a9eaaa8dfe3206607e627873208bce45a70030c3caea9b5afc768"
-  revision 2
+  url "https://www.aquamaniac.de/rdm/attachments/download/400/aqbanking-6.4.1.tar.gz"
+  sha256 "79adeaf05e99b5aa0d31c3eac3db37a56bb375f537b3f106a9acfcf844dadd77"
+  license "GPL-2.0-or-later"
+
+  livecheck do
+    url "https://www.aquamaniac.de/rdm/projects/aqbanking/files"
+    regex(/href=.*?aqbanking[._-](\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    sha256 "fca5661e400db442c537f388edf23a736893a876823e204a3c64426be12b4ad2" => :mojave
-    sha256 "ba373481808a424c6a5bfeafc93c66e50c004c75073ac8d05a7107cbd04038fd" => :high_sierra
-    sha256 "f0290967ff94ac559223b3f624b7c902525f41d88ca41d6e2feb8021a877ef08" => :sierra
+    sha256 arm64_monterey: "5a86ff8e93a1e454ae3588bb749378fb863230e353be6b862a36a6cf5bfed7df"
+    sha256 arm64_big_sur:  "d83a2a3067d0151089605f34c2b96b72cc55b4f5258bc84575094f04c22ddb8f"
+    sha256 monterey:       "f4820594692e060267a740df585c979feda7ac75adb6eae42269ecd77cfcf98b"
+    sha256 big_sur:        "e15bcadc4d81ae9214ccd2b71cd9596f1431cc0d80032f4ba443cc46c7481283"
+    sha256 catalina:       "329934083304ca7ca6a3a30832ca652973fa0eaacf3a493520cc850675a22b68"
+    sha256 x86_64_linux:   "84a998567c4b0898daeabaf3c6bf6bf6027f625c3fbe060911dc8e9bebc35c74"
   end
 
   head do
-    url "https://git.aquamaniac.de/git/aqbanking.git"
+    url "https://git.aquamaniac.de/git/aqbanking.git", branch: "master"
 
     depends_on "autoconf" => :build
     depends_on "automake" => :build
     depends_on "libtool" => :build
   end
 
-  depends_on "pkg-config" => :build
   depends_on "gettext"
   depends_on "gmp"
   depends_on "gwenhywfar"
   depends_on "ktoblzcheck"
   depends_on "libxml2"
   depends_on "libxmlsec1"
-  depends_on "libxslt"
+  depends_on "libxslt" # Our libxslt links with libgcrypt
+  depends_on "pkg-config" # aqbanking-config needs pkg-config for execution
 
   def install
     ENV.deparallelize
+    inreplace "aqbanking-config.in.in", "@PKG_CONFIG@", "pkg-config"
     system "autoreconf", "-fiv" if build.head?
     system "./configure", "--disable-debug",
                           "--disable-dependency-tracking",
                           "--prefix=#{prefix}",
-                          "--enable-cli",
-                          "--with-gwen-dir=#{HOMEBREW_PREFIX}"
+                          "--enable-cli"
+    # This is banking software, so let's run the test suite.
     system "make", "check"
     system "make", "install"
   end
@@ -47,50 +56,26 @@ class Aqbanking < Formula
       accountInfoList {
         accountInfo {
           char bankCode="110000000"
-          char bankName="STRIPE TEST BANK"
           char accountNumber="000123456789"
-          char accountName="demand deposit"
           char iban="US44110000000000123456789"
           char bic="BYLADEM1001"
-          char owner="JOHN DOE"
           char currency="USD"
-          int  accountType="0"
-          int  accountId="2"
 
-          statusList {
-            status {
-              int  time="1388664000"
-
-              notedBalance {
-                value {
-                  char value="123456%2F100"
-                  char currency="USD"
-                } #value
-
-                int  time="1388664000"
-              } #notedBalance
-            } #status
-
-            status {
-              int  time="1388750400"
-
-              notedBalance {
-                value {
-                  char value="132436%2F100"
-                  char currency="USD"
-                } #value
-
-                int  time="1388750400"
-              } #notedBalance
-            } #status
-          } #statusList
-
-        } # accountInfo
-      } # accountInfoList
+          balanceList {
+            balance {
+              char date="20221212"
+              char value="-11096%2F100%3AUSD"
+              char type="booked"
+            } #balance
+          } #balanceList
+        } #accountInfo
+      } #accountInfoList
     EOS
 
-    match = "Account 110000000 000123456789 STRIPE TEST BANK 03.01.2014 12:00 1324.36 USD"
-    out = shell_output("#{bin}/aqbanking-cli listbal -c #{context}")
+    match = "110000000 000123456789 12.12.2022 -110.96 US44110000000000123456789 BYLADEM1001"
+    out = shell_output("#{bin}/aqbanking-cli -D .aqbanking listbal "\
+                       "-T '$(bankcode) $(accountnumber) $(dateAsString) "\
+                       "$(valueAsString) $(iban) $(bic)' < #{context}")
     assert_match match, out.gsub(/\s+/, " ")
   end
 end

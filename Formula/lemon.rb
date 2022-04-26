@@ -1,45 +1,43 @@
 class Lemon < Formula
   desc "LALR(1) parser generator like yacc or bison"
   homepage "https://www.hwaci.com/sw/lemon/"
-  url "https://tx97.net/pub/distfiles/lemon-1.69.tar.bz2"
-  sha256 "bc7c1cae233b6af48f4b436ee900843106a15bdb1dc810bc463d8c6aad0dd916"
+  # FIXME: Add this back to `synced_versions_formula.json` when
+  #        this is updated to 3.37.0.
+  url "https://www.sqlite.org/2021/sqlite-src-3360000.zip"
+  version "3.36.0"
+  sha256 "25a3b9d08066b3a9003f06a96b2a8d1348994c29cc912535401154501d875324"
+  license "blessing"
+
+  livecheck do
+    formula "sqlite"
+  end
 
   bottle do
-    sha256 "ba917fc3f6df28ea62f91bdd45cbe4c43dd8148c2573fc263cd1bcfcb7915a6e" => :mojave
-    sha256 "b01253f24f206fb1a1e76656ec4c9f43d3132d8dcaaa60708d1478e0a3546a12" => :high_sierra
-    sha256 "54fc18e48b3e9bfa4e14317158e3aef097d075bc3819d6424cb5b48a5845a7d8" => :sierra
-    sha256 "9016fa354fa9f34abf2db3cdca2e13a6dd6223534ff9ea08001ddaff053fe446" => :el_capitan
-    sha256 "e9b8328c8d905424be43404911bff1296c16fbdd83ecfeab7b51917f31c81ab7" => :yosemite
-    sha256 "a8120db2de1708f3ecd4bddc5775f90cf5c39a55010a90d01b8cd5f58325560e" => :mavericks
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "acad2c45ba75ce33323c6cf4558dae1872faa88ee4fe76bd07ceb4a2be5824aa"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "c9895753eefde9fd60263be373f014f1cb77bbd4065ff1c2c6fca12450bbc138"
+    sha256 cellar: :any_skip_relocation, monterey:       "e929cd9b9c077996bd94dedd99f750d66dc84d25603114de7189d490e125de2d"
+    sha256 cellar: :any_skip_relocation, big_sur:        "e6b34bdbe078fb14319d9ece2baf5e8525755681b0746533614beae982c60c47"
+    sha256 cellar: :any_skip_relocation, catalina:       "33b24b43065b09972b1920ef895cea10367a24c62d868fec55fefc77b87cf5c9"
+    sha256 cellar: :any_skip_relocation, mojave:         "02cb0c5dfe67351858960a11708173a226d62e4085635a692b41525607ab1454"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "29561eac80c7a860cde7c8ec83241778ce0f73fed5056e27eb477a3695c810af"
   end
 
   def install
-    pkgshare.install "lempar.c"
+    pkgshare.install "tool/lempar.c"
 
     # patch the parser generator to look for the 'lempar.c' template file where we've installed it
-    inreplace "lemon.c", / = pathsearch\([^)]*\);/, " = \"#{pkgshare}/lempar.c\";"
+    inreplace "tool/lemon.c", "lempar.c", "#{pkgshare}/lempar.c"
 
-    system ENV.cc, "-o", "lemon", "lemon.c"
+    system ENV.cc, "-o", "lemon", "tool/lemon.c"
     bin.install "lemon"
+
+    pkgshare.install "test/lemon-test01.y"
+    doc.install "doc/lemon.html"
   end
 
   test do
-    (testpath/"gram.y").write <<~EOS
-      %token_type {int}
-      %left PLUS.
-      %include {
-        #include <iostream>
-        #include "example1.h"
-      }
-      %syntax_error {
-        std::cout << "Syntax error!" << std::endl;
-      }
-      program ::= expr(A).   { std::cout << "Result=" << A << std::endl; }
-      expr(A) ::= expr(B) PLUS  expr(C).   { A = B + C; }
-      expr(A) ::= INTEGER(B). { A = B; }
-    EOS
-
-    system "#{bin}/lemon", "gram.y"
-    assert_predicate testpath/"gram.c", :exist?
+    system "#{bin}/lemon", "-d#{testpath}", "#{pkgshare}/lemon-test01.y"
+    system ENV.cc, "lemon-test01.c"
+    assert_match "tests pass", shell_output("./a.out")
   end
 end

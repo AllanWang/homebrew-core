@@ -1,19 +1,24 @@
 class ApacheFlink < Formula
   desc "Scalable batch and stream data processing"
   homepage "https://flink.apache.org/"
-  url "https://archive.apache.org/dist/flink/flink-1.8.0/flink-1.8.0-bin-scala_2.11.tgz"
-  version "1.8.0"
-  sha256 "88935984bb57a84b26065035a46c2d69e3ef6805c2780ac8cd3f1f3759bf6925"
-  head "https://github.com/apache/flink.git"
+  url "https://www.apache.org/dyn/closer.lua?path=flink/flink-1.14.4/flink-1.14.4-bin-scala_2.12.tgz"
+  mirror "https://archive.apache.org/dist/flink/flink-1.14.4/flink-1.14.4-bin-scala_2.12.tgz"
+  version "1.14.4"
+  sha256 "a36aeeea1ac340a5063e837ac18293ff73bd7cca2f8d6813982dfc50abb5e6f9"
+  license "Apache-2.0"
+  head "https://github.com/apache/flink.git", branch: "master"
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "60452083fbb8bb31da653a9cc5fc62dc7411948d7f23cbc1736d346d7a3cc4ea"
+  end
 
-  depends_on :java => "1.8"
+  depends_on "openjdk@11"
 
   def install
     rm_f Dir["bin/*.bat"]
     libexec.install Dir["*"]
-    (libexec/"bin").env_script_all_files(libexec/"libexec", Language::Java.java_home_env("1.8"))
+    (libexec/"bin").env_script_all_files(libexec/"libexec", Language::Java.java_home_env("11"))
+    (libexec/"bin").install Dir["#{libexec}/libexec/*.jar"]
     chmod 0755, Dir["#{libexec}/bin/*"]
     bin.write_exec_script "#{libexec}/bin/flink"
   end
@@ -30,10 +35,10 @@ class ApacheFlink < Formula
     ENV.prepend "FLINK_LOG_DIR", testpath/"log"
     system libexec/"bin/start-cluster.sh"
     system bin/"flink", "run", "-p", "1",
-           libexec/"examples/streaming/WordCount.jar", "--input", "input",
-           "--output", "result"
+           libexec/"examples/streaming/WordCount.jar", "--input", testpath/"input",
+           "--output", testpath/"result/1"
     system libexec/"bin/stop-cluster.sh"
-    assert_predicate testpath/"result", :exist?
-    assert_equal expected, (testpath/"result").read
+    assert_predicate testpath/"result/1", :exist?
+    assert_equal expected, (testpath/"result/1").read
   end
 end

@@ -1,8 +1,18 @@
 class Metabase < Formula
   desc "Business intelligence report server"
   homepage "https://www.metabase.com/"
-  url "https://downloads.metabase.com/v0.32.2/metabase.jar"
-  sha256 "b683e22d1c8037a77f3364d3afc9170d54040610db91040a3fff828ae966c2b5"
+  url "https://downloads.metabase.com/v0.42.4/metabase.jar"
+  sha256 "6e2dd9153b878367f75680e3edbbbaa5b4d6fb4f878977823dc58cc201d76682"
+  license "AGPL-3.0-only"
+
+  livecheck do
+    url "https://www.metabase.com/start/oss/jar.html"
+    regex(%r{href=.*?/v?(\d+(?:\.\d+)+)/metabase\.jar}i)
+  end
+
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "f86d7af9d352793ac345400d454da46c715925f3bec5f79634a2083d0fa07557"
+  end
 
   head do
     url "https://github.com/metabase/metabase.git"
@@ -12,9 +22,7 @@ class Metabase < Formula
     depends_on "yarn" => :build
   end
 
-  bottle :unneeded
-
-  depends_on :java => "1.8"
+  depends_on "openjdk"
 
   def install
     if build.head?
@@ -24,39 +32,16 @@ class Metabase < Formula
       libexec.install "metabase.jar"
     end
 
-    (bin/"metabase").write <<~EOS
-      #!/bin/bash
-      export JAVA_HOME="$(#{Language::Java.java_home_cmd("1.8")})"
-      exec java -jar "#{libexec}/metabase.jar" "$@"
-    EOS
+    bin.write_jar_script libexec/"metabase.jar", "metabase"
   end
 
-  plist_options :startup => true, :manual => "metabase"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-      <key>KeepAlive</key>
-      <true/>
-      <key>Label</key>
-      <string>#{plist_name}</string>
-      <key>ProgramArguments</key>
-      <array>
-        <string>#{opt_bin}/metabase</string>
-      </array>
-      <key>RunAtLoad</key>
-      <true/>
-      <key>WorkingDirectory</key>
-      <string>#{var}/metabase</string>
-      <key>StandardOutPath</key>
-      <string>#{var}/metabase/server.log</string>
-      <key>StandardErrorPath</key>
-      <string>/dev/null</string>
-    </dict>
-    </plist>
-  EOS
+  plist_options startup: true
+  service do
+    run opt_bin/"metabase"
+    keep_alive true
+    working_dir var/"metabase"
+    log_path var/"metabase/server.log"
+    error_log_path "/dev/null"
   end
 
   test do

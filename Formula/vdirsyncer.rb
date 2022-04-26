@@ -4,22 +4,26 @@ class Vdirsyncer < Formula
   desc "Synchronize calendars and contacts"
   homepage "https://github.com/pimutils/vdirsyncer"
   url "https://github.com/pimutils/vdirsyncer.git",
-      :tag      => "0.16.7",
-      :revision => "dcf5f701b7b5c21a8f4e8c80243db3e0baff1313"
-  head "https://github.com/pimutils/vdirsyncer.git"
+      tag:      "0.18.0",
+      revision: "3191886658f7717c00ec013eb778bc1ced5cef0c"
+  license "BSD-3-Clause"
+  head "https://github.com/pimutils/vdirsyncer.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "2c40f6ad53b8a558ed7503b5fe2413ae86850ea74f6ab41b560c3019185719fc" => :mojave
-    sha256 "89f7e1832a262681843b223527d96c5f6a587ded3b2884df9a87204c463f1911" => :high_sierra
-    sha256 "57510d02d159de632f3fdb98d7de88aba5ea01d375b4f096d6d367c976e355bc" => :sierra
-    sha256 "81eaa19b3cbc91007a0a5cfe9979cca1f207b2ac2a72b87aabca41ae019838f7" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "1f28e80d5fe2743220d9c8b673a45255ed688826587423288e1f052b8f80c94d"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "c9948fcd51959d59226a3f7551ee1bce7ba44387aea0b3e038c93f2bf4c046e1"
+    sha256 cellar: :any_skip_relocation, monterey:       "202306a14af3aab37e367d519aaf794c948fc3459684a2284ef9e2e0e2b85077"
+    sha256 cellar: :any_skip_relocation, big_sur:        "bca2caf2e456db762a65b666f786c0d6c5f500643969c7e15d5546ea336649f6"
+    sha256 cellar: :any_skip_relocation, catalina:       "bca2caf2e456db762a65b666f786c0d6c5f500643969c7e15d5546ea336649f6"
+    sha256 cellar: :any_skip_relocation, mojave:         "bca2caf2e456db762a65b666f786c0d6c5f500643969c7e15d5546ea336649f6"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "2e3092fcf128119cf7a6a8131c4d16df5e44ab56a7fa07e2a661806c4f2ad2b9"
   end
 
-  depends_on "python"
+  depends_on "python@3.10"
 
   def install
-    venv = virtualenv_create(libexec, "python3")
+    xy = Language::Python.major_minor_version Formula["python@3.10"].opt_bin/"python3"
+    venv = virtualenv_create(libexec, "python#{xy}")
     system libexec/"bin/pip", "install", "-v", "--no-binary", ":all:",
                               "--ignore-installed", "requests-oauthlib",
                               buildpath
@@ -68,6 +72,6 @@ class Vdirsyncer < Formula
     (testpath/".contacts/b/foo/").mkpath
     system "#{bin}/vdirsyncer", "discover"
     system "#{bin}/vdirsyncer", "sync"
-    assert_match /Ö φ 風 ض/, (testpath/".contacts/b/foo/092a1e3b55.vcf").read
+    assert_match "Ö φ 風 ض", (testpath/".contacts/b/foo/092a1e3b55.vcf").read
   end
 end

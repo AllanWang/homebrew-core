@@ -1,26 +1,28 @@
 class Pwnat < Formula
   desc "Proxy server that works behind a NAT"
   homepage "https://samy.pl/pwnat/"
-  url "https://samy.pl/pwnat/pwnat-0.3-beta.tgz"
-  sha256 "d5d6ea14f1cf0d52e4f946be5c3630d6440f8389e7467c0117d1fe33b9d130a2"
-  head "https://github.com/samyk/pwnat.git"
+  url "https://github.com/samyk/pwnat/archive/refs/tags/v0.3.0.tar.gz"
+  sha256 "c784ac0ef2249ae5b314a95ff5049f16c253c1f9b3720f3f88c50fc811140b44"
+  license "GPL-3.0-or-later"
+  head "https://github.com/samyk/pwnat.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "483e476edd037e89dc1c24fbf115132a815a9a4d6fcb987ceea6a4c07a5944da" => :mojave
-    sha256 "3a4bf09acd5eda4e54fbe21d0028948613fa398a3a1272722957079a9f18c836" => :high_sierra
-    sha256 "f8319cece67a334c14129e706f9d1b249d7905cf1ad62df9b5ee9553dbb8d001" => :sierra
-    sha256 "0149fc977622f2fd55db5845a377437028df31bb847230d3fd73d548e481e289" => :el_capitan
-    sha256 "cf17568c4053240ffe61594bcc618577c0d0c569abda8b3b956a4e4b441a755e" => :yosemite
-    sha256 "0baed31dc05b28a330501a0d4119e8997c1038d14311c64f2d7b367ebdf9f01e" => :mavericks
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "4a54673faf81eda9764a05196c50daa8c5b078d171bbf94b9b3213c478b265a4"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "b529e5fb4cbb41a4ecbccaaeb3f5801b52036c61d1d7d747e8001c327ae9bba7"
+    sha256 cellar: :any_skip_relocation, monterey:       "d68b2a2bd9f47b349bd50fca156330eac3abd07ab7704da5ea4c9fb5be120605"
+    sha256 cellar: :any_skip_relocation, big_sur:        "5b2649eef333edd35081d7aa05b128cc7957fedc7037383ef986cbffe4d4f1be"
+    sha256 cellar: :any_skip_relocation, catalina:       "ba13960f81cbb1e739807717b54f7232b8ae5658b112c6a943d9560f9d68114f"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "0d00f8d395764951d6f77834e4fab75bed808679e85f7fe9cd939657481da51c"
   end
 
   def install
     system "make", "CC=#{ENV.cc}", "CFLAGS=#{ENV.cflags}", "LDFLAGS=-lz"
     bin.install "pwnat"
+    man1.install "manpage.txt" => "pwnat.1"
   end
 
   test do
-    shell_output("#{bin}/pwnat -h", 1)
+    assert_match "pwnat <-s | -c> <args>", shell_output("#{bin}/pwnat -h", 1)
   end
 end

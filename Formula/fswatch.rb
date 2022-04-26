@@ -1,14 +1,23 @@
 class Fswatch < Formula
   desc "Monitor a directory for changes and run a shell command"
   homepage "https://github.com/emcrisostomo/fswatch"
-  url "https://github.com/emcrisostomo/fswatch/releases/download/1.14.0/fswatch-1.14.0.tar.gz"
-  sha256 "44d5707adc0e46d901ba95a5dc35c5cc282bd6f331fcf9dbf9fad4af0ed5b29d"
+  url "https://github.com/emcrisostomo/fswatch/releases/download/1.16.0/fswatch-1.16.0.tar.gz"
+  sha256 "95ece85eb01af71e99afef0173755fcedb737b639163f8efc7fed674f6f5372f"
+  license all_of: ["GPL-3.0-or-later", "Apache-2.0"]
+
+  livecheck do
+    url :stable
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "7310f4dbbbdeed582cb713b3d08bf982553747cbda75eb76d2dfe00f309ed3f7" => :mojave
-    sha256 "68cfeb10ae04d00cc90e0d87d48a61c7c22b38f386410dbf2eb6c004200ddc8a" => :high_sierra
-    sha256 "9362bc3b3321bf0238fa70d2f2825e4118e18deb2207af3a2633b6772bb33666" => :sierra
+    sha256 cellar: :any, arm64_monterey: "9286194b4e2df96b68c14a6eb30175b3d6846a457806f898822b611b395c97cd"
+    sha256 cellar: :any, arm64_big_sur:  "a9857b4d1cc1320e967edcc5ba5c61bd9215fac591204bc005bc89223f107228"
+    sha256 cellar: :any, monterey:       "173627c62aeb6a956a07097a34604e00504e3224c7709858be4c82a2827c343a"
+    sha256 cellar: :any, big_sur:        "f930656cf465723b282216767a932555efdfd6b75d0404cd904c52005fad53ac"
+    sha256 cellar: :any, catalina:       "a5df0020481ef351591515771abd877adc2968061ce41f4b6429f13d6ab06d30"
+    sha256 cellar: :any, mojave:         "4423be79c01f66ffea513d6dcf8758bb9c1a005f77823620c6d93ec6f0bb3da2"
+    sha256               x86_64_linux:   "d7940f62b241d4880410bf42184fb1198e60e8cebd8fd4be51ec9801f04a08f0"
   end
 
   def install

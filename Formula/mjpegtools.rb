@@ -1,21 +1,28 @@
 class Mjpegtools < Formula
   desc "Record and playback videos and perform simple edits"
   homepage "https://mjpeg.sourceforge.io/"
-  url "https://downloads.sourceforge.net/project/mjpeg/mjpegtools/2.1.0/mjpegtools-2.1.0.tar.gz"
-  sha256 "864f143d7686377f8ab94d91283c696ebd906bf256b2eacc7e9fb4dddcedc407"
-  revision 2
+  url "https://downloads.sourceforge.net/project/mjpeg/mjpegtools/2.2.1/mjpegtools-2.2.1.tar.gz"
+  sha256 "b180536d7d9960b05e0023a197b00dcb100929a49aab71d19d55f4a1b210f49a"
+  license "GPL-2.0-or-later"
 
   bottle do
-    cellar :any
-    sha256 "c8a22d895e9835274994bdf72b0ca6f3c0df523e5dc8e281ed7d1fd7ae3b41eb" => :mojave
-    sha256 "7f47c9df784de38ee02726c1381b42a5924754c7702003ee8fafbae296302638" => :high_sierra
-    sha256 "9f5c0eb81540bf70ff8b2352a8ea21117a75c6dbdac58ea8d04d0da47a639cb9" => :sierra
-    sha256 "2793d05c642305daeb9cceb10f08484ce57d5210a3918121ab04be1f89224142" => :el_capitan
-    sha256 "ba1ec63066197a9bb7fc53f075b17d66f739936b151e90e39a741b33f19eaa9f" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "641462f37bf9b4525a1f1ff5310763cc518bd135fe7a71b3db707d1f175010d5"
+    sha256 cellar: :any,                 arm64_big_sur:  "57f69f4a147c3e886146105b9f2ea4f6edb15bd2f5c9e3c648af5781590f1389"
+    sha256 cellar: :any,                 monterey:       "b03c31418ea5d42e4c88a6160209ac4798dc628574ddb1d08b7cdee4e86ab9e2"
+    sha256 cellar: :any,                 big_sur:        "df7c071afa72c7fcb3e3abf340450d34f05ab1b81655ae57d48f4a3c516a7067"
+    sha256 cellar: :any,                 catalina:       "2b41e5e3f6abf5fa6767757128b8913fa5932919a02b86aba9dc3a4c4302be24"
+    sha256 cellar: :any,                 mojave:         "1c5d0fb366a3d4b0da30a2a2da4c8bc3f90cbe9238c512bfab57a4273855c98b"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "5cfd7380321fa05242d23477ea708de3c2b9019043f0a0b80c376d79323fdb1b"
   end
 
   depends_on "pkg-config" => :build
   depends_on "jpeg"
+
+  # Fix -flat_namespace being used on Big Sur and later.
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+    sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+  end
 
   def install
     system "./configure", "--disable-dependency-tracking",

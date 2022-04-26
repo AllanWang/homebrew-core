@@ -1,24 +1,34 @@
 class Kahip < Formula
   desc "Karlsruhe High Quality Partitioning"
   homepage "https://algo2.iti.kit.edu/documents/kahip/index.html"
-  url "https://github.com/schulzchristian/KaHIP/archive/v2.11.tar.gz"
-  sha256 "9351902b9e1c53b16ac7c3ba499a8f52348cae945c5cfc00e82c2c68302e1dca"
-  revision 1
+  url "https://github.com/KaHIP/KaHIP/archive/v3.14.tar.gz"
+  sha256 "9da04f3b0ea53b50eae670d6014ff54c0df2cb40f6679b2f6a96840c1217f242"
+  license "MIT"
+  head "https://github.com/KaHIP/KaHIP.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "adf04905ebd11dca87434d8185a16e910522bd2faaf983dc20c2f83819da9b4b" => :mojave
-    sha256 "99eab0a417cd7596eebd646f3da9571a40ce0154e88dcfd01361ab2bb4721282" => :high_sierra
-    sha256 "7061f28f5f464e69c5b4af293e1aa4a13f14b86ad56889f9d2d6be54c632f199" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "3ca758f3123e08b5ca8bdc6d871ac667e4e4c059bf8fa771b4d7b8faea5901e1"
+    sha256 cellar: :any,                 arm64_big_sur:  "7f35c336c78e7d0a8094f97db34533e02755749557d4d91808b5aede4d01e1e5"
+    sha256 cellar: :any,                 monterey:       "cffb766beda21575c6367a0390e6cdcdbe68091ba21352e42dcdf3796726010e"
+    sha256 cellar: :any,                 big_sur:        "05929f1f281044afdb8663cb9a2a7cac66b07181ae2b66f1eb0cff32923ba300"
+    sha256 cellar: :any,                 catalina:       "7d006b6467f459beac409f17ce38a1b800c06e96df08b50d29ed34dc5f822227"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "fb760f3de464f04a3341f6ef5b9c00ad8a26702cdf3f0da20957546aace735e8"
   end
 
   depends_on "cmake" => :build
-  depends_on "gcc"
   depends_on "open-mpi"
 
+  on_macos do
+    depends_on "gcc"
+  end
+
   def install
-    ENV["CC"] = Formula["gcc"].opt_bin/"gcc-#{Formula["gcc"].version_suffix}"
-    ENV["CXX"] = Formula["gcc"].opt_bin/"g++-#{Formula["gcc"].version_suffix}"
+    if OS.mac?
+      gcc_major_ver = Formula["gcc"].any_installed_version.major
+      ENV["CC"] = Formula["gcc"].opt_bin/"gcc-#{gcc_major_ver}"
+      ENV["CXX"] = Formula["gcc"].opt_bin/"g++-#{gcc_major_ver}"
+    end
+
     mkdir "build" do
       system "cmake", *std_cmake_args, ".."
       system "make", "install"

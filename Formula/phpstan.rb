@@ -1,12 +1,25 @@
 class Phpstan < Formula
   desc "PHP Static Analysis Tool"
   homepage "https://github.com/phpstan/phpstan"
-  url "https://github.com/phpstan/phpstan/releases/download/0.11.8/phpstan.phar"
-  sha256 "9604e84b47a515f860f8dd96d94dc0527636da7b4e6ccf9bd1785d59f004ae75"
+  url "https://github.com/phpstan/phpstan/releases/download/1.6.1/phpstan.phar"
+  sha256 "d9dc6f827a8c7183157271304c015042e4a4b0b280ab4b0b02ae99de55f20a8f"
+  license "MIT"
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "07841f145d9eed293c109c4d66e86f9f20091acc9d9ac2b9984f9445b2284503"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "07841f145d9eed293c109c4d66e86f9f20091acc9d9ac2b9984f9445b2284503"
+    sha256 cellar: :any_skip_relocation, monterey:       "ec29a478fa8f31621b9fef010d19750c5bda389e06d90cf838762ef0b0d67b34"
+    sha256 cellar: :any_skip_relocation, big_sur:        "ec29a478fa8f31621b9fef010d19750c5bda389e06d90cf838762ef0b0d67b34"
+    sha256 cellar: :any_skip_relocation, catalina:       "ec29a478fa8f31621b9fef010d19750c5bda389e06d90cf838762ef0b0d67b34"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "07841f145d9eed293c109c4d66e86f9f20091acc9d9ac2b9984f9445b2284503"
+  end
 
   depends_on "php" => :test
+
+  # Keg-relocation breaks the formula when it replaces `/usr/local` with a non-default prefix
+  on_macos do
+    pour_bottle? only_if: :default_prefix if Hardware::CPU.intel?
+  end
 
   def install
     bin.install "phpstan.phar" => "phpstan"
@@ -39,7 +52,7 @@ class Phpstan < Formula
 
         final class Email
         {
-            private $email;
+            private string $email;
 
             private function __construct(string $email)
             {
@@ -71,6 +84,7 @@ class Phpstan < Formula
             }
         }
     EOS
-    assert_match /^\n\n \[OK\] No errors/, shell_output("#{bin}/phpstan analyse --level max --autoload-file src/autoload.php src/Email.php")
+    assert_match(/^\n \[OK\] No errors/,
+      shell_output("#{bin}/phpstan analyse --level max --autoload-file src/autoload.php src/Email.php"))
   end
 end

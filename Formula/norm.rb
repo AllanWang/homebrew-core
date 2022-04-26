@@ -1,23 +1,34 @@
 class Norm < Formula
   desc "NACK-Oriented Reliable Multicast"
   homepage "https://www.nrl.navy.mil/itd/ncs/products/norm"
-  url "https://downloads.pf.itd.nrl.navy.mil/norm/archive/src-norm-1.5r6.tgz"
-  version "1.5r6"
-  sha256 "20ea2e8dd5d5e1ff1ff91dc7dab6db53a77d7b7183d8cf2425c215fd294f22a7"
+  url "https://github.com/USNavalResearchLaboratory/norm/releases/download/v1.5.9/src-norm-1.5.9.tgz"
+  sha256 "ef6d7bbb7b278584e057acefe3bc764d30122e83fa41d41d8211e39f25b6e3fa"
+  license "BSD-2-Clause"
 
   bottle do
-    cellar :any
-    sha256 "33fe80265196bcb17409ab524723c4dd3035862e3c4d0372bca8c5f56cd0b24b" => :mojave
-    sha256 "253fcd48d81db23132b15a295ef822f5d9f02f13a79ff4e906ad7381ca418bc7" => :high_sierra
-    sha256 "a23a43d211bccabe0df629618f53acf41d6250d1fc85111397d769f007d30b9f" => :sierra
-    sha256 "985bbdc34e0f8f16f2d377bea4c0442abb0f7cbaf67b56cb40b924bb09c394b5" => :el_capitan
-    sha256 "2c165178bfce5879bb6e031b4d54f741cad2868d67b03783f89a13d15503f28d" => :yosemite
-    sha256 "b5f802ff09e68b712f472f45aea9b634f6c45868bccaf708d565ff98a95b145e" => :mavericks
+    sha256 cellar: :any,                 arm64_monterey: "6db456e4648b7f8baec7a2d6af342594aa89cec71c375e5a6c5d7be34c4c3e62"
+    sha256 cellar: :any,                 arm64_big_sur:  "ba0f0331fe8419a2f9d34f0a89378c9ea351afd9d2f8efd140df2cf1830000a3"
+    sha256 cellar: :any,                 monterey:       "7d0f0fbc73e3ed79afad76ca563aa97532a7cee2c72f7c954ad0841c5407dc9a"
+    sha256 cellar: :any,                 big_sur:        "a1eff7c9b5a50e5524d5dddd7cd025e0f2392585f4f74b7dca1b71b29a72972e"
+    sha256 cellar: :any,                 catalina:       "58429af961d437979c286290c42508079f238e17cce066184944e0a404c0e829"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "e73b7067d42e7b1b3efaa2f19698a1f409b2a55a5719b56f41ddf5249913e6c3"
+  end
+
+  depends_on "python@3.10" => :build
+
+  # Fix warning: 'visibility' attribute ignored [-Wignored-attributes]
+  # Remove in the next release
+  #
+  # Ref https://github.com/USNavalResearchLaboratory/norm/pull/27
+  patch do
+    url "https://github.com/USNavalResearchLaboratory/norm/commit/476b8bb7eba5a9ad02e094de4dce05a06584f5a0.patch?full_index=1"
+    sha256 "08f7cc7002dc1afe6834ec60d4fea5c591f88902d1e76c8c32854a732072ea56"
   end
 
   def install
-    system "./waf", "configure", "--prefix=#{prefix}"
-    system "./waf", "install"
+    system "python3", "./waf", "configure", "--prefix=#{prefix}"
+    system "python3", "./waf", "install"
+
     include.install "include/normApi.h"
   end
 
@@ -35,7 +46,7 @@ class Norm < Formula
         return 0;
       }
     EOS
-    system ENV.cc, "test.c", "-L#{lib}", "-lnorm", "-o", "test"
+    system ENV.cxx, "test.c", "-L#{lib}", "-lnorm", "-o", "test"
     system "./test"
   end
 end

@@ -1,17 +1,27 @@
 class Potrace < Formula
   desc "Convert bitmaps to vector graphics"
   homepage "https://potrace.sourceforge.io/"
-  url "https://potrace.sourceforge.io/download/1.15/potrace-1.15.tar.gz"
-  sha256 "a9b33904ace328340c850a01458199e0064e03ccaaa731bc869a842b1b8d529d"
+  url "https://potrace.sourceforge.io/download/1.16/potrace-1.16.tar.gz"
+  sha256 "be8248a17dedd6ccbaab2fcc45835bb0502d062e40fbded3bc56028ce5eb7acc"
+  license "GPL-2.0-or-later"
+
+  livecheck do
+    url :homepage
+    regex(/href=.*?potrace[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "3d25cc97a832eb016be11e133d0196308b0b3dd21b2f62302215ba566ee77399" => :mojave
-    sha256 "f98e3daaed06c6296d446c53087b82a7e100eb3407d41075e706e66327c26f95" => :high_sierra
-    sha256 "b71fa6c507b43df9e48dc0259e5dfb803a13c9728ffd6978b9798d03da363e0d" => :sierra
-    sha256 "318e2448e2596b9629537edc4e5c408ea4e1f538ec6f1d90b17589aced9836ff" => :el_capitan
-    sha256 "dad163b773ea01123ccefc6a9ddba7d02c234fe384a9a41e6029887c319ececc" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "cc774c2a6d82a036c9ccf80ed467aabbf39697e8a36ef210cb5b793fb4b6be05"
+    sha256 cellar: :any,                 arm64_big_sur:  "80d3d0256f9b7add7d3835f6c84f30afec6a4893f2fcd2aa44b07ebe95876c7f"
+    sha256 cellar: :any,                 monterey:       "2e65796f5e50c82a6b11475034b04f6a0647f044c5c81a819bb6b3e8f0d5e6cc"
+    sha256 cellar: :any,                 big_sur:        "3b5294deed86179a4e496236fb882eb0b7ad3c020741e2a1398861b545062712"
+    sha256 cellar: :any,                 catalina:       "c3f357a8bd6460384400acd00dab0d8571ad0b1543a81e5b9d5ff49d1ece4fa1"
+    sha256 cellar: :any,                 mojave:         "3ad69cce4edecea6e5170b766201845b703a98bbac3c5272ef6a045f828643e2"
+    sha256 cellar: :any,                 high_sierra:    "56d821a4d3579bedf64ebf5357fc04f214cb2efbea7ddb681b202e684e71d97e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d47c98611b15465f29e55972018135927d42929e5901153ad99c6579de32863c"
   end
+
+  uses_from_macos "zlib"
 
   resource "head.pbm" do
     url "https://potrace.sourceforge.io/img/head.pbm"

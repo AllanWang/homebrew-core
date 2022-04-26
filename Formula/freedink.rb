@@ -6,9 +6,15 @@ class Freedink < Formula
   revision 1
 
   bottle do
-    sha256 "088aec509cd68e17a4a591f6d010fc297d7b3e6d9a60244984ba99da6e6a7051" => :mojave
-    sha256 "319225a173f440b80b4956035a146b778cb373c65da3ea2cbd4b616a8e33a58e" => :high_sierra
-    sha256 "2e76b5e2ac8037e07b879dc2f24549ba09f8bc12c873bfd896f8e7b3222d04e3" => :sierra
+    rebuild 1
+    sha256 arm64_monterey: "3c0d3f2a3362647f774125622db2f836a1f209a5bccfe66a8a7901e357d9434f"
+    sha256 arm64_big_sur:  "3d3c10351e92122890d83f912bafe794fa40a673783fa5d99b1bdfcdcd53f0cb"
+    sha256 monterey:       "da402e74ba8344d49ec9a0a2c93ab37aa1d3430cb33baf3d995ee3c55489710b"
+    sha256 big_sur:        "fd45feffffd96dc600cda4e725619b326ec6a84e96c5844c156aca90fb2390b1"
+    sha256 catalina:       "b971d9badc94cb0075963c341ed11c1872e3157b279def6d91fd088743b5e5e4"
+    sha256 mojave:         "d44bcab516f79beec47a1ebdc8ec68b66071a34e17abb8556407a3656946d454"
+    sha256 high_sierra:    "d022642338ba2979982088f1b65d6230ab71478fdaadfe4966372aa15b909182"
+    sha256 x86_64_linux:   "a29b66f12f589cea7e091849b73fb86530086692fd94a627ab4fe86490a8c121"
   end
 
   depends_on "glm" => :build
@@ -28,6 +34,12 @@ class Freedink < Formula
   resource "freedink-data" do
     url "https://ftp.gnu.org/gnu/freedink/freedink-data-1.08.20190120.tar.gz"
     sha256 "715f44773b05b73a9ec9b62b0e152f3f281be1a1512fbaaa386176da94cffb9d"
+  end
+
+  # Patch for recent SDL
+  patch :p0 do
+    url "https://raw.githubusercontent.com/openbsd/ports/fc8b95c6/games/freedink/game/patches/patch-src_input_cpp"
+    sha256 "fa06a8a87bd4f3977440cdde0fb6145b6e5b0005b266b19c059d3fd7c2ff836a"
   end
 
   def install

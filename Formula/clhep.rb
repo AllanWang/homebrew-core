@@ -1,15 +1,23 @@
 class Clhep < Formula
   desc "Class Library for High Energy Physics"
   homepage "https://proj-clhep.web.cern.ch/proj-clhep/"
-  url "https://proj-clhep.web.cern.ch/proj-clhep/DISTRIBUTION/tarFiles/clhep-2.4.1.0.tgz"
-  sha256 "d14736eb5c3d21f86ce831dc1afcf03d423825b35c84deb6f8fd16773528c54d"
+  url "https://proj-clhep.web.cern.ch/proj-clhep/dist1/clhep-2.4.5.1.tgz"
+  sha256 "2517c9b344ad9f55974786ae6e7a0ef8b22f4abcbf506df91194ea2299ce3813"
+  license "GPL-3.0-only"
+
+  livecheck do
+    url :homepage
+    regex(%r{atest release.*?<b>v?(\d+(?:\.\d+)+)</b>}im)
+  end
 
   bottle do
-    cellar :any
-    sha256 "c067826cdae1e029b9e08a21e485484ad11947394060ffce21247d6f638dc49e" => :mojave
-    sha256 "ce6e421df5e06d3f85bc36c9eb4bb1e5ee5635d2a7b6a5c28d04490c12deb155" => :high_sierra
-    sha256 "3cfaf1bea915e52b57c44d7df7c40312fb7e0fab6cac5b8a8310ac4dcc55b74d" => :sierra
-    sha256 "4be2ee76db5d27890df9f0237e7c0342bcfae9f622dd3bfa156f6bbd79a2a2ee" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "b2255c067eaebc72b6a193f72dd6a5c6d4c91a874fb04f5a42bef4240024e65b"
+    sha256 cellar: :any,                 arm64_big_sur:  "2c31ff847d0f1236c461f5742f2a29f22335c851ed65df3d559c78842795289a"
+    sha256 cellar: :any,                 monterey:       "3af86a08db892d9516d51d4f67c0cc0ecb4deb048cf99b3ac03beac99f8adf3e"
+    sha256 cellar: :any,                 big_sur:        "e0768b1406e55f56f9eb8419c1067419439e87327cceef8cfd7c903db6542da6"
+    sha256 cellar: :any,                 catalina:       "82d2152745abc5b61be30c968691f606232e526b2d3a63e3c2c5891e2611d2c9"
+    sha256 cellar: :any,                 mojave:         "4030d211eba12da6127b28db8fe2a35dab9107a8dce49bddff58aada997dbeb5"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "548f3418aaaa382af761e4eda5d888cead02febf767d01964070b52bd34a6da2"
   end
 
   head do
@@ -42,7 +50,7 @@ class Clhep < Formula
         return 0;
       }
     EOS
-    system ENV.cxx, "-L#{lib}", "-lCLHEP", "-I#{include}/CLHEP",
+    system ENV.cxx, "-std=c++11", "-L#{lib}", "-lCLHEP", "-I#{include}/CLHEP",
            testpath/"test.cpp", "-o", "test"
     assert_equal "r: 3.74166 phi: 1.10715 cos(theta): 0.801784",
                  shell_output("./test").chomp

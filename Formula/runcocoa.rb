@@ -5,7 +5,13 @@ class Runcocoa < Formula
   version "20120108"
   sha256 "d90079efb92c8eef3c8e2c142683eb0c632ca61120c9e4a617bf9dac5362bf86"
 
-  bottle :unneeded
+  livecheck do
+    skip "No version information available to check"
+  end
+
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "878f152f9c0e3915335074975020b52290f867142bcced9b44f8d8b3b6f0aaea"
+  end
 
   def install
     bin.install "runcocoa.sh" => "runcocoa"
@@ -15,7 +21,8 @@ class Runcocoa < Formula
   test do
     string = "Hello world!"
 
-    objc_code = "[[NSFileHandle fileHandleWithStandardOutput] writeData:[@\"#{string}\" dataUsingEncoding:NSNEXTSTEPStringEncoding]]"
+    objc_code = "[[NSFileHandle fileHandleWithStandardOutput] " \
+                "writeData:[@\"#{string}\" dataUsingEncoding:NSNEXTSTEPStringEncoding]]"
     objc_output = pipe_output("#{bin}/runcocoa", objc_code, 0)
     assert_match string, objc_output
 

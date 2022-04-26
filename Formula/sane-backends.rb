@@ -1,17 +1,41 @@
 class SaneBackends < Formula
   desc "Backends for scanner access"
   homepage "http://www.sane-project.org/"
-  url "https://deb.debian.org/debian/pool/main/s/sane-backends/sane-backends_1.0.27.orig.tar.gz"
-  mirror "https://fossies.org/linux/misc/sane-backends-1.0.27.tar.gz"
-  sha256 "293747bf37275c424ebb2c833f8588601a60b2f9653945d5a3194875355e36c9"
-  revision 5
-  head "https://salsa.debian.org/debian/sane-backends.git"
+  license "GPL-2.0-or-later"
+
+  stable do
+    url "https://gitlab.com/sane-project/backends/uploads/7d30fab4e115029d91027b6a58d64b43/sane-backends-1.1.1.tar.gz"
+    sha256 "dd4b04c37a42f14c4619e8eea6a957f4c7c617fe59e32ae2872b373940a8b603"
+
+    # Fix -flat_namespace being used on Big Sur and later.
+    patch do
+      url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+      sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+    end
+  end
+
+  livecheck do
+    url :head
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
+  end
 
   bottle do
-    sha256 "19a5dd6aab043b2552e4ddb785c4f41c184019a7854e5bf28054ee809839a81f" => :mojave
-    sha256 "7e17e4e13a6b9d4c532c3f4f498711c016c0c23331a25e9c4fe2543c1241bebf" => :high_sierra
-    sha256 "c1c278d995f33f438ad6009ba4928157dd2ca74ec17a344a57b7af972c64e190" => :sierra
-    sha256 "6073b7b25829eb031616894fe6ea5c34408fed9b42d3b421e6eba94d6cbbf948" => :el_capitan
+    sha256 arm64_monterey: "5ce5536fb913f7a9da86681e0dfe280024f06243ffc34e6290c74bec3ca0beb4"
+    sha256 arm64_big_sur:  "5e975ebd14b5abc14a27045bfdeba6a35b67fdefb3b3bfb41e31147329ac5ddf"
+    sha256 monterey:       "3d8d4820d67a24d31aeef2252a52fdfe295ac9fa6ac62b9646b9c48af0867a79"
+    sha256 big_sur:        "bc17ea2f5083c867e376d47b21b5e9ca03f44cd4e3c9954a17ec0532c9ae0c9a"
+    sha256 catalina:       "0524e31c3e201f125b48c7d64e6c4426bfed3f625719eafcb18c593e18904320"
+    sha256 x86_64_linux:   "587c72a27734165d08444ac71255802943a67a59f40f7b922792aa1cbea4e7a8"
+  end
+
+  head do
+    url "https://gitlab.com/sane-project/backends.git"
+
+    depends_on "autoconf" => :build
+    depends_on "autoconf-archive" => :build
+    depends_on "automake" => :build
+    depends_on "gettext" => :build
+    depends_on "libtool" => :build
   end
 
   depends_on "pkg-config" => :build
@@ -20,21 +44,18 @@ class SaneBackends < Formula
   depends_on "libtiff"
   depends_on "libusb"
   depends_on "net-snmp"
-  depends_on "openssl"
+  depends_on "openssl@1.1"
+
+  uses_from_macos "libxml2"
 
   def install
+    system "./autogen.sh" if build.head?
     system "./configure", "--disable-dependency-tracking",
                           "--prefix=#{prefix}",
                           "--localstatedir=#{var}",
                           "--without-gphoto2",
                           "--enable-local-backends",
                           "--with-usb=yes"
-
-    # Remove for > 1.0.27
-    # Workaround for bug in Makefile.am described here:
-    # https://lists.alioth.debian.org/pipermail/sane-devel/2017-August/035576.html
-    # It's already fixed in commit 519ff57.
-    system "make"
     system "make", "install"
   end
 

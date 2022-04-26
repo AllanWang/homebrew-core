@@ -1,26 +1,22 @@
 class ArxLibertatis < Formula
   desc "Cross-platform, open source port of Arx Fatalis"
   homepage "https://arx-libertatis.org/"
-  revision 1
+  url "https://arx-libertatis.org/files/arx-libertatis-1.2.1/arx-libertatis-1.2.1.tar.xz"
+  sha256 "aafd8831ee2d187d7647ad671a03aabd2df3b7248b0bac0b3ac36ffeb441aedf"
+  license "GPL-3.0-or-later"
 
-  stable do
-    url "https://arx-libertatis.org/files/arx-libertatis-1.1.2.tar.xz"
-    sha256 "82adb440a9c86673e74b84abd480cae968e1296d625b6d40c69ca35b35ed4e42"
-
-    # Add a missing include to CMakeLists.txt
-    patch do
-      url "https://github.com/arx/ArxLibertatis/commit/442ba4af978160abd3856a9daec38f5b6e213cb4.patch?full_index=1"
-      sha256 "de361866cc51c14f317a67dcfd3b736160a577238f931c78a525ea2864b1add9"
-    end
+  livecheck do
+    url "https://arx-libertatis.org/files/"
+    regex(%r{href=["']?arx-libertatis[._-]v?(\d+(?:\.\d+)+)/?["' >]}i)
   end
 
   bottle do
-    cellar :any
-    sha256 "9e9f88d9c0c24e99bed8f2243da32fe41b1859aaa25121dab9d4c20a354ef5e6" => :mojave
-    sha256 "eaff0f12ab121a5964e7d0cd8c9272a39daba70a268d039728947c72885be8b2" => :high_sierra
-    sha256 "9a7629e5033f4180f9e0a82bb018c2f00403c09aa473cfa0224301cc405fb6d3" => :sierra
-    sha256 "8824a97e84542832da85eeb48b79a6b1de189ddf6ebe041fc7f1c9cb874fad21" => :el_capitan
-    sha256 "1fc2d3c07f6f1a1cf1470138329290484145f7774b16fc5a8ca82d01ea194312" => :yosemite
+    sha256 arm64_monterey: "9fd235faef3f4cac1fa1bc33acace5545839c5bf9a4344793225f734dc0f4b7e"
+    sha256 arm64_big_sur:  "5b7dd893fd8ab89d9265dc031d48781b14437ba175265f89a316a0d60686927e"
+    sha256 monterey:       "d9c218e036852e73dea349e17eaa6e03358f7118bd41acd98a5f4bae7b25bc9d"
+    sha256 big_sur:        "e855dfe524dd05d0ebf94acee4cb2e74f2037d0c4c44eb76fd5f49fbbb8477f8"
+    sha256 catalina:       "a8a9036477373bd0065f739c0bbc8bd6e20b09da4d643f20483ab6aec6a6d289"
+    sha256 x86_64_linux:   "fcdc6dcedd23cc35e9bf57f97b4aa5946fe36adc3ffc9e15140224f79cc7d14f"
   end
 
   head do
@@ -37,30 +33,18 @@ class ArxLibertatis < Formula
   depends_on "freetype"
   depends_on "glew"
   depends_on "innoextract"
-  depends_on "sdl"
+  depends_on "sdl2"
 
-  conflicts_with "rnv", :because => "both install `arx` binaries"
+  uses_from_macos "zlib"
+
+  on_linux do
+    depends_on "openal-soft"
+  end
+
+  conflicts_with "rnv", because: "both install `arx` binaries"
 
   def install
     args = std_cmake_args
-
-    # The patches for these aren't straightforward to backport because of
-    # other changes; these minimal inreplaces get it building.
-    # HEAD is fine, and the next stable release will contain these changes.
-    if build.stable?
-      # https://github.com/arx/ArxLibertatis/commit/39fb9a0e3a6888a6a5f040e39896e88750c89065
-      inreplace "src/platform/Time.cpp", "clock_t ", "clockid_t "
-
-      # Version parsing is broken in the current stable; fixed upstream.
-      # This hardcodes the current version based on data from VERSION.
-      inreplace "src/core/Version.cpp.in" do |s|
-        s.gsub! "${VERSION_COUNT}", "5"
-        s.gsub! "${VERSION_2}", "10"
-        s.gsub! "${VERSION_0}", "1.1.2"
-        s.gsub! "${GIT_SUFFIX_5}", "+Homebrew-1"
-        s.gsub! "${VERSION_4}", "Rhaa Movis"
-      end
-    end
 
     # Install prebuilt icons to avoid inkscape and imagemagick deps
     if build.head?
@@ -69,18 +53,23 @@ class ArxLibertatis < Formula
     end
 
     mkdir "build" do
-      system "cmake", "..", *args
+      system "cmake", "..", *args,
+                            "-DBUILD_CRASHREPORTER=OFF",
+                            "-DSTRICT_USE=ON",
+                            "-DWITH_OPENGL=glew",
+                            "-DWITH_SDL=2"
       system "make", "install"
     end
   end
 
-  def caveats; <<~EOS
-    This package only contains the Arx Libertatis binary, not the game data.
-    To play Arx Fatalis you will need to obtain the game from GOG.com and
-    install the game data with:
+  def caveats
+    <<~EOS
+      This package only contains the Arx Libertatis binary, not the game data.
+      To play Arx Fatalis you will need to obtain the game from GOG.com and
+      install the game data with:
 
-      arx-install-data /path/to/setup_arx_fatalis.exe
-  EOS
+        arx-install-data /path/to/setup_arx_fatalis.exe
+    EOS
   end
 
   test do

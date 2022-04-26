@@ -1,41 +1,39 @@
 class Joshua < Formula
   desc "Statistical machine translation decoder"
-  homepage "https://joshua.incubator.apache.org/"
+  homepage "https://cwiki.apache.org/confluence/display/JOSHUA/"
   url "https://cs.jhu.edu/~post/files/joshua-6.0.5.tgz"
   sha256 "972116a74468389e89da018dd985f1ed1005b92401907881a14bdcc1be8bd98a"
-  head "https://git-wip-us.apache.org/repos/asf/incubator-joshua.git"
+  revision 1
 
-  bottle do
-    cellar :any_skip_relocation
-    rebuild 1
-    sha256 "a72914bf2b7fc045e74110fbe593bd2b7a7620161d60b82032b1dac396067280" => :mojave
-    sha256 "15cd2defc70734d455c6adda067193905e0debe97c21c551e364bb67a4e5157b" => :high_sierra
-    sha256 "7b04fb7031b9f002a418eb7d674d2ceb05be0926c0a7d8abfea644be6d381df4" => :sierra
-    sha256 "b649095ea4a944799fbc1ccd8425464b7d2711b0a149049b4d2d5e92d604c5ae" => :el_capitan
-    sha256 "6ac9fb24f8b1bb70a32c72c8436b8ad43717cf83d65499cb011214061b6ce6ba" => :yosemite
-    sha256 "176fa47a6a2722fb5b6bf1e2efba8da32bab6355f3d844424a817882ed7b3a8e" => :mavericks
+  livecheck do
+    url :homepage
+    regex(/href=.*?joshua[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
-  depends_on "ant" => :build
-  depends_on "boost" => :build
-  depends_on "md5sha1sum" => :build
-  depends_on "python@2" => :build
-  depends_on :java
+  bottle do
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "a11700736da72d86af2c07f05365c1a52a9851ef62aa3f4b6ddaaef914ca4b03"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "d9a3dcdc2356e269c23318dd304ec54fa172306d100b274c04a7e78440573987"
+    sha256 cellar: :any_skip_relocation, monterey:       "14bc7441b66d9236c03273b5dc37a97373c5a80b3723e78936b7acf04e6c867a"
+    sha256 cellar: :any_skip_relocation, big_sur:        "8e37238c958548a5f28c843f65e9f9a6e9eede05d9f9b9a8e802fabae5e42906"
+    sha256 cellar: :any_skip_relocation, catalina:       "126f37758cb9f1ace827883911906cab4976bf5f211b200ed0e2f307fae87982"
+    sha256 cellar: :any_skip_relocation, mojave:         "126f37758cb9f1ace827883911906cab4976bf5f211b200ed0e2f307fae87982"
+    sha256 cellar: :any_skip_relocation, high_sierra:    "126f37758cb9f1ace827883911906cab4976bf5f211b200ed0e2f307fae87982"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d89eaec2a6bcd8de99e07c2a1e77eee4d1e9d3c21239727beb1ab0f73173ea8c"
+  end
+
+  depends_on "openjdk"
 
   def install
     rm Dir["lib/*.{gr,tar.gz}"]
     rm_rf "lib/README"
     rm_rf "bin/.gitignore"
-    head do
-      system "ant"
-    end
+
     libexec.install Dir["*"]
-    bin.install_symlink Dir["#{libexec}/bin/*"]
-    inreplace "#{bin}/joshua-decoder", "JOSHUA\=$(dirname $0)/..", "#JOSHUA\=$(dirname $0)/.."
-    inreplace "#{bin}/decoder", "JOSHUA\=$(dirname $0)/..", "#JOSHUA\=$(dirname $0)/.."
+    bin.install Dir["#{libexec}/bin/*"]
+    bin.env_script_all_files libexec/"bin", JAVA_HOME: Formula["openjdk"].opt_prefix
   end
 
   test do
-    assert_equal "test_OOV\n", pipe_output("#{libexec}/bin/joshua-decoder -v 0 -output-format %s -mark-oovs", "test")
+    assert_equal "test_OOV\n", pipe_output("#{bin}/joshua-decoder -v 0 -output-format %s -mark-oovs", "test")
   end
 end

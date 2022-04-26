@@ -3,16 +3,26 @@ class Cairo < Formula
   homepage "https://cairographics.org/"
   url "https://cairographics.org/releases/cairo-1.16.0.tar.xz"
   sha256 "5e7b29b3f113ef870d1e3ecf8adf21f923396401604bda16d44be45e66052331"
-  revision 2
+  license any_of: ["LGPL-2.1-only", "MPL-1.1"]
+  revision 5
+
+  livecheck do
+    url "https://cairographics.org/releases/?C=M&O=D"
+    regex(%r{href=(?:["']?|.*?/)cairo[._-]v?(\d+\.\d*[02468](?:\.\d+)*)\.t}i)
+  end
 
   bottle do
-    sha256 "fcda779381271541f623470a74b8b0164f1e83c9154b7b7f4ed23038aac3f5d6" => :mojave
-    sha256 "e9d0d9800f39390a379a2a8b86ab2222c6e21b03fe8b08a3ca6c493c2577255d" => :high_sierra
-    sha256 "77b1e651611de729ee08eb29037b8909e67603f3ab420a54ece1a893d4d449f5" => :sierra
+    sha256 arm64_monterey: "50feaae83e93330cc0ee6b90477cfa931fab52cdb98ad37a99a0e518da6a580e"
+    sha256 arm64_big_sur:  "2fc4da6029167f696fc0b3c0553d36abb8e77c75f0096396d4eb89d0ea912612"
+    sha256 monterey:       "ccf4f80f5115aad260e4d3f014dc0aebdd616dfac88f567d211bd8681d60c3a9"
+    sha256 big_sur:        "cb16c1bb070a7cdca7aaf8899a70e407d73636116d62225626b2c8d31aa8d2ff"
+    sha256 catalina:       "4a117545953b9784f78db8261c03d71a1ae7af836dcd995abe7e6d710cdfd39c"
+    sha256 mojave:         "38c7b7b0f6266632a5f04df12180dc36a1ce218a1c54b13cdca18ad024067311"
+    sha256 x86_64_linux:   "678c795a11134b3455002969fc41b8e2512e97cdaa084f792724ace7549a3407"
   end
 
   head do
-    url "https://anongit.freedesktop.org/git/cairo", :using => :git
+    url "https://gitlab.freedesktop.org/cairo/cairo.git"
     depends_on "autoconf" => :build
     depends_on "automake" => :build
     depends_on "libtool" => :build
@@ -23,24 +33,42 @@ class Cairo < Formula
   depends_on "freetype"
   depends_on "glib"
   depends_on "libpng"
+  depends_on "libx11"
+  depends_on "libxcb"
+  depends_on "libxext"
+  depends_on "libxrender"
   depends_on "lzo"
   depends_on "pixman"
 
+  uses_from_macos "zlib"
+
+  # Avoid segfaults on Big Sur. Remove at version bump.
+  # https://gitlab.freedesktop.org/cairo/cairo/-/issues/420
+  patch do
+    url "https://gitlab.freedesktop.org/cairo/cairo/-/commit/e22d7212acb454daccc088619ee147af03883974.diff"
+    sha256 "3b98004d7321c06d294fa901ac91964b6a4277ce4e53ef0cf98bf89e00d93332"
+  end
+
   def install
+    args = %W[
+      --disable-dependency-tracking
+      --prefix=#{prefix}
+      --enable-gobject
+      --enable-svg
+      --enable-tee
+      --disable-valgrind
+      --enable-xcb
+      --enable-xlib
+      --enable-xlib-xrender
+    ]
+    args << "--enable-quartz-image" if OS.mac?
+
     if build.head?
       ENV["NOCONFIGURE"] = "1"
       system "./autogen.sh"
     end
 
-    system "./configure", "--disable-dependency-tracking",
-                          "--prefix=#{prefix}",
-                          "--enable-gobject=yes",
-                          "--enable-svg=yes",
-                          "--enable-tee=yes",
-                          "--enable-quartz-image",
-                          "--enable-xcb=no",
-                          "--enable-xlib=no",
-                          "--enable-xlib-xrender=no"
+    system "./configure", *args
     system "make", "install"
   end
 

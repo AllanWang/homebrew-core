@@ -1,39 +1,46 @@
 class Xdotool < Formula
   desc "Fake keyboard/mouse input and window management for X"
   homepage "https://www.semicomplete.com/projects/xdotool/"
-  url "https://github.com/jordansissel/xdotool/archive/v3.20160805.1.tar.gz"
-  sha256 "ddafca1239075c203769c17a5a184587731e56fbe0438c09d08f8af1704e117a"
+  url "https://github.com/jordansissel/xdotool/releases/download/v3.20211022.1/xdotool-3.20211022.1.tar.gz"
+  sha256 "96f0facfde6d78eacad35b91b0f46fecd0b35e474c03e00e30da3fdd345f9ada"
+  license "BSD-3-Clause"
+  head "https://github.com/jordansissel/xdotool.git", branch: "master"
 
   bottle do
-    sha256 "02edb6e55146177191ec888e7886878b2bf93defb20a2e6a01546bce111859b8" => :mojave
-    sha256 "2f949fc70d828db23364beed16bdbd15c728d790601e5e0a59b110f8f6eb3826" => :high_sierra
-    sha256 "13b1b017e94c76bde510b06427cf517c0d78028994e3b1bb8501ec2cbd5c7ef1" => :sierra
-    sha256 "d7fad4610977a3a5f8879b4f51d35e08e4ef3e65cfbc04353e67bdc14b279867" => :el_capitan
-    sha256 "037a599194a39189e8d8397c358dce21c1425065fdeeb29e59db26b696425f63" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "2e59d046b4cb7d97f989a022c0775cbf3ab9f5929cd05650d50a9eed62b162c2"
+    sha256 cellar: :any,                 arm64_big_sur:  "cdf3234a474044e88dcf18b5cb5e8da2c2af6da4d85eb04e8be737802baeae16"
+    sha256 cellar: :any,                 monterey:       "ded3a6fc9f7ddc4e307a48744d2c25f2a60a752311628822c69d9f141d17ee34"
+    sha256 cellar: :any,                 big_sur:        "f33aa5be05e49f700d166a13a36ecf5a1f8da3059e36f67e0cc9d7f26c3bf088"
+    sha256 cellar: :any,                 catalina:       "21276c0386840d584e70f5425578b5184e56ef7649e6992f191a6c7a3cf8a30e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "ffe41af3fe21135efdee19b3fabf9f459d850946dd592858a50b4cd46035f35e"
   end
 
   depends_on "pkg-config" => :build
+  depends_on "libx11"
+  depends_on "libxinerama"
   depends_on "libxkbcommon"
+  depends_on "libxtst"
 
-  depends_on :x11
+  # Disable clock_gettime() workaround since the real API is available on macOS >= 10.12
+  # Note that the PR from this patch was actually closed originally because of problems
+  # caused on pre-10.12 environments, but that is no longer a concern.
+  patch do
+    url "https://github.com/jordansissel/xdotool/commit/dffc9a1597bd96c522a2b71c20301f97c130b7a8.patch?full_index=1"
+    sha256 "447fa42ec274eb7488bb4aeeccfaaba0df5ae747f1a7d818191698035169a5ef"
+  end
 
   def install
-    # Work around an issue with Xcode 8 on El Capitan, which
-    # errors out with `typedef redefinition with different types`
-    if MacOS.version == :el_capitan && MacOS::Xcode.version >= "8.0"
-      ENV.delete("SDKROOT")
-    end
-
     system "make", "PREFIX=#{prefix}", "INSTALLMAN=#{man}", "install"
   end
 
-  def caveats; <<~EOS
-    You will probably want to enable XTEST in your X11 server now by running:
-      defaults write org.x.X11 enable_test_extensions -boolean true
+  def caveats
+    <<~EOS
+      You will probably want to enable XTEST in your X11 server now by running:
+        defaults write org.x.X11 enable_test_extensions -boolean true
 
-    For the source of this useful hint:
-      https://stackoverflow.com/questions/1264210/does-mac-x11-have-the-xtest-extension
-  EOS
+      For the source of this useful hint:
+        https://stackoverflow.com/questions/1264210/does-mac-x11-have-the-xtest-extension
+    EOS
   end
 
   test do

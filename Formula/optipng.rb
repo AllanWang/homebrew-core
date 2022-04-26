@@ -3,18 +3,27 @@ class Optipng < Formula
   homepage "https://optipng.sourceforge.io/"
   url "https://downloads.sourceforge.net/project/optipng/OptiPNG/optipng-0.7.7/optipng-0.7.7.tar.gz"
   sha256 "4f32f233cef870b3f95d3ad6428bfe4224ef34908f1b42b0badf858216654452"
-  head "http://hg.code.sf.net/p/optipng/mercurial", :using => :hg
+  license "Zlib"
+  head "http://hg.code.sf.net/p/optipng/mercurial", using: :hg
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "150c2cace53963fa77b40e30e403fea731ac87ce3aa5bf0528205f3bcd0626ab" => :mojave
-    sha256 "b64e8d6bd75de2e40d481c7b0e816f45b0865e2dfa42f03e507f67607804ef2b" => :high_sierra
-    sha256 "416ce24daab37aaef4fecda949fc80bed2b1d9b9714406f972b093846578ab3a" => :sierra
-    sha256 "f59e3cedb808003915ee214f6487b968e3e6dcea669452f0a732fcced03aaa8f" => :el_capitan
+    rebuild 1
+    sha256 cellar: :any,                 arm64_monterey: "9392bd48565d6102eb0991d836040944055394863d5a186fd617a7788032f91c"
+    sha256 cellar: :any,                 arm64_big_sur:  "796af028b1dea8b680e40103712976b4f9df285df553db06d2643779630c716c"
+    sha256 cellar: :any,                 monterey:       "c366c7c45b9cb9c2e97e001fcf3cf008fdc1843da37cc42f7c0fa864d0311f22"
+    sha256 cellar: :any,                 big_sur:        "5cee26efb92016f057a55b2711a08c4a0350046b7c0b1d969c75a913caf66fc2"
+    sha256 cellar: :any,                 catalina:       "3d423dfa59e07122f70e2a15026289dfc6884798ac76898065dbe587256c6e35"
+    sha256 cellar: :any,                 mojave:         "bd44fa66b00a6ee0340a9a5b239d22823787fcaa26312783b21c0f4afc39fd0b"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "e515f83962de17813907616541a6e9bdcb3b51a64db9f4c58abd8c5960a47764"
   end
+
+  depends_on "libpng"
+
+  uses_from_macos "zlib"
 
   def install
     system "./configure", "--with-system-zlib",
+                          "--with-system-libpng",
                           "--prefix=#{prefix}",
                           "--mandir=#{man}"
     system "make", "install"

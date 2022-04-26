@@ -1,16 +1,18 @@
 class Unpaper < Formula
   desc "Post-processing for scanned/photocopied books"
-  homepage "https://www.flameeyes.eu/projects/unpaper"
-  url "https://www.flameeyes.eu/files/unpaper-6.1.tar.xz"
+  homepage "https://www.flameeyes.com/projects/unpaper"
+  url "https://www.flameeyes.com/files/unpaper-6.1.tar.xz"
   sha256 "237c84f5da544b3f7709827f9f12c37c346cdf029b1128fb4633f9bafa5cb930"
-  revision 2
+  license "GPL-2.0-or-later"
+  revision 8
 
   bottle do
-    cellar :any
-    sha256 "255eef39573324e6772fcbb69d2f6567b4230152f55ffa6b545b41fd81d8a7ac" => :mojave
-    sha256 "064acb1292a5a948eb3963be07c400d8fe0e7fa008afec78bfdd659392e45871" => :high_sierra
-    sha256 "f35014bc991ee89bc5af4a4f25034bf525220a13a8925518424a5a423273a1cc" => :sierra
-    sha256 "743399859c237fb673ee9dec339d660215d92db2383f31c3208f726116adeb1d" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "15a1aa7548aed02a7f8c82e541386b9122b2d74e628f0e123c3381c1690b11da"
+    sha256 cellar: :any,                 arm64_big_sur:  "af3c1cb708fce8f19b3fd2b25a2aad65bfbb14513774be7cbbbc6eb6f755fb0b"
+    sha256 cellar: :any,                 monterey:       "dffbdc83b6fb112d2bf8326ed93078749063a4796262a397fa7de93a46824056"
+    sha256 cellar: :any,                 big_sur:        "96f88ae0ccb984448e56e48ad8cd2c1444e30beabcf375177bc2f064cc822a3e"
+    sha256 cellar: :any,                 catalina:       "c9082fb7f7c6381df451dc2cdb14cece9f59605e563a70d811ffe9dae38c94c8"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "b8dfbd593ccaa3f878eea978943866a2791d66aa4ce15fdd183e6fea1a7be261"
   end
 
   head do
@@ -20,10 +22,22 @@ class Unpaper < Formula
   end
 
   depends_on "pkg-config" => :build
-  depends_on "ffmpeg"
+  depends_on "ffmpeg@4"
+
+  uses_from_macos "libxslt"
+
+  on_linux do
+    depends_on "autoconf" => :build
+    depends_on "automake" => :build
+  end
+
+  fails_with gcc: "5" # ffmpeg is compiled with GCC
 
   def install
     system "autoreconf", "-i" if build.head?
+
+    system "autoreconf", "-i" if OS.linux?
+
     system "./configure", "--disable-dependency-tracking", "--prefix=#{prefix}"
     system "make", "install"
   end

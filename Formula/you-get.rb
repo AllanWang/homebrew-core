@@ -3,18 +3,21 @@ class YouGet < Formula
 
   desc "Dumb downloader that scrapes the web"
   homepage "https://you-get.org/"
-  url "https://github.com/soimort/you-get/archive/v0.4.1314.tar.gz"
-  sha256 "115354d7c232acbd79313137ef47fc2e8b72c607954a1c0a30f3ecc49069bbc5"
-  head "https://github.com/soimort/you-get.git", :branch => "develop"
+  url "https://files.pythonhosted.org/packages/6d/f1/4f76c9fcd58cce3619196d67b3f11a996da7610f34d73538b6c8af8f6353/you-get-0.4.1602.tar.gz"
+  sha256 "4706c06cc4b9080ea93b4f13b9a4dbebb60cfe12d191c78e17b0fa895d17708f"
+  license "MIT"
+  head "https://github.com/soimort/you-get.git", branch: "develop"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "7a16d5cb1e0159d4750f1453cbe0814c3eeba309bc6906df426a9dc995e8a82a" => :mojave
-    sha256 "36211043db5029d7c4ed660c2d3f4bb28c35e2820af18c186039411b35594c6e" => :high_sierra
-    sha256 "1363ba0e4b13eccfaf8c63462cf54541a4efb83ea11eaaac195ef8175a6b7271" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "4d0e6952e12ecfccc70ddf701ca4514bdc63f7691cd4bfccded7368b4d87295e"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "4d0e6952e12ecfccc70ddf701ca4514bdc63f7691cd4bfccded7368b4d87295e"
+    sha256 cellar: :any_skip_relocation, monterey:       "5eab149f5f6790038d34c8549ffaac5a165b745895c37c46f759e05390196566"
+    sha256 cellar: :any_skip_relocation, big_sur:        "5eab149f5f6790038d34c8549ffaac5a165b745895c37c46f759e05390196566"
+    sha256 cellar: :any_skip_relocation, catalina:       "5eab149f5f6790038d34c8549ffaac5a165b745895c37c46f759e05390196566"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "ae49966f9bb2a9504c724e27206bce06925e950db0f60f18b2c67a8f4a96e4fc"
   end
 
-  depends_on "python"
+  depends_on "python@3.10"
   depends_on "rtmpdump"
 
   def install
@@ -22,7 +25,7 @@ class YouGet < Formula
   end
 
   def caveats
-    "To use post-processing options, `brew install ffmpeg` or `brew install libav`."
+    "To use post-processing options, run `brew install ffmpeg` or `brew install libav`."
   end
 
   test do

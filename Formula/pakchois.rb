@@ -1,16 +1,22 @@
 class Pakchois < Formula
   desc "PKCS #11 wrapper library"
-  homepage "https://web.archive.org/web/www.manyfish.co.uk/pakchois/"
-  url "https://web.archive.org/web/20161220165909/www.manyfish.co.uk/pakchois/pakchois-0.4.tar.gz"
+  homepage "http://www.manyfish.co.uk/pakchois/"
+  url "http://www.manyfish.co.uk/pakchois/pakchois-0.4.tar.gz"
   sha256 "d73dc5f235fe98e4d1e8c904f40df1cf8af93204769b97dbb7ef7a4b5b958b9a"
+  license "GPL-2.0-or-later"
+
+  livecheck do
+    url :homepage
+    regex(/href=.*?pakchois[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    sha256 "40909ddce4f17e53dd3b6bd68b61c45cfd824ccc486fe2bf0e76be5f55d5681d" => :mojave
-    sha256 "ee7978dad7998e747e468f1b9afaa692304efb2ca857d4c0903945f030841fb7" => :high_sierra
-    sha256 "84a90b245c59676817d4c9100d64d7747068e0d3557fc5c3218d8a83a98f78fe" => :sierra
-    sha256 "b02057a2cc01daa05754c537820b58d7c77b632fc5fdb2a6f6dcec77341fe65b" => :el_capitan
-    sha256 "30a06a914f2025d7d23dff48fa8523be455bf925a3282a8c35f56779fd8bd27a" => :yosemite
-    sha256 "03d6ab9d51bdebf61b3c415908e222467fd31cefc4811200eee9e407c604f7f5" => :mavericks
+    rebuild 3
+    sha256 cellar: :any,                 arm64_big_sur: "86e77a851ff2c0de31cf5e4f2587711b7b1bcc742fb878df1ce69fde836fd864"
+    sha256 cellar: :any,                 big_sur:       "fd91b09bb010ac37483a910b0431c6082903ee843a15f4cc767bde57ce0b7267"
+    sha256 cellar: :any,                 catalina:      "ca82f2950582bc54e46122eb71ff8e8acdc739772baf53ab2d545755f03303f8"
+    sha256 cellar: :any,                 mojave:        "cc98c7b706f27320ee7c673d906b4da22b402afe0d93b4c66f73a8cde86f7929"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:  "e9e96d8cef014042091db67065c8b02439cba4cfd381ca7651bc721ec120ad4a"
   end
 
   def install

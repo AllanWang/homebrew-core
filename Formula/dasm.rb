@@ -1,24 +1,25 @@
 class Dasm < Formula
   desc "Macro assembler with support for several 8-bit microprocessors"
-  homepage "https://dasm-dillon.sourceforge.io/"
-  url "https://downloads.sourceforge.net/project/dasm-dillon/dasm-dillon/2.20.11/dasm-2.20.11-2014.03.04-source.tar.gz"
-  sha256 "a9330adae534aeffbfdb8b3ba838322b92e1e0bb24f24f05b0ffb0a656312f36"
-  head "https://svn.code.sf.net/p/dasm-dillon/code/trunk"
+  homepage "https://dasm-assembler.github.io/"
+  url "https://github.com/dasm-assembler/dasm/archive/2.20.14.1.tar.gz"
+  sha256 "ec71ffd10eeaa70bf7587ee0d79a92cd3f0a017c0d6d793e37d10359ceea663a"
+  license "GPL-2.0-or-later"
+  version_scheme 1
 
   bottle do
-    cellar :any_skip_relocation
-    rebuild 1
-    sha256 "d68b6f9a2a30a76f13fa1c38bb1855174e1f9dd7c9feff0f7336edd8a599e6e0" => :mojave
-    sha256 "8df31a4bcc48b92ee2569994dda6a5bd55335a0e92e1e19903a2c98377b440d1" => :high_sierra
-    sha256 "7425679bdb695c12ca174ca4f17e187a9a9aa5a92e7fe72bf8a561dd83aff4a7" => :sierra
-    sha256 "854a19f232cffdeabb1cb2afef4a5713e55b545519beea8f666f2cc4882d42e6" => :el_capitan
-    sha256 "1897ee7e4d76eeb74bd6aa3c94d73f14f55c44054dd296bbd724addb3ca3b00a" => :yosemite
-    sha256 "3383c91ce64d715a05595e49d38d16ea134e139dc7b87541d8c81bf5a9aeaf15" => :mavericks
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "60b9a619d4394ab4079ce4f909549c604aabfd32f1a3ecd96b8e7c30c1cfb823"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "edc22129ec5a851546aa675a89dc4e6895eac68428914d806cfc03a4bb119eeb"
+    sha256 cellar: :any_skip_relocation, monterey:       "39de6472c8ffb52fbeaff1d112b4961b3d0912bbd1777f35db5f7fab46955fe7"
+    sha256 cellar: :any_skip_relocation, big_sur:        "0de7ec1bbb50537c46364d86188b6ef07c2e6d6efeee6b013be29eab793290d3"
+    sha256 cellar: :any_skip_relocation, catalina:       "354cf4953e70e7518fc7ee0b0861a0be21fa80770a60d18a2c0ea0d31deb979d"
+    sha256 cellar: :any_skip_relocation, mojave:         "43a9c82d0ed5d8466cdf1bd749c3a94710f76c5a1f1599a5a4538a58616bc95f"
+    sha256 cellar: :any_skip_relocation, high_sierra:    "145c79491ba96ba7d21f4085ff3cedf482555e46c9c334fe6c9b2458202bfb8c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "255217da42c9f1a4b35791323593c0107306e2090fcc69b471d5afb193de7355"
   end
 
   def install
     system "make"
-    prefix.install "bin", "doc"
+    prefix.install "bin", "docs", "machines"
   end
 
   test do

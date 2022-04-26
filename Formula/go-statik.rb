@@ -1,32 +1,37 @@
 class GoStatik < Formula
   desc "Embed files into a Go executable"
   homepage "https://github.com/rakyll/statik"
-  url "https://github.com/rakyll/statik/archive/v0.1.6.tar.gz"
-  sha256 "f157a1ada813eb643ddd9a60a0efe3158f1da25b1d11bc1ef6c7fa219d4b23bf"
+  url "https://github.com/rakyll/statik/archive/v0.1.7.tar.gz"
+  sha256 "cd05f409e63674f29cff0e496bd33eee70229985243cce486107085fab747082"
+  license "Apache-2.0"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "4e347596a83f169bdb0b72cd81d69ea275966fead97f7decb67c873380c179b8" => :mojave
-    sha256 "4ec52d9626abcbb07f25640c9ecec4e620faa9ee619f6f289f172aa7bc509590" => :high_sierra
-    sha256 "e0e8c356eb1ed32cf074d4abfa81fd8fa9d6d8dfb7c7724c696a521f974a3b44" => :sierra
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "1c5a13a7d21ea10888bdfb31153624ca587b2b3424ecf8c97f5bfa512aedf898"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "5960b8ab88990df3e2a3ef0578da24b674d72c620466af263fdad6b479133fe9"
+    sha256 cellar: :any_skip_relocation, monterey:       "bc500cc264e19fa299d10cee767ea23b79750b4e5891359aa465898e1de6590f"
+    sha256 cellar: :any_skip_relocation, big_sur:        "0f05d7b15227e1bdf7be3876d90135232083ae1789c08d32641777b9291ef8a7"
+    sha256 cellar: :any_skip_relocation, catalina:       "d6d3e13adce186f49cf35be7be414baec7cfa02e8d884e0a97ec9f15108f4cb4"
+    sha256 cellar: :any_skip_relocation, mojave:         "93f27ec30935befbde2afab7ac3382a2e576b8a51024db2dd8a911860fb5b10f"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "c8dac98a1bcf9c946d1ec00fcf2249f1796796f1f52f549988b95d96f9e94fc7"
   end
 
   depends_on "go" => :build
 
-  conflicts_with "statik", :because => "both install `statik` binaries"
+  conflicts_with "statik", because: "both install `statik` binaries"
 
   def install
-    ENV["GOPATH"] = HOMEBREW_CACHE/"go_cache"
-    (buildpath/"src/github.com/rakyll/statik").install buildpath.children
-
-    cd "src/github.com/rakyll/statik" do
-      system "go", "build", "-o", bin/"statik"
-      prefix.install_metafiles
-    end
+    system "go", "build", *std_go_args(output: bin/"statik", ldflags: "-s -w")
   end
 
   test do
-    system bin/"statik", "-src", "/Library/Fonts/STIXGeneral.otf"
+    font_name = (MacOS.version >= :catalina) ? "Arial Unicode.ttf" : "Arial.ttf"
+    font_path = if OS.mac?
+      "/Library/Fonts/#{font_name}"
+    else
+      "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    end
+    system bin/"statik", "-src", font_path
     assert_predicate testpath/"statik/statik.go", :exist?
     refute_predicate (testpath/"statik/statik.go").size, :zero?
   end

@@ -1,29 +1,31 @@
 class Vegeta < Formula
   desc "HTTP load testing tool and library"
   homepage "https://github.com/tsenart/vegeta"
-  url "https://github.com/tsenart/vegeta.git",
-      :tag      => "cli/v12.5.1",
-      :revision => "0f5577eaf11a136541b8c667273b6bc5eba51a8b"
+  url "https://github.com/tsenart/vegeta/archive/v12.8.4.tar.gz"
+  sha256 "418249d07f04da0a587df45abe34705166de9e54a836e27e387c719ebab3e357"
+  license "MIT"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "448919322a1dd870003a3953eaaea42139534024f98755a29d602e537b58caf0" => :mojave
-    sha256 "398e443ae8f8d96d00315fd47888e59c1505820af33cc19e529d0f8f3918c026" => :high_sierra
-    sha256 "44e7a0ef3154894e7468a99a6f208b6cdb17b3adfadcace4aadd27d16ac956e5" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "81e5234d266674684d94f92e09fc70504a7c35ab70e89afe744fb93c6c334fda"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "7d95ea4ba41b01adc23e73959805a728a4d279cac33448685cced10e268e2965"
+    sha256 cellar: :any_skip_relocation, monterey:       "5326e65fbdc12cacad9fd86befe186e708f083dde5b0fdb730772bd096bb3438"
+    sha256 cellar: :any_skip_relocation, big_sur:        "1f2ea9a3a871ff2f93ee65f1a5977aece4479835d954026342ac0c5eb523db27"
+    sha256 cellar: :any_skip_relocation, catalina:       "63b383f4cdff26cc0bf4ba3e24a84ea6d7485a9a61fe49ac62b09f39c5f01e13"
+    sha256 cellar: :any_skip_relocation, mojave:         "76e2d89891ecee0bfa07e939619683cae2d954bca2c5524a6e87b84c105c6c25"
+    sha256 cellar: :any_skip_relocation, high_sierra:    "df3853752133b68c20a9d054c12d36d531779fe595bc6011bb1e2d3245e9df2d"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "5cf44f8e5a57caff8a709f86cf6abb1c4da290afcdddc1b6088658b424c644b9"
   end
 
-  depends_on "dep" => :build
   depends_on "go" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-    src = buildpath/"src/github.com/tsenart/vegeta"
-    src.install buildpath.children
-    src.cd do
-      system "make", "vegeta"
-      bin.install "vegeta"
-      prefix.install_metafiles
-    end
+    ldflags = %W[
+      -s -w
+      -X main.Version=#{version}
+      -X main.Date=#{time.iso8601}
+    ].join(" ")
+
+    system "go", "build", *std_go_args(ldflags: ldflags)
   end
 
   test do

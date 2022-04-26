@@ -1,45 +1,37 @@
 class Packetbeat < Formula
   desc "Lightweight Shipper for Network Data"
   homepage "https://www.elastic.co/products/beats/packetbeat"
-  # Pinned at 6.2.x because of a licencing issue
-  # See: https://github.com/Homebrew/homebrew-core/pull/28995
-  url "https://github.com/elastic/beats/archive/v6.2.4.tar.gz"
-  sha256 "87d863cf55863329ca80e76c3d813af2960492f4834d4fea919f1d4b49aaf699"
-  head "https://github.com/elastic/beats.git"
+  url "https://github.com/elastic/beats.git",
+      tag:      "v8.1.3",
+      revision: "271435c21bfd4e2e621d87c04f4b815980626978"
+  license "Apache-2.0"
+  head "https://github.com/elastic/beats.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "78a69711df0bd6000c6ac9175d0722eb63036742aa95685789f52ab8c69230c2" => :mojave
-    sha256 "c49e265502b3be8c83ec949e1c25781ca2560a2956fe4bdcb462dd871c35a4b7" => :high_sierra
-    sha256 "db873b1e0f6344a316b234402f8994b12eef03eb4deb662b50277e6eabea8053" => :sierra
-    sha256 "a655b33e3a1602a68ae3e2954cb03bd3b3f2d17954a68b9df2e48eb990c8c140" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "72f31911aaa99f732fb2d1b6ed87c065327e0db44dab9873d47a31a1abab19f1"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "c1723b8128167655679400a4c6e07b9328a03379cb0a38cc8b5213d144705c46"
+    sha256 cellar: :any_skip_relocation, monterey:       "2661c9d8bc18cb58de91e5a211a1a39caee17ad0404ec4dbbb0bf11b26713d7b"
+    sha256 cellar: :any_skip_relocation, big_sur:        "2ed4185c2387f2d90b6a08afc04141ddcaa4a7c0bfb454aacdba6a6f14827428"
+    sha256 cellar: :any_skip_relocation, catalina:       "61cf06a34445776c9fc3a665811e35693cbdcdd02a7fa302504abbd574f64da1"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "5893fa91a51f7c8ccd37e0f56a2ae0b7eb58df6f3a21e569e53eda18533415fd"
   end
 
   depends_on "go" => :build
-  depends_on "python@2" => :build
+  depends_on "mage" => :build
+  depends_on "python@3.10" => :build
 
-  resource "virtualenv" do
-    url "https://files.pythonhosted.org/packages/b1/72/2d70c5a1de409ceb3a27ff2ec007ecdd5cc52239e7c74990e32af57affe9/virtualenv-15.2.0.tar.gz"
-    sha256 "1d7e241b431e7afce47e77f8843a276f652699d1fa4f93b9d8ce0076fd7b0b54"
-  end
+  uses_from_macos "libpcap"
 
   def install
-    ENV["GOPATH"] = buildpath
-    (buildpath/"src/github.com/elastic/beats").install buildpath.children
+    # remove non open source files
+    rm_rf "x-pack"
 
-    ENV.prepend_create_path "PYTHONPATH", buildpath/"vendor/lib/python2.7/site-packages"
-
-    resource("virtualenv").stage do
-      system "python", *Language::Python.setup_install_args(buildpath/"vendor")
-    end
-
-    ENV.prepend_path "PATH", buildpath/"vendor/bin"
-
-    cd "src/github.com/elastic/beats/packetbeat" do
-      system "make"
+    cd "packetbeat" do
       # prevent downloading binary wheels during python setup
-      system "make", "PIP_INSTALL_COMMANDS=--no-binary :all", "python-env"
-      system "make", "DEV_OS=darwin", "update"
+      system "make", "PIP_INSTALL_PARAMS=--no-binary :all", "python-env"
+      system "mage", "-v", "build"
+      ENV.deparallelize
+      system "mage", "-v", "update"
 
       inreplace "packetbeat.yml", "packetbeat.interfaces.device: any", "packetbeat.interfaces.device: en0"
 
@@ -47,8 +39,6 @@ class Packetbeat < Formula
       (libexec/"bin").install "packetbeat"
       prefix.install "_meta/kibana"
     end
-
-    prefix.install_metafiles buildpath/"src/github.com/elastic/beats"
 
     (bin/"packetbeat").write <<~EOS
       #!/bin/sh
@@ -61,26 +51,17 @@ class Packetbeat < Formula
     EOS
   end
 
-  plist_options :manual => "packetbeat"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
-    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>Program</key>
-        <string>#{opt_bin}/packetbeat</string>
-        <key>RunAtLoad</key>
-        <true/>
-      </dict>
-    </plist>
-  EOS
+  service do
+    run opt_bin/"packetbeat"
   end
 
   test do
-    system "#{bin}/packetbeat", "devices"
+    eth = if OS.mac?
+      "en"
+    else
+      "eth"
+    end
+    assert_match "0: #{eth}0", shell_output("#{bin}/packetbeat devices")
+    assert_match version.to_s, shell_output("#{bin}/packetbeat version")
   end
 end

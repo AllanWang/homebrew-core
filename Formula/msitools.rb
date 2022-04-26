@@ -1,19 +1,32 @@
 class Msitools < Formula
   desc "Windows installer (.MSI) tool"
   homepage "https://wiki.gnome.org/msitools"
-  url "https://download.gnome.org/sources/msitools/0.98/msitools-0.98.tar.xz"
-  sha256 "4c7198c82a6b2116515fb6f7b6e4c3cae9aeec0f6e6090e532ec4e6e871d8ba7"
-  revision 1
+  url "https://download.gnome.org/sources/msitools/0.101/msitools-0.101.tar.xz"
+  sha256 "0cc4d2e0d108fa6f2b4085b9a97dd5bc6d9fcadecdd933f2094f86bafdbe85fe"
+  license "LGPL-2.1-or-later"
 
-  bottle do
-    sha256 "83ff14b0667f18cf65484bd24d9cd6892e527a566765c9b7e90a6763125fd40c" => :mojave
-    sha256 "19f154c91278ec5f663dc8648a6732cd363835ca80d9fa571c02324b5a3eec5c" => :high_sierra
-    sha256 "3faecd1b566a9e685602597c614a00467edfd6b30dbeb6640c1be7dabfdf248d" => :sierra
+  # msitools doesn't seem to use the GNOME version scheme, so we have to
+  # loosen the default `Gnome` strategy regex to match the latest version.
+  livecheck do
+    url :stable
+    regex(/msitools[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
-  depends_on "intltool" => :build
+  bottle do
+    sha256 arm64_monterey: "1738ad06a080d802f991037d76fe78069ba16e601a27ef5a2c71a65463985db0"
+    sha256 arm64_big_sur:  "a8efd95e41c4b40428c1e2c6f2b3abafa76f99781d26c64cbe0ca80f27b8ab06"
+    sha256 monterey:       "1539a360dda3393169191eb9e2d97822814c9d84478bf788d4a80508966b9f58"
+    sha256 big_sur:        "ec00cadc6477adbd6c6b5ddd107586b31cfe8ecc78f9df7ff264c5b3b2990944"
+    sha256 catalina:       "f757655d692ef4acf1192c6fa4459a77b4480e0303589b158b862a0a1497afef"
+    sha256 mojave:         "ad7526c586e2bb15a4325798af37c278448315fe4434daa6553258a00ac13cd4"
+    sha256 x86_64_linux:   "c2113c131d937a5d93c81c7f0a1cb8b301bae73353e986b048ccfd45c525e811"
+  end
+
+  depends_on "bison" => :build
+  depends_on "gobject-introspection" => :build
+  depends_on "meson" => :build
+  depends_on "ninja" => :build
   depends_on "pkg-config" => :build
-  depends_on "e2fsprogs"
   depends_on "gcab"
   depends_on "gettext"
   depends_on "glib"
@@ -21,15 +34,16 @@ class Msitools < Formula
   depends_on "vala"
 
   def install
-    system "./configure", "--disable-dependency-tracking",
-                          "--disable-silent-rules",
-                          "--prefix=#{prefix}"
-    system "make", "install"
+    mkdir "build" do
+      system "meson", *std_meson_args, "-Dintrospection=true", ".."
+      system "ninja"
+      system "ninja", "install"
+    end
   end
 
   test do
     # wixl-heat: make an xml fragment
-    assert_match /<Fragment>/, pipe_output("#{bin}/wixl-heat --prefix test")
+    assert_match "<Fragment>", pipe_output("#{bin}/wixl-heat --prefix test")
 
     # wixl: build two installers
     1.upto(2) do |i|
@@ -71,7 +85,7 @@ class Msitools < Formula
     # msiinfo: show info for an installer
     out = `#{bin}/msiinfo suminfo installer1.msi`
     assert_equal 0, $CHILD_STATUS.exitstatus
-    assert_match /Author: BigCo/, out
+    assert_match(/Author: BigCo/, out)
 
     # msiextract: extract files from an installer
     mkdir "files"

@@ -1,26 +1,27 @@
 class Hashcat < Formula
   desc "World's fastest and most advanced password recovery utility"
   homepage "https://hashcat.net/hashcat/"
-  # Note the mirror will return 301 until the version becomes outdated.
-  url "https://hashcat.net/files/hashcat-4.2.1.tar.gz"
-  mirror "https://hashcat.net/files_legacy/hashcat-4.2.1.tar.gz"
-  sha256 "7dad73c3406e66756b19e15ae8bcc482a52a422e8fb905feb6db4d2eb32e5320"
+  url "https://hashcat.net/files/hashcat-6.2.5.tar.gz"
+  mirror "https://github.com/hashcat/hashcat/archive/v6.2.5.tar.gz"
+  sha256 "6f6899d7ad899659f7b43a4d68098543ab546d2171f8e51d691d08a659378969"
+  license "MIT"
   version_scheme 1
-  head "https://github.com/hashcat/hashcat.git"
+  head "https://github.com/hashcat/hashcat.git", branch: "master"
+
+  livecheck do
+    url :homepage
+    regex(/href=.*?hashcat[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    sha256 "e3b79b41df423b3574012ffa580e92b6b4e38d24bdfc652692af128e6cafb1ce" => :mojave
-    sha256 "4f16d55d6180cf0f4dc8bb93c5c747919ff81ca73f49235c9a906020508ae44e" => :high_sierra
-    sha256 "d03c80e77174389dc5c6983a7400810abcf07ecd8cdc88de546a185a9014c727" => :sierra
-    sha256 "63ca34c2ed34998d779e906210e06f3f46c4becc9410c00985dfdecf0daf5f8f" => :el_capitan
+    sha256 arm64_monterey: "fa6cfd37e7dcc83390159e971d314cde0af53ab58e41c8f669919d8db1acd1f6"
+    sha256 arm64_big_sur:  "9407d08fda25cba3b7500bb0d6b99823b325f6b1302b96203b44d46052b43df5"
+    sha256 monterey:       "2943213fd5cf7d331331d734c059efca5031ea913f434b9d3e420c9b89d32870"
+    sha256 big_sur:        "50bbfbedcbbefcc4d0bda34f828eca5061a993631a4bae85d78abfe0b119556f"
+    sha256 catalina:       "455a0e164a50caf10908da5ef73322bf19de286601a44a9e6e75d1ebcb010ef5"
   end
 
   depends_on "gnu-sed" => :build
-
-  # Upstream could not fix OpenCL issue on Mavericks.
-  # https://github.com/hashcat/hashcat/issues/366
-  # https://github.com/Homebrew/homebrew-core/pull/4395
-  depends_on :macos => :yosemite
 
   def install
     system "make", "CC=#{ENV.cc}", "PREFIX=#{prefix}"
@@ -28,112 +29,10 @@ class Hashcat < Formula
   end
 
   test do
-    #
-    # General test settings
-    #
-
-    binary    = "./hashcat"
-    pass      = "hash234"
-    hash_type = "500" # -m 500 = md5crypt, MD5(Unix), FreeBSD MD5, Cisco-IOS MD5
-
-    dict_file = "example.dict"
-    hash_file = "example#{hash_type}.hash"
-
-    additional_args = " --force" +         # shouldn't be needed with a correct OpenCL installation
-                      " --quiet" +         # we only need the hash:pass pair in the output
-                      " --potfile-disable" # we do not need to check or write the hashcat.potfile
-
-    #
-    # Copy some files to the test folder
-    #
-
-    # copy all files from share to the test folder
+    ENV["XDG_DATA_HOME"] = testpath
+    ENV["XDG_CACHE_HOME"] = testpath
     cp_r pkgshare.children, testpath
-
-    # copy the example hash and the dictionary file to the test folder
-    cp "#{doc}/#{hash_file}", testpath
-    cp "#{doc}/#{dict_file}", testpath
-
-    # copy the hashcat binary to the test folder
-    cp "#{bin}/#{binary}", testpath
-
-    #
-    # Test 1 (dictionary attack, -a 0):
-    #
-
-    hash = File.open(hash_file, "rb") { |f| f.read.strip }
-
-    attack_mode = "0"
-
-    cmd = binary + " -m " + hash_type + " -a " + attack_mode + additional_args + " " + hash_file + " " + dict_file
-
-    # suppress STDERR output
-    cmd += " 2>/dev/null"
-
-    assert_equal "#{hash}:#{pass}", shell_output(cmd).strip
-
-    #
-    # Test 2 (combinator attack, -a 1):
-    #
-
-    attack_mode = "1"
-
-    dict1 = "dict1.txt"
-    dict2 = "dict2.txt"
-
-    File.write(dict1, pass[0..3])
-    File.write(dict2, pass[4..-1])
-
-    cmd = binary + " -m " + hash_type + " -a " + attack_mode + additional_args + " " + hash_file + " " + dict1 + " " + dict2
-
-    # suppress STDERR output
-    cmd += " 2>/dev/null"
-
-    assert_equal "#{hash}:#{pass}", shell_output(cmd).strip
-
-    #
-    # Test 3 (mask attack, -a 3):
-    #
-
-    attack_mode = "3"
-
-    mask = "?l?l?l" + pass[3..-1]
-
-    cmd = binary + " -m " + hash_type + " -a " + attack_mode + additional_args + " " + hash_file + " " + mask
-
-    # suppress STDERR output
-    cmd += " 2>/dev/null"
-
-    assert_equal "#{hash}:#{pass}", shell_output(cmd).strip
-
-    #
-    # Test 4 (hybrid attack, dict + mask, -a 6):
-    #
-
-    attack_mode = "6"
-
-    mask = "?d?d?d"
-
-    cmd = binary + " -m " + hash_type + " -a " + attack_mode + additional_args + " " + hash_file + " " + dict1 + " " + mask
-
-    # suppress STDERR output
-    cmd += " 2>/dev/null"
-
-    assert_equal "#{hash}:#{pass}", shell_output(cmd).strip
-
-    #
-    # Test 5 (hybrid attack, mask + dict, -a 7):
-    #
-
-    attack_mode = "7"
-
-    mask = "?l?l" + pass[2..3]
-
-    cmd = binary + " -m " + hash_type + " -a " + attack_mode + additional_args + " " + hash_file + " " + mask + " " + dict2
-
-    # suppress STDERR output
-    cmd += " 2>/dev/null"
-
-    assert_equal "#{hash}:#{pass}", shell_output(cmd).strip
+    cp bin/"hashcat", testpath
+    system testpath/"hashcat --benchmark -m 0 -D 1,2 -w 2"
   end
 end

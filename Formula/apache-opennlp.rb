@@ -1,14 +1,20 @@
 class ApacheOpennlp < Formula
   desc "Machine learning toolkit for processing natural language text"
   homepage "https://opennlp.apache.org/"
-  url "https://www.apache.org/dyn/closer.cgi?path=opennlp/opennlp-1.9.1/apache-opennlp-1.9.1-bin.tar.gz"
-  sha256 "ce636b08c876b4f528003260e1ca2c647ef2a2d7faa4ea0ff7b85b5b5eaf22da"
+  url "https://www.apache.org/dyn/closer.lua?path=opennlp/opennlp-1.9.4/apache-opennlp-1.9.4-bin.tar.gz"
+  mirror "https://archive.apache.org/dist/opennlp/opennlp-1.9.4/apache-opennlp-1.9.4-bin.tar.gz"
+  sha256 "f6d61235d5212a6e9d7d9036ffe6379fa11fd9bf7374b9ebd156a0e676653289"
+  license "Apache-2.0"
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "1df92f22c391505940d335ae17b43854e01406237b96b6ba5e634bf4a38d9f6c"
+  end
+
+  depends_on "openjdk"
 
   def install
     libexec.install Dir["*"]
-    bin.write_exec_script libexec/"bin/opennlp"
+    (bin/"opennlp").write_env_script libexec/"bin/opennlp", JAVA_HOME: Formula["openjdk"].opt_prefix
   end
 
   test do

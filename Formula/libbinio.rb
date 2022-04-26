@@ -1,22 +1,50 @@
 class Libbinio < Formula
   desc "Binary I/O stream class library"
-  homepage "https://libbinio.sourceforge.io/"
-  url "https://downloads.sourceforge.net/project/libbinio/libbinio/1.4/libbinio-1.4.tar.bz2"
-  sha256 "4a32d3154517510a3fe4f2dc95e378dcc818a4a921fc0cb992bdc0d416a77e75"
+  homepage "https://adplug.github.io/libbinio/"
+  url "https://github.com/adplug/libbinio/releases/download/libbinio-1.5/libbinio-1.5.tar.bz2"
+  sha256 "398b2468e7838d2274d1f62dbc112e7e043433812f7ae63ef29f5cb31dc6defd"
+  license "LGPL-2.1-or-later"
 
   bottle do
-    cellar :any
-    sha256 "09c61e01936f68d4f64648fa195150c8c7d82e0fa636e9f159687a293d5feab4" => :mojave
-    sha256 "176f0a11a333240770e59ada053e1656081a324debb64b96afa942a86e18f28a" => :high_sierra
-    sha256 "beba76f7c3b6c54228c8972cfa01d1cb06d309d870f23ce6aad457c23e11742f" => :sierra
-    sha256 "a0e373df44eee915d0f9259fb8627df92bfe3db8547bf66a9918f5c398342709" => :el_capitan
-    sha256 "99e8bdd47cde67290e0854c8854c0eef32a995ff10cbf1f991ca37834d60e0a4" => :yosemite
-    sha256 "e4a0b854ab3f5e98362f19af214b909205240e8a0358b88b2adf3a68a0e875f6" => :mavericks
+    sha256 cellar: :any,                 arm64_monterey: "3b66d91c0bc97b7ade4576bb7d54403ebbf4e22a46c1ad7a1eb165a5cec24368"
+    sha256 cellar: :any,                 arm64_big_sur:  "6490acae30e6e1047e5770b4aab37e4c043488c5c2e8a8919962208c1da2cdd4"
+    sha256 cellar: :any,                 monterey:       "f2f87992d693266d8fc333fc9c583b8c372657da0018b24538d771598c76570c"
+    sha256 cellar: :any,                 big_sur:        "5ca7b1faccab23de4efee72cfe82244e419c40c78775f09a01e5669aeed4a8e1"
+    sha256 cellar: :any,                 catalina:       "157efedae7e8169175623b12f91d8a786fdde524075a2a98a956e910aed5e507"
+    sha256 cellar: :any,                 mojave:         "4c5b9085fdfe812e664f342e9da9504c24f2f2055c2ef939764dd4bd96025a23"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "5d8b2aeba35080348293ad101e8f4751c17e1d5b9e53adcc7e539f571bc19b01"
+  end
+
+  # Fix -flat_namespace being used on Big Sur and later.
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+    sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
   end
 
   def install
     system "./configure", "--disable-debug", "--disable-dependency-tracking",
-                          "--prefix=#{prefix}"
+                          "--prefix=#{prefix}", "--infodir=#{info}"
     system "make", "install"
+  end
+
+  test do
+    (testpath/"test.cpp").write <<~EOS
+      // test
+      // do not change the line above!
+      #include <libbinio/binfile.h>
+      #include <string.h>
+
+      int main(void)
+      {
+        binifstream     file("test.cpp");
+        char            string[256];
+
+        file.readString(string, 256, '\\n');
+
+        return strcmp (string, "// test");
+      }
+    EOS
+    system ENV.cxx, "test.cpp", "-I#{include}", "-L#{lib}", "-lbinio", "-o", "test"
+    system "./test"
   end
 end

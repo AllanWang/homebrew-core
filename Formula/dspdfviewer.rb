@@ -3,13 +3,17 @@ class Dspdfviewer < Formula
   homepage "https://dspdfviewer.danny-edel.de/"
   url "https://github.com/dannyedel/dspdfviewer/archive/v1.15.1.tar.gz"
   sha256 "c5b6f8c93d732e65a27810286d49a4b1c6f777d725e26a207b14f6b792307b03"
-  revision 8
-  head "https://github.com/dannyedel/dspdfviewer.git"
+  license "GPL-2.0-or-later"
+  revision 12
+  head "https://github.com/dannyedel/dspdfviewer.git", branch: "master"
 
   bottle do
-    sha256 "f6063bf108432e891c5ec13665cde11d30498e99cf4d130236b78ea3a894c32c" => :mojave
-    sha256 "93406709c843244b5c55b9f6167d67290899ac1aaa32bd32faa530fab66daae9" => :high_sierra
-    sha256 "ec6ea81aaa5e037a27803b830a6bb8c7100b003a0095dec2dd3b1e217d1a6a30" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "da24ba97fbae24b36492e878571a4a1cf07cf7979ded00ccc07c23f86e26ce1c"
+    sha256 cellar: :any,                 arm64_big_sur:  "8b5db6a6870b1e825274f0a28a1f41da06e7325d45b21e700f2de94c59cf7e72"
+    sha256 cellar: :any,                 monterey:       "26f5ad626166f23fe820ea41ded7cb9c3ab328178ee3f9d0eb5319fe02819f16"
+    sha256 cellar: :any,                 big_sur:        "9a7b4b3ada6b75e933a8d577f9dc67e86eed733f5eab383ebe59dbf8c6fb2cd8"
+    sha256 cellar: :any,                 catalina:       "de51c0869902887ee1f385d68358a04414bd85adea00aa481e1310a417e0749d"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "faeff34b7271731f882d46087c907b565b5218c77a6b57eba2227fb477cf42ab"
   end
 
   depends_on "cmake" => :build
@@ -25,50 +29,16 @@ class Dspdfviewer < Formula
   depends_on "libpng"
   depends_on "libtiff"
   depends_on "openjpeg"
-  depends_on "qt"
+  depends_on "poppler-qt5"
+  depends_on "qt@5"
 
-  resource "poppler" do
-    url "https://poppler.freedesktop.org/poppler-0.65.0.tar.xz"
-    sha256 "89c8cf73f83efda78c5a9bd37c28f4593ad0e8a51556dbe39ed81e1ae2dd8f07"
+  on_linux do
+    depends_on "gcc"
   end
 
-  resource "font-data" do
-    url "https://poppler.freedesktop.org/poppler-data-0.4.9.tar.gz"
-    sha256 "1f9c7e7de9ecd0db6ab287349e31bf815ca108a5a175cf906a90163bdbe32012"
-  end
+  fails_with gcc: "5"
 
   def install
-    ENV.cxx11
-
-    resource("poppler").stage do
-      system "cmake", ".", *std_cmake_args,
-                           "-DCMAKE_INSTALL_PREFIX=#{libexec}",
-                           "-DBUILD_GTK_TESTS=OFF",
-                           "-DENABLE_CMS=none",
-                           "-DENABLE_GLIB=ON",
-                           "-DENABLE_QT5=ON",
-                           "-DWITH_GObjectIntrospection=ON",
-                           "-DENABLE_XPDF_HEADERS=ON"
-      system "make", "install"
-
-      libpoppler = (libexec/"lib/libpoppler.dylib").readlink
-      to_fix = ["#{libexec}/lib/libpoppler-cpp.dylib", "#{libexec}/lib/libpoppler-glib.dylib",
-                "#{libexec}/lib/libpoppler-qt5.dylib", *Dir["#{libexec}/bin/*"]]
-
-      to_fix.each do |f|
-        macho = MachO.open(f)
-        macho.change_dylib("@rpath/#{libpoppler}", "#{libexec}/lib/#{libpoppler}")
-        macho.write!
-      end
-
-      resource("font-data").stage do
-        system "make", "install", "prefix=#{libexec}"
-      end
-    end
-
-    ENV.prepend_path "PKG_CONFIG_PATH", "#{libexec}/lib/pkgconfig"
-    ENV.prepend "LDFLAGS", "-L#{libexec}/lib"
-
     mkdir "build" do
       system "cmake", "..", *std_cmake_args,
                             "-DRunDualScreenTests=OFF",
@@ -76,14 +46,10 @@ class Dspdfviewer < Formula
                             "-DUseQtFive=ON"
       system "make", "install"
     end
-
-    libpoppler = (libexec/"lib/libpoppler-qt5.dylib").readlink
-    macho = MachO.open(bin/"dspdfviewer")
-    macho.change_dylib("@rpath/#{libpoppler}", "#{libexec}/lib/#{libpoppler}")
-    macho.write!
   end
 
   test do
-    system bin/"dspdfviewer", "--help"
+    ENV["QT_QPA_PLATFORM"] = "minimal" if OS.linux?
+    system "#{bin}/dspdfviewer", "--help"
   end
 end

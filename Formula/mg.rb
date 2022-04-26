@@ -1,20 +1,22 @@
 class Mg < Formula
   desc "Small Emacs-like editor"
-  # https://devio.us/~bcallah/mg/ is temporarily offline
   homepage "https://github.com/ibara/mg"
-  # https://devio.us/~bcallah/mg/mg-20180421.tar.gz is temporarily offline
-  url "https://dl.bintray.com/homebrew/mirror/mg-20180421.tar.gz"
-  sha256 "11215613a360cf72ff16c2b241ea4e71b4b80b2be32c62a770c1969599e663b2"
+  url "https://github.com/ibara/mg/releases/download/mg-7.0/mg-7.0.tar.gz"
+  sha256 "650dbdf9c9a72ec1922486ce07112d6181fc88a30770913d71d5c99c57fb2ac5"
+  license all_of: [:public_domain, "ISC", :cannot_represent]
+  version_scheme 1
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "2815679e76a4eb25d454d8f8399f61fd38def65f6bcd4ac5a6b699e4c8f2344a" => :mojave
-    sha256 "6ddda40fecee0d8866684f50b248bf87172df8ccbe108306226ffc3cc2d8d74b" => :high_sierra
-    sha256 "e8df146cd84a6d153066c1c5398fb0846dace0529d090dbb063624f46556fb00" => :sierra
-    sha256 "f0ea843971bc8cdabbfdfbc663b7ef0d89c8b1d37b5eb303bfcebf83ff6d97a7" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "3052fc6f184a489918dcb2f59feae7c25e11d911e4b507e2d1a1f74dfa981a20"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "22ed7427d1bbe11394d61c776f7bd2d8aefa2669a4159e81196c8d4bb706f723"
+    sha256 cellar: :any_skip_relocation, monterey:       "39a073c05e204261444939e0e1fbd5aed12c2bbab7a787f713a463a9f4ce6855"
+    sha256 cellar: :any_skip_relocation, big_sur:        "e467c5834007598019dbe5e2fb8ebddf2c06dc153ad3af0f659ef758983125cc"
+    sha256 cellar: :any_skip_relocation, catalina:       "40b95e37d6c760e37102fffb1d037b14ae12bb72b5e9313a6eaa76da4ed933cd"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "67149965b00f9cd7a4e8c632354c958ebe2d044ee216ac74e68f57f9cdc4d391"
   end
 
-  depends_on :macos => :yosemite # older versions don't support fstatat(2)
+  uses_from_macos "expect" => :test
+  uses_from_macos "ncurses"
 
   def install
     system "./configure", "--prefix=#{prefix}",
@@ -24,16 +26,14 @@ class Mg < Formula
   end
 
   test do
-    (testpath/"command.sh").write <<~EOS
-      #!/usr/bin/expect -f
+    (testpath/"command.exp").write <<~EOS
       set timeout -1
       spawn #{bin}/mg
       match_max 100000
       send -- "\u0018\u0003"
       expect eof
     EOS
-    chmod 0755, testpath/"command.sh"
 
-    system testpath/"command.sh"
+    system "expect", "-f", "command.exp"
   end
 end

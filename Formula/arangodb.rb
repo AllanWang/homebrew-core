@@ -1,68 +1,81 @@
 class Arangodb < Formula
-  desc "The Multi-Model NoSQL Database"
+  desc "Multi-Model NoSQL Database"
   homepage "https://www.arangodb.com/"
-  url "https://download.arangodb.com/Source/ArangoDB-3.4.6-1.tar.gz"
-  sha256 "b64da42e823217918ea8e9f317dec94b656e8553685f6cfb11d8038aa889687f"
-  head "https://github.com/arangodb/arangodb.git", :branch => "devel"
+  url "https://download.arangodb.com/Source/ArangoDB-3.9.1.tar.bz2"
+  sha256 "afc5dfbe9fb80d2154707520b4c44ad2f5ba22c1f5877228cc0d03d352856721"
+  license "Apache-2.0"
+  head "https://github.com/arangodb/arangodb.git", branch: "devel"
 
-  bottle do
-    sha256 "9b1bbe180a116bccfcce058d2f51669fa45e0644c7e97217886fadba73e991a4" => :mojave
-    sha256 "8f61b3987be98b5d3cc317e6f9cb671881a7ea28485a851044260e6e12c99589" => :high_sierra
-    sha256 "7c987ee3c27a17d28abf93876efb9939f0e0acfc737dfdccbe2d502dc56d06b6" => :sierra
+  livecheck do
+    url "https://www.arangodb.com/download-major/source/"
+    regex(/href=.*?ArangoDB[._-]v?(\d+(?:\.\d+)+)(-\d+)?\.t/i)
   end
 
-  depends_on "cmake" => :build
-  depends_on "go" => :build
-  depends_on :macos => :yosemite
-  depends_on "openssl"
+  bottle do
+    sha256 monterey:     "bef5e50944ce80f54858b7940d8196418301df2dd31c13931bcd1d5d1c9da038"
+    sha256 big_sur:      "f3955646005e34c0cfbcf5337a33091a6cb29f7c9cd38901f8977d4e5bf99400"
+    sha256 catalina:     "c43adc42e72f481027b2bd39123d15ac5c411e79863df0619a9a0ea54551a420"
+    sha256 x86_64_linux: "b1bd405e8126572b9f1947d2b86617c12b762af33b01039cb2c4a160b257b9a0"
+  end
 
-  # see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87665
-  fails_with :gcc => "7"
+  depends_on "ccache" => :build
+  depends_on "cmake" => :build
+  depends_on "go@1.17" => :build
+  depends_on "python@3.9" => :build
+  depends_on macos: :mojave
+  depends_on "openssl@1.1"
+
+  on_linux do
+    depends_on "gcc"
+  end
+
+  fails_with gcc: "5"
 
   # the ArangoStarter is in a separate github repository;
   # it is used to easily start single server and clusters
   # with a unified CLI
   resource "starter" do
     url "https://github.com/arangodb-helper/arangodb.git",
-      :revision => "1e8c10c8669495a6996cc8063b9956f3e99127bc"
+        tag:      "0.15.4",
+        revision: "ed743d2293efd763309f3ba0a1ba6fb68ac4a41a"
   end
 
   def install
-    ENV.cxx11
+    ENV["MACOSX_DEPLOYMENT_TARGET"] = MacOS.version if OS.mac?
 
     resource("starter").stage do
-      ENV.append "GOPATH", Dir.pwd + "/.gobuild"
-      system "make", "deps"
-      # use commit-id as projectBuild
-      commit = `git rev-parse HEAD`.chomp
-      system "go", "build", "-ldflags", "-X main.projectVersion=0.14.5 -X main.projectBuild=#{commit}",
-                            "-o", "arangodb",
-                            "github.com/arangodb-helper/arangodb"
-      bin.install "arangodb"
+      ENV["GO111MODULE"] = "on"
+      ENV["DOCKERCLI"] = ""
+      ldflags = %W[
+        -s -w
+        -X main.projectVersion=#{resource("starter").version}
+        -X main.projectBuild=#{Utils.git_head}
+      ]
+      system "go", "build", *std_go_args(ldflags: ldflags), "github.com/arangodb-helper/arangodb"
     end
 
     mkdir "build" do
+      openssl = Formula["openssl@1.1"]
       args = std_cmake_args + %W[
         -DHOMEBREW=ON
-        -DUSE_OPTIMIZE_FOR_ARCHITECTURE=OFF
-        -DASM_OPTIMIZATIONS=OFF
-        -DCMAKE_INSTALL_DATADIR=#{share}
-        -DCMAKE_INSTALL_DATAROOTDIR=#{share}
-        -DCMAKE_INSTALL_SYSCONFDIR=#{etc}
-        -DCMAKE_INSTALL_LOCALSTATEDIR=#{var}
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        -DUSE_MAINTAINER_MODE=Off
+        -DUSE_JEMALLOC=Off
+        -DCMAKE_SKIP_RPATH=On
+        -DOPENSSL_USE_STATIC_LIBS=On
+        -DCMAKE_LIBRARY_PATH=#{openssl.opt_lib}
+        -DOPENSSL_ROOT_DIR=#{openssl.opt_lib}
         -DCMAKE_OSX_DEPLOYMENT_TARGET=#{MacOS.version}
+        -DTARGET_ARCHITECTURE=nehalem
+        -DUSE_CATCH_TESTS=Off
+        -DUSE_GOOGLE_TESTS=Off
+        -DCMAKE_INSTALL_LOCALSTATEDIR=#{var}
       ]
 
-      if ENV.compiler == "gcc-6"
-        ENV.append "V8_CXXFLAGS", "-O3 -g -fno-delete-null-pointer-checks"
-      end
+      ENV["V8_CXXFLAGS"] = "-O3 -g -fno-delete-null-pointer-checks" if ENV.compiler == "gcc-6"
 
       system "cmake", "..", *args
       system "make", "install"
-
-      %w[arangod arango-dfdb arangosh foxx-manager].each do |f|
-        inreplace etc/"arangodb3/#{f}.conf", pkgshare, opt_pkgshare
-      end
     end
   end
 
@@ -72,32 +85,15 @@ class Arangodb < Formula
   end
 
   def caveats
-    s = <<~EOS
+    <<~EOS
       An empty password has been set. Please change it by executing
         #{opt_sbin}/arango-secure-installation
     EOS
-
-    s
   end
 
-  plist_options :manual => "#{HOMEBREW_PREFIX}/opt/arangodb/sbin/arangod"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>KeepAlive</key>
-        <true/>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>Program</key>
-        <string>#{opt_sbin}/arangod</string>
-        <key>RunAtLoad</key>
-        <true/>
-      </dict>
-    </plist>
-  EOS
+  service do
+    run opt_sbin/"arangod"
+    keep_alive true
   end
 
   test do
@@ -112,20 +108,18 @@ class Arangodb < Formula
               "--starter.mode", "single", "--starter.disable-ipv6",
               "--server.arangod", "#{sbin}/arangod",
               "--server.js-dir", "#{share}/arangodb3/js") do |r, _, pid|
-      begin
-        loop do
-          available = IO.select([r], [], [], 60)
-          assert_not_equal available, nil
+      loop do
+        available = r.wait_readable(60)
+        refute_equal available, nil
 
-          line = r.readline.strip
-          ohai line
+        line = r.readline.strip
+        ohai line
 
-          break if line.include?("Your single server can now be accessed")
-        end
-      ensure
-        Process.kill "SIGINT", pid
-        ohai "shuting down #{pid}"
+        break if line.include?("Your single server can now be accessed")
       end
+    ensure
+      Process.kill "SIGINT", pid
+      ohai "shutting down #{pid}"
     end
   end
 end

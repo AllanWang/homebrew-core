@@ -1,18 +1,30 @@
 class Ghostscript < Formula
   desc "Interpreter for PostScript and PDF"
   homepage "https://www.ghostscript.com/"
-  url "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs927/ghostpdl-9.27.tar.gz"
-  sha256 "9e089546624296bf4aca14c2adcb0762b323ca77ae14176d21127b749baac8d6"
+  url "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs9561/ghostpdl-9.56.1.tar.xz"
+  sha256 "05e64c19853e475290fd608a415289dc21892c4d08ee9086138284b6addcb299"
+  license "AGPL-3.0-or-later"
+
+  # We check the tags from the `head` repository because the GitHub tags are
+  # formatted ambiguously, like `gs9533` (corresponding to version 9.53.3).
+  livecheck do
+    url :stable
+    regex(/href=.*?ghostpdl[._-]v?(\d+(?:\.\d+)+)\.t/i)
+    strategy :github_latest
+  end
 
   bottle do
-    sha256 "4ba703a1dc6cdc5f41ef354afd5073ec83fd26eb2683973c34da36159bc1dd2e" => :mojave
-    sha256 "6db33437048f3268643c5e8fb873746409022fd914962262e960096562a8a277" => :high_sierra
-    sha256 "ff291bf76719b9e30973342d98600183056898590ab3b0d3945c63de621c004f" => :sierra
+    sha256 arm64_monterey: "29539f2c18615fb82e82e4dab331005fcde1a2310332d7edf1227d77784ef1e6"
+    sha256 arm64_big_sur:  "9909bbaac3747aac9815d27837e8c9d6e1e092dfaeaeec60834ad851dc576271"
+    sha256 monterey:       "3ac4eb5ecab09d810f5a866d6752d18a5cb6bb9ea4ffc2592f4cc77105633fe5"
+    sha256 big_sur:        "2602d48b7b9c23249cf8791c4526988301de44910645d5f4ebab068d3bf40f6c"
+    sha256 catalina:       "5b2e9e395d05d52805e3e22082207425b9ac85613cb02918e336de1809ed26e0"
+    sha256 x86_64_linux:   "c0bb4afef0ba69db933901e280a820e93a02c239a2eddde6b736820de8eb17a3"
   end
 
   head do
     # Can't use shallow clone. Doing so = fatal errors.
-    url "https://git.ghostscript.com/ghostpdl.git", :shallow => false
+    url "https://git.ghostscript.com/ghostpdl.git", branch: "master"
 
     depends_on "autoconf" => :build
     depends_on "automake" => :build
@@ -20,7 +32,24 @@ class Ghostscript < Formula
   end
 
   depends_on "pkg-config" => :build
+  depends_on "fontconfig"
+  depends_on "freetype"
+  depends_on "jbig2dec"
+  depends_on "jpeg"
+  depends_on "libidn"
+  depends_on "libpng"
   depends_on "libtiff"
+  depends_on "little-cms2"
+  depends_on "openjpeg"
+
+  uses_from_macos "expat"
+  uses_from_macos "zlib"
+
+  on_linux do
+    depends_on "gcc"
+  end
+
+  fails_with gcc: "5"
 
   # https://sourceforge.net/projects/gs-fonts/
   resource "fonts" do
@@ -28,35 +57,43 @@ class Ghostscript < Formula
     sha256 "0eb6f356119f2e49b2563210852e17f57f9dcc5755f350a69a46a0d641a0c401"
   end
 
-  patch :DATA # Uncomment macOS-specific make vars
-
   def install
-    args = %W[
-      --prefix=#{prefix}
-      --disable-cups
+    # Fix vendored tesseract build error: 'cstring' file not found
+    # Remove when possible to link to system tesseract
+    ENV.append_to_cflags "-stdlib=libc++" if ENV.compiler == :clang
+
+    # Fix VERSION file incorrectly included as C++20 <version> header
+    # Remove when possible to link to system tesseract
+    rm "tesseract/VERSION"
+
+    # Delete local vendored sources so build uses system dependencies
+    rm_rf "expat"
+    rm_rf "freetype"
+    rm_rf "jbig2dec"
+    rm_rf "jpeg"
+    rm_rf "lcms2mt"
+    rm_rf "libpng"
+    rm_rf "openjpeg"
+    rm_rf "tiff"
+    rm_rf "zlib"
+
+    args = %w[
       --disable-compile-inits
+      --disable-cups
       --disable-gtk
-      --disable-fontconfig
-      --without-libidn
       --with-system-libtiff
       --without-x
     ]
 
     if build.head?
-      system "./autogen.sh", *args
+      system "./autogen.sh", *std_configure_args, *args
     else
-      system "./configure", *args
+      system "./configure", *std_configure_args, *args
     end
-
-    # Fix for shared library bug https://bugs.ghostscript.com/show_bug.cgi?id=701211
-    # Can be removed in next version, and possibly replaced by passing
-    # --enable-gpdl to configure
-    inreplace "Makefile", "PCL_XPS_TARGETS=$(PCL_TARGET) $(XPS_TARGET)",
-                          "PCL_XPS_TARGETS=$(PCL_TARGET) $(XPS_TARGET) $(GPDL_TARGET)"
 
     # Install binaries and libraries
     system "make", "install"
-    system "make", "install-so"
+    ENV.deparallelize { system "make", "install-so" }
 
     (pkgshare/"fonts").install resource("fonts")
     (man/"de").rmtree
@@ -64,51 +101,6 @@ class Ghostscript < Formula
 
   test do
     ps = test_fixtures("test.ps")
-    assert_match /Hello World!/, shell_output("#{bin}/ps2ascii #{ps}")
+    assert_match "Hello World!", shell_output("#{bin}/ps2ascii #{ps}")
   end
 end
-
-__END__
-diff --git i/base/unix-dll.mak w/base/unix-dll.mak
-index f50c09c00adb..8855133b400c 100644
---- i/base/unix-dll.mak
-+++ w/base/unix-dll.mak
-@@ -89,18 +89,33 @@ GPDL_SONAME_MAJOR_MINOR=$(GPDL_SONAME_BASE)$(GS_SOEXT)$(SO_LIB_VERSION_SEPARATOR
- # similar linkers it must containt the trailing "="
- # LDFLAGS_SO=-shared -Wl,$(LD_SET_DT_SONAME)$(LDFLAGS_SO_PREFIX)$(GS_SONAME_MAJOR)
- 
- 
- # MacOS X
--#GS_SOEXT=dylib
--#GS_SONAME=$(GS_SONAME_BASE).$(GS_SOEXT)
--#GS_SONAME_MAJOR=$(GS_SONAME_BASE).$(GS_VERSION_MAJOR).$(GS_SOEXT)
--#GS_SONAME_MAJOR_MINOR=$(GS_SONAME_BASE).$(GS_VERSION_MAJOR).$(GS_VERSION_MINOR).$(GS_SOEXT)
-+GS_SOEXT=dylib
-+GS_SONAME=$(GS_SONAME_BASE).$(GS_SOEXT)
-+GS_SONAME_MAJOR=$(GS_SONAME_BASE).$(GS_VERSION_MAJOR).$(GS_SOEXT)
-+GS_SONAME_MAJOR_MINOR=$(GS_SONAME_BASE).$(GS_VERSION_MAJOR).$(GS_VERSION_MINOR).$(GS_SOEXT)
- #LDFLAGS_SO=-dynamiclib -flat_namespace
--#LDFLAGS_SO_MAC=-dynamiclib -install_name $(GS_SONAME_MAJOR_MINOR)
-+GS_LDFLAGS_SO=-dynamiclib -install_name $(GS_SONAME_MAJOR_MINOR)
- #LDFLAGS_SO=-dynamiclib -install_name $(FRAMEWORK_NAME)
- 
-+PCL_SONAME=$(PCL_SONAME_BASE).$(GS_SOEXT)
-+PCL_SONAME_MAJOR=$(PCL_SONAME_BASE).$(GS_VERSION_MAJOR).$(GS_SOEXT)
-+PCL_SONAME_MAJOR_MINOR=$(PCL_SONAME_BASE).$(GS_VERSION_MAJOR).$(GS_VERSION_MINOR).$(GS_SOEXT)
-+PCL_LDFLAGS_SO=-dynamiclib -install_name $(PCL_SONAME_MAJOR_MINOR)
-+
-+XPS_SONAME=$(XPS_SONAME_BASE).$(GS_SOEXT)
-+XPS_SONAME_MAJOR=$(XPS_SONAME_BASE).$(GS_VERSION_MAJOR).$(GS_SOEXT)
-+XPS_SONAME_MAJOR_MINOR=$(XPS_SONAME_BASE).$(GS_VERSION_MAJOR).$(GS_VERSION_MINOR).$(GS_SOEXT)
-+XPS_LDFLAGS_SO=-dynamiclib -install_name $(XPS_SONAME_MAJOR_MINOR)
-+
-+GPDL_SONAME=$(GPDL_SONAME_BASE).$(GS_SOEXT)
-+GPDL_SONAME_MAJOR=$(GPDL_SONAME_BASE).$(GS_VERSION_MAJOR).$(GS_SOEXT)
-+GPDL_SONAME_MAJOR_MINOR=$(GPDL_SONAME_BASE).$(GS_VERSION_MAJOR).$(GS_VERSION_MINOR).$(GS_SOEXT)
-+GPDL_LDFLAGS_SO=-dynamiclib -install_name $(GPDL_SONAME_MAJOR_MINOR)
-+
- GS_SO=$(BINDIR)/$(GS_SONAME)
- GS_SO_MAJOR=$(BINDIR)/$(GS_SONAME_MAJOR)
- GS_SO_MAJOR_MINOR=$(BINDIR)/$(GS_SONAME_MAJOR_MINOR)
-
- PCL_SO=$(BINDIR)/$(PCL_SONAME)

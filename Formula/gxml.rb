@@ -1,19 +1,24 @@
 class Gxml < Formula
   desc "GObject-based XML DOM API"
   homepage "https://wiki.gnome.org/GXml"
-  url "https://download.gnome.org/sources/gxml/0.16/gxml-0.16.3.tar.xz"
-  sha256 "520d4d779b1d31591762b2a98f84072531b9e17ac401df9668493e189eafc6ba"
-  revision 2
+  url "https://download.gnome.org/sources/gxml/0.20/gxml-0.20.0.tar.xz"
+  sha256 "0a0fc4f305ba9ea2f1f76aadfd660fd50febdc7a5e151f9559c81b2bd362d87b"
+  license "LGPL-2.1-or-later"
 
   bottle do
-    sha256 "6a9de82882c75a57b891a82d5033f7d72ff145b61e30e180ad4339223694b194" => :mojave
-    sha256 "2f92dacc64c00a008a9d9a78b9bcc863fc204fce8f83d8a4493a45c61134902a" => :high_sierra
-    sha256 "3dc0c7f3322afc0c4a7c5517759e9c2d0241915236b9f8016d134fb94eac6380" => :sierra
+    sha256 arm64_monterey: "7fe768a5398f9cb19eb57263e3b9b57716b48a149b175ff9b970eb1e898fbacd"
+    sha256 arm64_big_sur:  "33e373491cc352e2b11da05fc36b7c9e66451efcbee7b10c06b8454bda72b92c"
+    sha256 monterey:       "79846b0652593f371cdc95ad36d037c58b51db809b5a0bb6baff00afee0a0c12"
+    sha256 big_sur:        "93014bd6358485893840d5e1fcb66bbb2b9528c342d5d38e08525ffd6c8dfd4c"
+    sha256 catalina:       "7ac6b48935cda53013a788e02cb0169fd609589beac7b1af2ad6b3b64e3045a2"
+    sha256 mojave:         "656bfa0f89deba237c40af306b141291c548befeadd268d7aaca198db78afe91"
+    sha256 high_sierra:    "c206e3ea69e32dce78804db3d9e0ab2d10a441a4677614324fd46e1e53bdb5e7"
+    sha256 x86_64_linux:   "e0fc25edebbe9a8fe4ac0ef484870d6f3481ff6d467314b793a933b66b32bcab"
   end
 
   depends_on "gobject-introspection" => :build
-  depends_on "gtk-doc" => :build
-  depends_on "intltool" => :build
+  depends_on "meson" => :build
+  depends_on "ninja" => :build
   depends_on "pkg-config" => :build
   depends_on "vala" => :build
   depends_on "glib"
@@ -21,24 +26,11 @@ class Gxml < Formula
   depends_on "libxml2"
 
   def install
-    # ensures that the gobject-introspection files remain within the keg
-    inreplace "gxml/Makefile.in" do |s|
-      s.gsub! "@HAVE_INTROSPECTION_TRUE@girdir = $(INTROSPECTION_GIRDIR)",
-              "@HAVE_INTROSPECTION_TRUE@girdir = $(datadir)/gir-1.0"
-      s.gsub! "@HAVE_INTROSPECTION_TRUE@typelibdir = $(INTROSPECTION_TYPELIBDIR)",
-              "@HAVE_INTROSPECTION_TRUE@typelibdir = $(libdir)/girepository-1.0"
+    mkdir "build" do
+      system "meson", *std_meson_args, "-Dintrospection=true", "-Ddocs=false", ".."
+      system "ninja", "-v"
+      system "ninja", "install", "-v"
     end
-
-    system "./configure", "--disable-debug",
-                          "--disable-dependency-tracking",
-                          "--disable-silent-rules",
-                          "--prefix=#{prefix}",
-                          "--disable-schemas-compile"
-    system "make", "install"
-  end
-
-  def post_install
-    system "#{Formula["glib"].opt_bin}/glib-compile-schemas", "#{HOMEBREW_PREFIX}/share/glib-2.0/schemas"
   end
 
   test do
@@ -59,7 +51,7 @@ class Gxml < Formula
       -I#{libxml2.opt_include}/libxml2
       -I#{glib.opt_include}/glib-2.0
       -I#{glib.opt_lib}/glib-2.0/include
-      -I#{include}/gxml-0.16
+      -I#{include}/gxml-0.20
       -I#{libgee.opt_include}/gee-0.8
       -D_REENTRANT
       -L#{gettext.opt_lib}
@@ -71,10 +63,10 @@ class Gxml < Formula
       -lgio-2.0
       -lglib-2.0
       -lgobject-2.0
-      -lgxml-0.16
-      -lintl
+      -lgxml-0.20
       -lxml2
     ]
+    flags << "-lintl" if OS.mac?
     system ENV.cc, "test.c", "-o", "test", *flags
     system "./test"
   end

@@ -1,47 +1,48 @@
 class Fastd < Formula
   desc "Fast and Secure Tunnelling Daemon"
-  homepage "https://projects.universe-factory.net/projects/fastd"
-  revision 4
-  head "https://git.universe-factory.net/fastd/", :using => :git
-
-  stable do
-    url "https://projects.universe-factory.net/attachments/download/86/fastd-18.tar.xz"
-    sha256 "714ff09d7bd75f79783f744f6f8c5af2fe456c8cf876feaa704c205a73e043c9"
-
-    # https://projects.universe-factory.net/issues/239
-    # https://projects.universe-factory.net/projects/fastd/repository/revisions/2fa2187
-    patch do
-      url "https://raw.githubusercontent.com/Homebrew/formula-patches/c2c6049/fastd/patch-xcode8-clock_gettime.diff"
-      sha256 "dfa07eccf01a84a6e5eacc82c47c2cd5ba216e1f5032b41d2cef32e0b205ba9c"
-    end
-  end
+  homepage "https://github.com/NeoRaider/fastd"
+  url "https://github.com/NeoRaider/fastd.git",
+      tag:      "v22",
+      revision: "0f47d83eac2047d33efdab6eeaa9f81f17e3ebd1"
+  license "BSD-2-Clause"
+  head "https://github.com/NeoRaider/fastd.git", branch: "main"
 
   bottle do
-    cellar :any
-    sha256 "81dbae981699f6be12675b2f3506071fd2fcc7928f8f1744ac76abb48a1c1104" => :mojave
-    sha256 "19dc7f2bf518b8f9374fcfbc7e73fa0ca330d6eb23d92be4b6e2e6a5771fdc6d" => :high_sierra
-    sha256 "e209a7908ab196c614fd8a21d76bfbfc8c73a699784834457e0c1da6eed24a43" => :sierra
-    sha256 "e097588f07f37954bbb525e7f08a9d69dd9bb18bff63616aa942329f7fe15dc1" => :el_capitan
+    sha256 cellar: :any, arm64_monterey: "e8c034f7725b6783bc9d811026120c2fe7730c8654da37b890e043654755e4a7"
+    sha256 cellar: :any, arm64_big_sur:  "0c9a053904d99b504199894884c1bf8726d37a8d615e39f7241ca0288a1db48b"
+    sha256 cellar: :any, monterey:       "80925ae137116b0dcbcafd7bad1adb273b2b73147eca8029914963e26d0667cd"
+    sha256 cellar: :any, big_sur:        "80cb41c2885f7dea9a880de2a373f1643a9a204dcd1fbe7e865c7cb4fe2069f9"
+    sha256 cellar: :any, catalina:       "b26819307ac8f58961adcb171eaffcbb06dc4758667aca30ce726befc861523c"
+    sha256 cellar: :any, mojave:         "74193caa95dbb4e885eca705ce72b0fc3e708222e914448081752eee6c4051d9"
+    sha256               x86_64_linux:   "64ea560398270b9bb107c9bae9c397c6bdf808535e197e1b941494a7d9f69af1"
   end
 
-  depends_on "bison" => :build # fastd requires bison >= 2.5
+  depends_on "bison" => :build
   depends_on "cmake" => :build
+  depends_on "meson" => :build
+  depends_on "ninja" => :build
   depends_on "pkg-config" => :build
   depends_on "json-c"
   depends_on "libsodium"
   depends_on "libuecc"
+  depends_on "openssl@1.1"
+
+  on_linux do
+    depends_on "libcap"
+    depends_on "libmnl"
+  end
+
+  # remove in next release
+  patch do
+    url "https://github.com/NeoRaider/fastd/commit/89abc48e60e182f8d57e924df16acf33c6670a9b.patch?full_index=1"
+    sha256 "7bcac7dc288961a34830ef0552e1f9985f1b818aa37978b281f542a26fb059b9"
+  end
 
   def install
-    args = std_cmake_args
-    args << "-DENABLE_LTO=ON"
-
-    # https://projects.universe-factory.net/issues/251
-    args << "-DWITH_CIPHER_AES128_CTR_NACL=OFF"
-
-    mkdir "fastd-build" do
-      system "cmake", "..", *args
-      system "make"
-      system "make", "install"
+    mkdir "build" do
+      system "meson", "-Db_lto=true", *std_meson_args, ".."
+      system "ninja"
+      system "ninja", "install"
     end
   end
 

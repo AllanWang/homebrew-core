@@ -1,20 +1,21 @@
 class Ntfs3g < Formula
   desc "Read-write NTFS driver for FUSE"
   homepage "https://www.tuxera.com/community/open-source-ntfs-3g/"
-  url "https://tuxera.com/opensource/ntfs-3g_ntfsprogs-2017.3.23.tgz"
-  sha256 "3e5a021d7b761261836dcb305370af299793eedbded731df3d6943802e1262d5"
-  revision 1
+  url "https://tuxera.com/opensource/ntfs-3g_ntfsprogs-2021.8.22.tgz"
+  sha256 "55b883aa05d94b2ec746ef3966cb41e66bed6db99f22ddd41d1b8b94bb202efb"
+  license all_of: ["GPL-2.0-or-later", "LGPL-2.0-or-later"]
+
+  livecheck do
+    url :head
+    strategy :github_latest
+  end
 
   bottle do
-    cellar :any
-    sha256 "93f106a371fefebf998252de6a0447cd57d47dc0b09d13f35b129fb86992d0db" => :mojave
-    sha256 "d3e45d099078901f1aa402e59fb8e28233f028b0288b0ed03f7b2662b0c39e11" => :high_sierra
-    sha256 "8413e1f0835bfee5536b819686f0df7ad3dfe864503c1735f0df65b1e4ccb507" => :sierra
+    sha256 cellar: :any_skip_relocation, x86_64_linux: "4ec7322145e67988020b06ac47004aadc9cc1ffdfea213d82b787ebbb44bfaef"
   end
 
   head do
-    url "https://git.code.sf.net/p/ntfs-3g/ntfs-3g.git",
-        :branch => "edge"
+    url "https://github.com/tuxera/ntfs-3g.git", branch: "edge"
 
     depends_on "autoconf" => :build
     depends_on "automake" => :build
@@ -23,33 +24,31 @@ class Ntfs3g < Formula
   end
 
   depends_on "pkg-config" => :build
+  depends_on "coreutils" => :test
   depends_on "gettext"
-  depends_on :osxfuse
 
-  # Detection of struct stat members fails Xcode 9
-  # Reported by email on 2017-09-19
-  if DevelopmentTools.clang_build_version >= 900
-    patch do
-      url "https://raw.githubusercontent.com/Homebrew/formula-patches/e0b6faaa0d/ntfs-3g/10.13.patch"
-      sha256 "7550061c6ad7fd99e7c004d437a66af54af983acb9839e098156480106cd7a92"
-    end
+  on_macos do
+    disable! date: "2021-04-08", because: "requires closed-source macFUSE"
+  end
+
+  on_linux do
+    depends_on "libfuse@2"
   end
 
   def install
-    ENV.append "LDFLAGS", "-lintl"
+    ENV.append "LDFLAGS", "-lintl" if OS.mac?
 
-    args = %W[
-      --disable-debug
-      --disable-dependency-tracking
-      --prefix=#{prefix}
+    args = std_configure_args + %W[
       --exec-prefix=#{prefix}
       --mandir=#{man}
       --with-fuse=external
+      --enable-extras
+      --disable-ldconfig
     ]
 
     system "./autogen.sh" if build.head?
-    # Workaround for hardcoded /sbin in ntfsprogs
-    inreplace "ntfsprogs/Makefile.in", "/sbin", sbin
+    # Workaround for hardcoded /sbin
+    inreplace Dir["{ntfsprogs,src}/Makefile.in"], "$(DESTDIR)/sbin/", "$(DESTDIR)#{sbin}/"
     system "./configure", *args
     system "make"
     system "make", "install"
@@ -64,9 +63,9 @@ class Ntfs3g < Formula
         USER_ID=#{Process.uid}
         GROUP_ID=#{Process.gid}
 
-        if [ `/usr/bin/stat -f %u /dev/console` -ne 0 ]; then
-          USER_ID=`/usr/bin/stat -f %u /dev/console`
-          GROUP_ID=`/usr/bin/stat -f %g /dev/console`
+        if [ "$(/usr/bin/stat -f %u /dev/console)" -ne 0 ]; then
+          USER_ID=$(/usr/bin/stat -f %u /dev/console)
+          GROUP_ID=$(/usr/bin/stat -f %g /dev/console)
         fi
 
         #{opt_bin}/ntfs-3g \\
@@ -77,11 +76,12 @@ class Ntfs3g < Formula
           -o auto_cache \\
           -o noatime \\
           -o windows_names \\
-          -o user_xattr \\
+          -o streams_interface=openxattr \\
           -o inherit \\
-          -o uid=$USER_ID \\
-          -o gid=$GROUP_ID \\
+          -o uid="$USER_ID" \\
+          -o gid="$GROUP_ID" \\
           -o allow_other \\
+          -o big_writes \\
           "$@" >> /var/log/mount-ntfs-3g.log 2>&1
 
         exit $?;
@@ -89,8 +89,26 @@ class Ntfs3g < Formula
     end
   end
 
+  def caveats
+    on_macos do
+      <<~EOS
+        The reasons for disabling this formula can be found here:
+          https://github.com/Homebrew/homebrew-core/pull/64491
+
+        An external tap may provide a replacement formula. See:
+          https://docs.brew.sh/Interesting-Taps-and-Forks
+      EOS
+    end
+  end
+
   test do
-    output = shell_output("#{bin}/ntfs-3g --version 2>&1")
-    assert_match version.to_s, output
+    # create a small raw image, format and check it
+    ntfs_raw = testpath/"ntfs.raw"
+    system Formula["coreutils"].libexec/"gnubin/truncate", "--size=10M", ntfs_raw
+    ntfs_label_input = "Homebrew"
+    system sbin/"mkntfs", "--force", "--fast", "--label", ntfs_label_input, ntfs_raw
+    system bin/"ntfsfix", "--no-action", ntfs_raw
+    ntfs_label_output = shell_output("#{sbin}/ntfslabel #{ntfs_raw}")
+    assert_match ntfs_label_input, ntfs_label_output
   end
 end

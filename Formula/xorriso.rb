@@ -1,17 +1,22 @@
 class Xorriso < Formula
   desc "ISO9660+RR manipulation tool"
   homepage "https://www.gnu.org/software/xorriso/"
-  url "https://ftp.gnu.org/gnu/xorriso/xorriso-1.4.8.tar.gz"
-  mirror "https://ftpmirror.gnu.org/xorriso/xorriso-1.4.8.tar.gz"
-  sha256 "ec82069e04096cd9c18be9b12b87b750ade0b5e37508978feabcde36b2278481"
+  url "https://ftp.gnu.org/gnu/xorriso/xorriso-1.5.4.tar.gz"
+  mirror "https://ftpmirror.gnu.org/xorriso/xorriso-1.5.4.tar.gz"
+  sha256 "3ac155f0ca53e8dbeefacc7f32205a98f4f27d2d348de39ee0183ba8a4c9e392"
+  license "GPL-2.0-or-later"
 
   bottle do
-    rebuild 1
-    sha256 "3bf163215648c9e63a6fa03746ebff1dec15c9aff6204788db2a43e24ab9cb28" => :mojave
-    sha256 "45f3af489e20189f73248b0c5444cc0a986f1028c23959aeaf240173bebabeee" => :high_sierra
-    sha256 "e7ddc12178ac466d7aceaa3786b070829582b6c5adeb59ca383eeab3fa866e89" => :sierra
-    sha256 "dd920cbec3a5d95504763a4129aa915031bc124285ddb16d7ff76c15cecb9724" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "521d0487cdb0635a13a2c44014518db085743a03d9ef19b4cd09ddd7d1ac4ed1"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "ad2d5c7472a70aedf02d2bb91f518b72ab2f3df0068eec13b2edf0ba2ab5af50"
+    sha256 cellar: :any_skip_relocation, monterey:       "ac9ad05ef928432e181b339881782678864108f1421ef5a66d01f3cfbc70646c"
+    sha256 cellar: :any_skip_relocation, big_sur:        "b54ce0eca9d92f9ffa571edf065baf3212cc1584ca20dbf1cbbf23f51f4ce5f7"
+    sha256 cellar: :any_skip_relocation, catalina:       "e8282de999460c934b95defa41efd358c93da2d62ca38ce2829c8185eb49b4db"
+    sha256 cellar: :any_skip_relocation, mojave:         "dc5357e7efc3bd95ef0c5e69c8320bd6bbfdf24fad9314beda71cce5445a5b7c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "5435d8e359d0a0de51cf398a53322d1de3d9f86d8e836564323c9719da171fea"
   end
+
+  uses_from_macos "zlib"
 
   def install
     system "./configure", "--disable-debug", "--disable-dependency-tracking",

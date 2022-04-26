@@ -3,17 +3,23 @@ class Ydcv < Formula
 
   desc "YouDao Console Version"
   homepage "https://github.com/felixonmars/ydcv"
-  url "https://github.com/felixonmars/ydcv/archive/0.6.2.tar.gz"
-  sha256 "45a237fba401771c5ad8455938e6cf360beab24655a4961db368eb2fbbbfb546"
+  url "https://files.pythonhosted.org/packages/1f/29/17124ebfdea8d810774977474a8652018c04c4a6db1ca413189f7e5b9d52/ydcv-0.7.tar.gz"
+  sha256 "53cd59501557496512470e7db5fb14e42ddcb411fe4fa45c00864d919393c1da"
+  license "GPL-3.0"
+  revision 4
+  head "https://github.com/felixonmars/ydcv.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "a0f4fb06ecf1aade03aa1851ec9cc4b75e10aaa5a95177440eeff02e07238e32" => :mojave
-    sha256 "3cd596b113010dfbcc5577c1d5b57bfc09e6b6ec843795c6d1aaf7e50690a5c7" => :high_sierra
-    sha256 "1e716fe115344fce903575e5843d380c0edea040725e7548af0ff9b03bdd5bd2" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "15a2f9b94d39645328338ffb95aa4ba058bc16b1dbe097af765c1ee7aa0b0a37"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "15a2f9b94d39645328338ffb95aa4ba058bc16b1dbe097af765c1ee7aa0b0a37"
+    sha256 cellar: :any_skip_relocation, monterey:       "3961fb6ede937e194466d10568899cef0e9f7370348dcd758f4da4494c867d90"
+    sha256 cellar: :any_skip_relocation, big_sur:        "3961fb6ede937e194466d10568899cef0e9f7370348dcd758f4da4494c867d90"
+    sha256 cellar: :any_skip_relocation, catalina:       "3961fb6ede937e194466d10568899cef0e9f7370348dcd758f4da4494c867d90"
+    sha256 cellar: :any_skip_relocation, mojave:         "3961fb6ede937e194466d10568899cef0e9f7370348dcd758f4da4494c867d90"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "35d3c655f6e3b7623dd7657adc51da6bd53629676710c450d7941378a9f62b4b"
   end
 
-  depends_on "python"
+  depends_on "python@3.10"
 
   def install
     ENV["SETUPTOOLS_SCM_PRETEND_VERSION"] = version
@@ -22,8 +28,13 @@ class Ydcv < Formula
     virtualenv_install_with_resources
   end
 
+  def caveats
+    <<~EOS
+      You need to add a config for API Key, read more at https://github.com/felixonmars/ydcv
+    EOS
+  end
+
   test do
-    assert_match "hello", shell_output("#{bin}/ydcv 你好")
-    assert_match "你好", shell_output("#{bin}/ydcv hello")
+    system "#{bin}/ydcv", "--help"
   end
 end

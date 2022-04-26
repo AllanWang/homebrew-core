@@ -1,27 +1,33 @@
 class MonitoringPlugins < Formula
   desc "Plugins for nagios compatible monitoring systems"
   homepage "https://www.monitoring-plugins.org"
-  url "https://www.monitoring-plugins.org/download/monitoring-plugins-2.2.tar.gz"
-  sha256 "296a538f00a9cbef7f528ff2d43af357a44b384dc98a32389a675b62a6dd3665"
+  url "https://www.monitoring-plugins.org/download/monitoring-plugins-2.3.1.tar.gz"
+  sha256 "f56eb84871983fd719247249e3532228b37e2efaae657a3979bd14ac1f84a35b"
 
-  bottle do
-    sha256 "ad0ac72a226d385a990b6fba5836431136945aff4cc4b1a1d57c17457843f104" => :mojave
-    sha256 "39310e6fcfee83275afc1ceab922e4f2a8c72306bf54af49aed986c658175a82" => :high_sierra
-    sha256 "426c87771bcb45bbc92755ea4b05ee213863423554c8bb21b9e2fdfd5e32e959" => :sierra
-    sha256 "d531079a00f1dae22309918b9fbbd3250873b5869001f14af1d221d5bb7b021b" => :el_capitan
-    sha256 "b3d0549fc51c3948743b16eb5bc52a0a7f8af6cf6ad6c05b3056fa947661a6da" => :yosemite
+  livecheck do
+    url "https://www.monitoring-plugins.org/download.html"
+    regex(/href=.*?monitoring-plugins[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
-  depends_on "openssl"
+  bottle do
+    sha256 cellar: :any, arm64_monterey: "0d28c059618baac62c5d3a3703eba0196f0a38785241ef2cdaae20627ef05bd2"
+    sha256 cellar: :any, arm64_big_sur:  "5044511cc0f5a64f3424d4507559b6ca316669121f4b15d58ef6b9cec5bba3f8"
+    sha256 cellar: :any, monterey:       "02d82e44495dd015a29e9680e4ad4d82d9bc31708eb179186b399c56cc22d74b"
+    sha256 cellar: :any, big_sur:        "a49576ad287d073c67e0da12be686ba737abe34e5f61813a2e308cd44c427017"
+    sha256 cellar: :any, catalina:       "644b33de5338e00a2103c87aa4b55a39b7a16e2ecee49936f2251a0a97756f0f"
+    sha256 cellar: :any, mojave:         "883707c4b2fe29a6d0b8453d4d19005128761d5d6952b9fe21292ec4b4cb2b11"
+  end
 
-  conflicts_with "nagios-plugins", :because => "nagios-plugins ships their plugins to the same folder."
+  depends_on "openssl@1.1"
+
+  conflicts_with "nagios-plugins", because: "both install their plugins to the same folder"
 
   def install
     args = %W[
       --disable-dependency-tracking
       --prefix=#{libexec}
       --libexecdir=#{libexec}/sbin
-      --with-openssl=#{Formula["openssl"].opt_prefix}
+      --with-openssl=#{Formula["openssl@1.1"].opt_prefix}
     ]
 
     system "./configure", *args
@@ -38,6 +44,6 @@ class MonitoringPlugins < Formula
 
   test do
     output = shell_output("#{sbin}/check_dns -H 8.8.8.8 -t 3")
-    assert_match "google-public-dns", output
+    assert_match "DNS OK", output
   end
 end

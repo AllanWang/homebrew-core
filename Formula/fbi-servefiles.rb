@@ -5,18 +5,23 @@ class FbiServefiles < Formula
   homepage "https://github.com/Steveice10/FBI"
   url "https://github.com/Steveice10/FBI/archive/2.6.0.tar.gz"
   sha256 "4948d4c53d754cc411b51edbf35c609ba514ae21d9d0e8f4b66a26d5c666be68"
+  license "MIT"
+  revision 3
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "307d14a7e492771758ddb6e059eb78c2fb65bbc818b48ebb34c5941e4493e7bd" => :mojave
-    sha256 "d92c88a5682ff03bc5221f8c2bab82a5eaad593377f31a21ccb196c444012396" => :high_sierra
-    sha256 "b9b755ced8b5387e70181598347ecb790ec4df4454fed8c63d85816864ed1976" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_big_sur: "82a491cce1b13428f44e1bd6984195dc565b654983376327e0fdbdd28985fd02"
+    sha256 cellar: :any_skip_relocation, big_sur:       "54051b80718b8f581397ea1e58b76161dfabafc6de4a113dd715d422a2a12c02"
+    sha256 cellar: :any_skip_relocation, catalina:      "54051b80718b8f581397ea1e58b76161dfabafc6de4a113dd715d422a2a12c02"
+    sha256 cellar: :any_skip_relocation, mojave:        "54051b80718b8f581397ea1e58b76161dfabafc6de4a113dd715d422a2a12c02"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:  "093d05e4e564d7dbc6bc426f573389b5ee9d20312f6be354e5dc27f1d9be08bc"
   end
 
-  depends_on "python"
+  deprecate! date: "2020-11-12", because: :repo_archived
+
+  depends_on "python@3.10"
 
   def install
-    venv = virtualenv_create(libexec, "python3")
+    venv = virtualenv_create(libexec, Formula["python@3.10"].opt_bin/"python3")
     venv.pip_install_and_link buildpath/"servefiles"
   end
 

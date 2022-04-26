@@ -1,50 +1,49 @@
 class Solid < Formula
   desc "Collision detection library for geometric objects in 3D space"
-  homepage "http://www.dtecta.com/"
-  url "http://www.dtecta.com/files/solid-3.5.6.tgz"
-  sha256 "4acfa20266f0aa5722732794f8e93d7bb446e467719c947a3ca583f197923af0"
+  homepage "https://github.com/dtecta/solid3/"
+  url "https://github.com/dtecta/solid3/archive/ec3e218616749949487f81165f8b478b16bc7932.tar.gz"
+  version "3.5.8"
+  sha256 "e3a23751ebbad5e35f50e685061f1ab9e1bd3777317efc6912567f55259d0f15"
+  license any_of: ["GPL-2.0-only", "QPL-1.0"]
 
   bottle do
-    cellar :any
-    rebuild 1
-    sha256 "8c7fd219da510e1821b50069ffbcc3025bee102a1ada47fe4b3f9464507fb1bc" => :mojave
-    sha256 "30954dffe6674f98523b3cb299f909aefbe554b70000cd777df75c326edf80d0" => :high_sierra
-    sha256 "2836475cd2195c3906950c2a62ed618302e3f57ba4c348a82b737fcb0956fc07" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "e670e041979d6f3f95ded01c38b053a701d55dee074e016197ba1b1613128d67"
+    sha256 cellar: :any,                 arm64_big_sur:  "ec2f44a3fe6993dd89a03fc6c79bb15ea9d0e03eff14c5fee248a8d6ef2dc84b"
+    sha256 cellar: :any,                 monterey:       "5f6332325f0e43bd790343ac713ffde38b6933284f56ccf2300ed1f6a0d846c1"
+    sha256 cellar: :any,                 big_sur:        "53fa124eaf6eec06348f0fd19db0cf189066560f44ed22f6fffb9bdbc58beae7"
+    sha256 cellar: :any,                 catalina:       "9d1231c8c37bb4a40ae017d0f8a546bf8f58a2c8f4898d9c226a8aec1708d633"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "cf61db5178e9b3286d47dee7ec43fbb18da035dd2bfad28d269e74aa01ff7d1e"
   end
+
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
+  depends_on "libtool" => :build
+
+  uses_from_macos "texinfo" => :build
 
   # This patch fixes a broken build on clang-600.0.56.
   # Was reported to bugs@dtecta.com (since it also applies to solid-3.5.6)
   patch :DATA
 
   def install
+    # Avoid `required file not found` errors
+    touch ["AUTHORS", "ChangeLog", "NEWS"]
+
+    system "autoreconf", "-fiv"
     system "./configure", "--disable-dependency-tracking",
                           "--disable-debug",
                           "--prefix=#{prefix}",
                           "--infodir=#{info}"
 
-    # exclude the examples from compiling!
-    # the examples do not compile because the include statements
-    # for the GLUT library are not platform independent
-    inreplace "Makefile", " examples ", " "
+    # Don't make examples, as they do not compile because the include
+    # statements for the GLUT library are not platform independent
+    inreplace "Makefile", /^(SUBDIRS *=.*) examples( .+)?/, '\1\2'
 
     system "make", "install"
   end
 end
 
 __END__
-diff --git a/include/MT/Quaternion.h b/include/MT/Quaternion.h
-index 3726b4f..3393697 100644
---- a/include/MT/Quaternion.h
-+++ b/include/MT/Quaternion.h
-@@ -154,7 +154,7 @@ namespace MT {
-
-		Quaternion<Scalar> inverse() const
-		{
--			return conjugate / length2();
-+			return conjugate() / length2();
-		}
-
-		Quaternion<Scalar> slerp(const Quaternion<Scalar>& q, const Scalar& t) const
 diff --git a/src/complex/DT_CBox.h b/src/complex/DT_CBox.h
 index 7fc7c5d..16ce972 100644
 --- a/src/complex/DT_CBox.h

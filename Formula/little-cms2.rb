@@ -1,18 +1,29 @@
 class LittleCms2 < Formula
   desc "Color management engine supporting ICC profiles"
-  homepage "http://www.littlecms.com/"
-  # Ensure release is announced on http://www.littlecms.com/download.html
-  url "https://downloads.sourceforge.net/project/lcms/lcms/2.9/lcms2-2.9.tar.gz"
-  sha256 "48c6fdf98396fa245ed86e622028caf49b96fa22f3e5734f853f806fbc8e7d20"
+  homepage "https://www.littlecms.com/"
+  # Ensure release is announced at https://www.littlecms.com/categories/releases/
+  # (or https://www.littlecms.com/blog/)
+  url "https://downloads.sourceforge.net/project/lcms/lcms/2.13/lcms2-2.13.1.tar.gz"
+  sha256 "d473e796e7b27c5af01bd6d1552d42b45b43457e7182ce9903f38bb748203b88"
+  license "MIT"
   version_scheme 1
 
+  # The Little CMS website has been redesigned and there's no longer a
+  # "Download" page we can check for releases. As of writing this, checking the
+  # "Releases" blog posts seems to be our best option and we just have to hope
+  # that the post URLs, headings, etc. maintain a consistent format.
+  livecheck do
+    url "https://www.littlecms.com/categories/releases/"
+    regex(/Little\s*CMS\s+v?(\d+(?:\.\d+)+)\s+released/im)
+  end
+
   bottle do
-    cellar :any
-    rebuild 1
-    sha256 "1c69f212b9754cbc1700e822ceb659103cb692afe2e26366c9ae9eb9e3fc612d" => :mojave
-    sha256 "c232c3e514ef478c4fab797dab8db675045eae3611043063d338c256f4ecb941" => :high_sierra
-    sha256 "a0ce195a712977870d9ddc414c0c5cd1b373d4e04b7130b80d00f911d04fe5b4" => :sierra
-    sha256 "fa72bb1ce13889405ee93519be86ff1cede056d8c74e1d1671cca52013762ec0" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "0fc9bdf0e245b210e0260f2a641dc88b1b1b5c1004eeadaafb9536eb21a347ab"
+    sha256 cellar: :any,                 arm64_big_sur:  "e78f36abce8a417db16755c5dbbdf8817e14861ea92bd029bb36e424a8563f52"
+    sha256 cellar: :any,                 monterey:       "0c50589e60d1fdc8e8ae52550c1ed0e9bbc68f77d105fa0180192d517cc5a85a"
+    sha256 cellar: :any,                 big_sur:        "7fbbf54484b962a2b72104db3f425587acf88666c0dd0753b00eb104bce1a2cc"
+    sha256 cellar: :any,                 catalina:       "152469fd79f4dde476f916be31fe0657656f298512201e6eb8be9f8dd9016c7a"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "021649a443c169b8b18dd404f99d367ef79e5a6f650d8912b552a1b887e85ffe"
   end
 
   depends_on "jpeg"

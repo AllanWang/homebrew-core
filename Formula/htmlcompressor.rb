@@ -4,7 +4,12 @@ class Htmlcompressor < Formula
   url "https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/htmlcompressor/htmlcompressor-1.5.3.jar"
   sha256 "88894e330cdb0e418e805136d424f4c262236b1aa3683e51037cdb66310cb0f9"
 
-  bottle :unneeded
+  bottle do
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, all: "2db5110c6d610644c27557492055c3d56573908b50877e2ddd7e6dad556376d7"
+  end
+
+  depends_on "openjdk"
 
   def install
     libexec.install "htmlcompressor-#{version}.jar"

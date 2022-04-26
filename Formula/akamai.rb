@@ -1,34 +1,24 @@
 class Akamai < Formula
   desc "CLI toolkit for working with Akamai's APIs"
   homepage "https://github.com/akamai/cli"
-  url "https://github.com/akamai/cli/archive/1.1.4.tar.gz"
-  sha256 "af87d96a71882c98135b5cfb84ed421a246999979b8d2a927507cfcb94ff8242"
+  url "https://github.com/akamai/cli/archive/refs/tags/v1.4.1.tar.gz"
+  sha256 "88b25f7d44cab6c964f2aac03bd266577a0355a51ad69788f7b709c1bd145f0c"
+  license "Apache-2.0"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "e9850383e5d94f1e8c5c1b813cdb735a81aa0e5d073e23d797cebc6e895fe96d" => :mojave
-    sha256 "cf2b12e909cf2b622e2c2913dc5b20d86a45a6fa3f5b7de551dd30cde142d3df" => :high_sierra
-    sha256 "a79cf0cbf309d832059bfa4a62be000ac39eb12220491ad3d93e7ca7086fcf4c" => :sierra
+    sha256 cellar: :any_skip_relocation, monterey:     "cc8ef6a5777d028e6b478a5c27a92fa203f6a3f1de0912d2770f8de7671df239"
+    sha256 cellar: :any_skip_relocation, big_sur:      "2a7fac5947fec9ed49ee8b2cbc3d70b6f80adc106c6d66d2a5921ea18f155c15"
+    sha256 cellar: :any_skip_relocation, catalina:     "909dde4413ebf4f4232cf1b384cfc2135b9829cc384048eda44bd4afb0a38129"
+    sha256 cellar: :any_skip_relocation, x86_64_linux: "d119c09c03c9c041ee91aff4b7ede4ce651935dcdaab7d49ed8394fc7c74f75b"
   end
 
-  depends_on "dep" => :build
   depends_on "go" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-    ENV["GLIDE_HOME"] = HOMEBREW_CACHE/"glide_home/#{name}"
-
-    srcpath = buildpath/"src/github.com/akamai/cli"
-    srcpath.install buildpath.children
-
-    cd srcpath do
-      system "dep", "ensure", "-vendor-only"
-      system "go", "build", "-tags", "noautoupgrade nofirstrun", "-o", bin/"akamai"
-      prefix.install_metafiles
-    end
+    system "go", "build", "-tags", "noautoupgrade nofirstrun", *std_go_args, "cli/main.go"
   end
 
   test do
-    assert_match "Purge", shell_output("#{bin}/akamai install --force purge")
+    assert_match "Purge", pipe_output("#{bin}/akamai install --force purge", "n")
   end
 end

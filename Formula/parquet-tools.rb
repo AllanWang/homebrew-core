@@ -2,29 +2,45 @@ class ParquetTools < Formula
   desc "Apache Parquet command-line tools and utilities"
   homepage "https://parquet.apache.org/"
   url "https://github.com/apache/parquet-mr.git",
-      :tag      => "apache-parquet-1.10.0",
-      :revision => "031a6654009e3b82020012a18434c582bd74c73a"
-  head "https://github.com/apache/parquet-mr.git"
+      tag:      "apache-parquet-1.12.2",
+      revision: "77e30c8093386ec52c3cfa6c34b7ef3321322c94"
+  license "Apache-2.0"
+  head "https://github.com/apache/parquet-mr.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "80bbeb4f549cb06c1195fbd4b9170a428cf435678a579d1437d9b7f5fc0399da" => :mojave
-    sha256 "727a15da8f38f3a9accf1b5850e98c12a6b783d97014826442421eb2b25a1006" => :high_sierra
-    sha256 "9d0889dcab15c776d2878796562ec41a8e4baf539996e51714180138cb005c15" => :sierra
-    sha256 "5847b83a96097c31497caf966d3d28185b16912bb4017bfbc4a2dd284b3c350d" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "bccc742739150813fde729a1eb82b4cd122edeae186bbf2bc9845742d337a2f8"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "97878dc311bf03733c98f0315c9ec1a077664e1d5687b6d8553ef31e2db39c52"
+    sha256 cellar: :any_skip_relocation, monterey:       "74545f457e9f95a283f4a8bee126ab6cc05e79331c677a26db7fb2236076ffc0"
+    sha256 cellar: :any_skip_relocation, big_sur:        "4384c7d5a32e1681340d393babb1fb59226b0a87c29f1643c71e23c4658bec90"
+    sha256 cellar: :any_skip_relocation, catalina:       "40d62a070a0dcdc779e32f1054dd4bd2f220590a497d31c90c0230e653056c62"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "bb10fb679729d2f61b8804013abb0a56aadaf14c5e81c644ade30123edd6c7a6"
   end
 
+  # See https://issues.apache.org/jira/browse/PARQUET-1666
+  deprecate! date: "2021-03-25", because: :deprecated_upstream
+
   depends_on "maven" => :build
+  depends_on "openjdk"
+
+  # This file generated with `red-parquet` gem:
+  #   Arrow::Table.new("values" => ["foo", "Homebrew", "bar"]).save("homebrew.parquet")
+  resource("test-parquet") do
+    url "https://gist.github.com/bayandin/2144b5fc6052153c1a33fd2679d50d95/raw/7d793910a1afd75ee4677f8c327491f7bdd2256b/homebrew.parquet"
+    sha256 "5caf572cb0df5ce9d6893609de82d2369b42c3c81c611847b6f921d912040118"
+  end
 
   def install
-    cd "parquet-tools" do
-      system "mvn", "clean", "package", "-Plocal"
-      libexec.install "target/parquet-tools-#{version}.jar"
-      bin.write_jar_script libexec/"parquet-tools-#{version}.jar", "parquet-tools"
+    cd "parquet-tools-deprecated" do
+      system "mvn", "clean", "package", "-Plocal", "-DskipTests=true"
+      libexec.install "target/parquet-tools-deprecated-#{version}.jar"
+      bin.write_jar_script libexec/"parquet-tools-deprecated-#{version}.jar", "parquet-tools"
     end
   end
 
   test do
-    system "#{bin}/parquet-tools", "cat", "-h"
+    resource("test-parquet").stage testpath
+
+    output = shell_output("#{bin}/parquet-tools cat #{testpath}/homebrew.parquet")
+    assert_match "values = Homebrew", output
   end
 end

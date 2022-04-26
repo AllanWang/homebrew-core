@@ -1,54 +1,88 @@
 class JohnJumbo < Formula
   desc "Enhanced version of john, a UNIX password cracker"
   homepage "https://www.openwall.com/john/"
-  url "https://openwall.com/john/j/john-1.8.0-jumbo-1.tar.xz"
-  version "1.8.0"
-  sha256 "bac93d025995a051f055adbd7ce2f1975676cac6c74a6c7a3ee4cfdd9c160923"
+  url "https://openwall.com/john/k/john-1.9.0-jumbo-1.tar.xz"
+  version "1.9.0"
+  sha256 "f5d123f82983c53d8cc598e174394b074be7a77756f5fb5ed8515918c81e7f3b"
+  license "GPL-2.0-or-later"
+
+  livecheck do
+    url "https://github.com/magnumripper/JohnTheRipper.git"
+    regex(/^v?(\d+(?:\.\d+)+)-jumbo-\d$/i)
+  end
 
   bottle do
-    cellar :any
-    rebuild 6
-    sha256 "18a76d1f8abe542239444a3931d1d08f5f745cbb9a202b1d5fd2e1290b30fa4d" => :mojave
-    sha256 "6612d2001d80361ec70a19a8c54254a76fe1919a9cc72918032304e714144530" => :high_sierra
-    sha256 "6a2460e120f697e09a1ed62a948e5ecd767fc1b24a3f331aa4d59833205e48a4" => :sierra
-    sha256 "a87bf02d882413393f3f3759ab0fa6a171438609d101c7c9bc7772fe69e2ab47" => :el_capitan
-    sha256 "cf9c82f416a4eb3aad7d4202b21105988d346be8d8df262ea4ca18e683475d32" => :yosemite
-    sha256 "b36f66b0469b5c6cde95f780671db5b32e4e4dd7c16c4e7e591043bfdef2b65c" => :mavericks
+    rebuild 1
+    sha256 arm64_monterey: "a923ea4c9bba4ae6180d9f173694a5c4dd7ea87e1b84e358bc902695557ef393"
+    sha256 arm64_big_sur:  "f4f4d798d0614b6f64ee57f463b94682a483c10010d2953be528f3e16dc2899a"
+    sha256 monterey:       "e7b371852f93ca92ae3d6fe93cd161cfff2f5e13991705105ef7237add20864c"
+    sha256 big_sur:        "95093dfbf970ea88a41223a1c75c6152e8435795f01f1be812439d28f94378e2"
+    sha256 catalina:       "e7a19321df5d635dab8f7049d96ee032c7536f1f2bf41b2b1d032e1665bfd127"
+    sha256 mojave:         "51f7b265d83da1db5c2a34e77d2f376e1fa7730ecde5c9cfcda181ccab084f8e"
+    sha256 high_sierra:    "0719a701b7280ccd2bd1e2f834ffb6518d183f80c5df2afcb956f374e6d032c3"
+    sha256 sierra:         "6349fe1f1c0524382ab6ed36a4ceeb795c67cacb310688e2759cf33efab82609"
+    sha256 x86_64_linux:   "7436d7bbfa99d24378592eb1444d05b06d8cf97ada9957aac8f15f1f0512f61e"
   end
 
   depends_on "pkg-config" => :build
   depends_on "gmp"
-  depends_on "openssl"
+  depends_on "openssl@1.1"
 
-  conflicts_with "john", :because => "both install the same binaries"
+  uses_from_macos "zlib"
 
-  # https://github.com/magnumripper/JohnTheRipper/blob/bleeding-jumbo/doc/INSTALL#L133-L143
-  fails_with :gcc do
-    cause "Upstream have a hacky workaround for supporting gcc that we can't use."
+  conflicts_with "john", because: "both install the same binaries"
+
+  # Fixed setup `-mno-sse4.1` for some machines.
+  # See details for example from here: https://github.com/magnumripper/JohnTheRipper/pull/4100
+  patch do
+    url "https://github.com/magnumripper/JohnTheRipper/commit/a537bbca37c1c2452ffcfccea6d2366447ec05c2.patch?full_index=1"
+    sha256 "bb6cfff297f1223dd1177a515657b8f1f780c55f790e5b6e6518bb2cb0986b7b"
   end
 
-  # Patch taken from MacPorts, tells john where to find runtime files.
-  # https://github.com/magnumripper/JohnTheRipper/issues/982
-  patch :DATA
-
-  # Previously john-jumbo ignored the value of $HOME; fixed
-  # upstream.  See
-  # https://github.com/magnumripper/JohnTheRipper/issues/1901
+  # Fixed setup of openssl@1.1 over series of patches
+  # See details for example from here: https://github.com/magnumripper/JohnTheRipper/pull/4101
   patch do
-    url "https://github.com/magnumripper/JohnTheRipper/commit/d29ad8aabaa9726eb08f440001c37611fa072e0c.diff?full_index=1"
-    sha256 "b3400f54c64dccce6fe4846872c945b280ec221c7a3d614b03c18029cba3695a"
+    url "https://github.com/magnumripper/JohnTheRipper/commit/4844c79bf43dbdbb6ae3717001173355b3de5517.patch?full_index=1"
+    sha256 "8469b8eb1d880365121491d45421d132b634983fdcaf4028df8ae8b9085c98ae"
+  end
+  patch do
+    url "https://github.com/magnumripper/JohnTheRipper/commit/26750d4cff0e650f836974dc3c9c4d446f3f8d0e.patch?full_index=1"
+    sha256 "43d259266b6b986a0a3daff484cfb90214ca7f57cd4703175e3ff95d48ddd3e2"
+  end
+  patch do
+    url "https://github.com/magnumripper/JohnTheRipper/commit/f03412b789d905b1a8d50f5f4b76d158b01c81c1.patch?full_index=1"
+    sha256 "65a4aacc22f82004e102607c03149395e81c7b6104715e5b90b4bbc016e5e0f7"
+  end
+
+  # Upstream M1/ARM64 Support.
+  # Combined diff of the following four commits, minus the doc changes
+  # that block this formula from using these commits otherwise.
+  # https://github.com/openwall/john/commit/d6c87924b85323b82994ce01724d6e458223fd36
+  # https://github.com/openwall/john/commit/d531f97180a6e5ae52e21db177727a17a76bd2b4
+  # https://github.com/openwall/john/commit/c9825e688d1fb9fdd8942ceb0a6b4457b0f9f9b4
+  # https://github.com/openwall/john/commit/716279addd5a0870620fac8a6e944916b2228cc2
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/50a00afbf4549fbc0ffd3855c884f7d045cf4f93/john-jumbo/john_jumbo_m1.diff"
+    sha256 "6658f02056fd6d54231d3fdbf84135b32d47c09345fc07c6f861a1feebd00902"
   end
 
   def install
+    ENV.append "CFLAGS", "-DJOHN_SYSTEMWIDE=1"
+    ENV.append "CFLAGS", "-DJOHN_SYSTEMWIDE_EXEC='\"#{share}/john\"'"
+    ENV.append "CFLAGS", "-DJOHN_SYSTEMWIDE_HOME='\"#{share}/john\"'"
+
+    # Apple's M1 chip has no support for SSE 4.1.
+    ENV.append "CFLAGS", "-mno-sse4.1" if Hardware::CPU.intel? && !MacOS.version.requires_sse4?
+
+    ENV["OPENSSL_LIBS"] = "-L#{Formula["openssl@1.1"].opt_lib}"
+    ENV["OPENSSL_CFLAGS"] = "-I#{Formula["openssl@1.1"].opt_include}"
+
     cd "src" do
-      system "./configure", "--disable-native-tests", "--disable-native-macro"
+      system "./configure", "--disable-native-tests"
       system "make", "clean"
-      system "make", "-s", "CC=#{ENV.cc}"
+      system "make"
     end
 
-    # Remove the symlink and install the real file
-    rm "README"
-    prefix.install "doc/README"
     doc.install Dir["doc/*"]
 
     # Only symlink the main binary into bin
@@ -57,39 +91,12 @@ class JohnJumbo < Formula
 
     bash_completion.install share/"john/john.bash_completion" => "john.bash"
     zsh_completion.install share/"john/john.zsh_completion" => "_john"
-
-    # Source code defaults to "john.ini", so rename
-    mv share/"john/john.conf", share/"john/john.ini"
   end
 
   test do
     touch "john2.pot"
-    (testpath/"test").write "dave:#{`printf secret | /usr/bin/openssl md5`}"
+    (testpath/"test").write "dave:#{`printf secret | /usr/bin/openssl md5 -r | cut -d' ' -f1`}"
     assert_match(/secret/, shell_output("#{bin}/john --pot=#{testpath}/john2.pot --format=raw-md5 test"))
     assert_match(/secret/, (testpath/"john2.pot").read)
   end
 end
-
-
-__END__
---- a/src/params.h	2012-08-30 13:24:18.000000000 -0500
-+++ b/src/params.h	2012-08-30 13:25:13.000000000 -0500
-@@ -70,15 +70,15 @@
-  * notes above.
-  */
- #ifndef JOHN_SYSTEMWIDE
--#define JOHN_SYSTEMWIDE			0
-+#define JOHN_SYSTEMWIDE			1
- #endif
-
- #if JOHN_SYSTEMWIDE
- #ifndef JOHN_SYSTEMWIDE_EXEC /* please refer to the notes above */
--#define JOHN_SYSTEMWIDE_EXEC		"/usr/libexec/john"
-+#define JOHN_SYSTEMWIDE_EXEC		"HOMEBREW_PREFIX/share/john"
- #endif
- #ifndef JOHN_SYSTEMWIDE_HOME
--#define JOHN_SYSTEMWIDE_HOME		"/usr/share/john"
-+#define JOHN_SYSTEMWIDE_HOME		"HOMEBREW_PREFIX/share/john"
- #endif
- #define JOHN_PRIVATE_HOME		"~/.john"
- #endif

@@ -1,40 +1,38 @@
 class Tnftp < Formula
-  desc "NetBSD's FTP client (built from macOS Sierra sources)"
-  homepage "https://opensource.apple.com/"
-  url "https://opensource.apple.com/tarballs/lukemftp/lukemftp-16.tar.gz"
-  version "20070806"
-  sha256 "ba35a8e3c2e524e5772e729f592ac0978f9027da2433753736e1eb1f1351ae9d"
+  desc "NetBSD's FTP client"
+  homepage "https://cdn.netbsd.org/pub/NetBSD/misc/tnftp/"
+  url "https://cdn.netbsd.org/pub/NetBSD/misc/tnftp/tnftp-20210827.tar.gz"
+  mirror "https://www.mirrorservice.org/sites/ftp.netbsd.org/pub/NetBSD/misc/tnftp/tnftp-20210827.tar.gz"
+  sha256 "101901e90b656c223ec8106370dd0d783fb63d26aa6f0b2a75f40e86a9f06ea2"
+  license "BSD-4-Clause"
 
-  bottle do
-    cellar :any_skip_relocation
-    sha256 "286b8f6bfb0217e88c81305e28eb32aaa78c3d0528518372191c8364c080f351" => :mojave
-    sha256 "d10b32070661a883375a361016f73c3be47f9702be5fa902ca491d3f12ed8022" => :high_sierra
-    sha256 "8aca7a23ac918f7a69b13df67452420fb711e320cc57743cefd15134516da1ab" => :sierra
-    sha256 "fdaf7c1ab1fcb48226a9846452b352e4da302ac6aca61a74a67f97b8bb21c942" => :el_capitan
+  livecheck do
+    url :homepage
+    regex(/href=.*?tnftp[._-]v?(\d+(?:\.\d+)*)\.t/i)
   end
 
-  depends_on :xcode => :build
+  bottle do
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "ab84fe5ac9eff0c7362b22793c3678b427cded2cf30f27dd41799e96039a4b65"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "70ef6eb17e9644707e16b95e69d9515ed73b8d5e1b965d0d44b8c16e9d36bca4"
+    sha256 cellar: :any_skip_relocation, monterey:       "1e30f66379f0a97e015bf3133cd3fa53b8f322919e9352e4d0ae25c28151b201"
+    sha256 cellar: :any_skip_relocation, big_sur:        "543c3b1220913421326418f4fb346cf76332bedc7d5f5e19d4e02e6653833387"
+    sha256 cellar: :any_skip_relocation, catalina:       "10fc0ee307e739bc3a0f617167fe6027cf37573efd47a555239599e226c7e8b7"
+    sha256 cellar: :any_skip_relocation, mojave:         "0bb7b548299599ad06fb746a00a4bc3df48bff90615280c3786d5a0ca04a4089"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "9afa6b6d747eea6fa479010921972e5479c1238c5ccd209f75852d83775c6bc4"
+  end
 
-  conflicts_with "inetutils", :because => "both install `ftp' binaries"
+  uses_from_macos "bison" => :build
+  uses_from_macos "ncurses"
+
+  conflicts_with "inetutils", because: "both install `ftp' binaries"
 
   def install
-    # Trying to use Apple's pre-supplied Makefile resulted
-    # in headaches... they have made the build process
-    # specifically for installing to /usr/bin and so it
-    # just doesn't play well with homebrew.
+    system "./configure", "--prefix=#{prefix}"
+    system "make", "all"
 
-    # so just build straight from ftp's own sources
-    # from the extracted 20070806 tarball which have
-    # already been patched
-    cd "tnftp" do
-      system "./configure"
-      system "make", "all"
-      system "strip", "-x", "src/ftp" # this is done in Apple's `post-install` target
-
-      bin.install "src/ftp"
-      man1.install "src/ftp.1"
-      prefix.install_metafiles
-    end
+    bin.install "src/tnftp" => "ftp"
+    man1.install "src/ftp.1"
+    prefix.install_metafiles
   end
 
   test do

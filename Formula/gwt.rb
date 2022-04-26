@@ -1,34 +1,27 @@
 class Gwt < Formula
   desc "Google web toolkit"
   homepage "http://www.gwtproject.org/"
-  url "https://storage.googleapis.com/gwt-releases/gwt-2.8.2.zip"
-  sha256 "970701dacc55170088f5eb327137cb4a7581ebb4734188dfcc2fad9941745d1b"
+  url "https://storage.googleapis.com/gwt-releases/gwt-2.9.0.zip"
+  sha256 "253911e3be63c19628ffef5c1082258704e7896f81b855338c6a036f524fbd42"
+  license "Apache-2.0"
 
-  bottle :unneeded
+  livecheck do
+    url "https://github.com/gwtproject/gwt.git"
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
+  end
+
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "aa7923025737fa93944f4373b92544bacdc5e191b679f1b615b65b0455c2e7a8"
+  end
+
+  depends_on "openjdk"
 
   def install
     rm Dir["*.cmd"] # remove Windows cmd files
     libexec.install Dir["*"]
 
-    # Don't use the GWT scripts because they expect the GWT jars to
-    # be in the same place as the script.
-    (bin/"webAppCreator").write <<~EOS
-      #!/bin/sh
-      HOMEDIR=#{libexec}
-      java -cp "$HOMEDIR/gwt-user.jar:$HOMEDIR/gwt-dev.jar" com.google.gwt.user.tools.WebAppCreator "$@";
-    EOS
-
-    (bin/"benchmarkViewer").write <<~EOS
-      #!/bin/sh
-      APPDIR=#{libexec}
-      java -Dcom.google.gwt.junit.reportPath="$1" -cp "$APPDIR/gwt-dev.jar" com.google.gwt.dev.RunWebApp -port auto $APPDIR/gwt-benchmark-viewer.war;
-    EOS
-
-    (bin/"i18nCreator").write <<~EOS
-      #!/bin/sh
-      HOMEDIR=#{libexec}
-      java -cp "$HOMEDIR/gwt-user.jar:$HOMEDIR/gwt-dev.jar" com.google.gwt.i18n.tools.I18NCreator "$@";
-    EOS
+    (bin/"i18nCreator").write_env_script libexec/"i18nCreator", Language::Java.overridable_java_home_env
+    (bin/"webAppCreator").write_env_script libexec/"webAppCreator", Language::Java.overridable_java_home_env
   end
 
   test do

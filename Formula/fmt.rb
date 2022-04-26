@@ -1,21 +1,37 @@
 class Fmt < Formula
   desc "Open-source formatting library for C++"
-  homepage "https://fmtlib.github.io/"
-  url "https://github.com/fmtlib/fmt/archive/5.3.0.tar.gz"
-  sha256 "defa24a9af4c622a7134076602070b45721a43c51598c8456ec6f2c4dbb51c89"
+  homepage "https://fmt.dev/"
+  url "https://github.com/fmtlib/fmt/archive/8.1.1.tar.gz"
+  sha256 "3d794d3cf67633b34b2771eb9f073bde87e846e0d395d254df7b211ef1ec7346"
+  license "MIT"
+  revision 1
+  head "https://github.com/fmtlib/fmt.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "38059ee097c0e9f2e4a82c3b7a1185be2687906f47c6ff949a1dc3ce4075ce30" => :mojave
-    sha256 "2d90c816fafe6abad75c7a44a42b6e32ad52f63e36b66efd4df7c61e639b9b4d" => :high_sierra
-    sha256 "2504638eae813550df3dc1edd4025fc53483d69813e81630b62d2da6bf338b05" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "47866137bfcc88428ad11fb6b1a6815a3e23343a01b87532921f9606c8079df0"
+    sha256 cellar: :any,                 arm64_big_sur:  "9e6672c625f0a4ef5f493d0354d61cb37544c3462393050515dfda94e8cea3d7"
+    sha256 cellar: :any,                 monterey:       "adc6bcafd5a51853ee1263c965780e22562f0ac551c59776f2ed3271eb91e2d5"
+    sha256 cellar: :any,                 big_sur:        "e704728001d94f2b8a25656ae8f06099c1f6ca4b36a26a5b05f2946226a62077"
+    sha256 cellar: :any,                 catalina:       "ec6ed03041add5859c98d14a604b9dbbc78f33b5c30bc1bd462560523970a4c6"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "7ce6065175c67d5fbba475c74b1efce928566d9df76dc7bb51e9baa1f3a3c6b2"
   end
 
   depends_on "cmake" => :build
 
+  # Fix Watchman build.
+  # https://github.com/fmtlib/fmt/issues/2717
+  patch do
+    url "https://github.com/fmtlib/fmt/commit/8f8a1a02d5c5cb967d240feee3ffac00d66f22a2.patch?full_index=1"
+    sha256 "ac5d7a8f9eabd40e34f21b1e0034fbc4147008f13b7bf2314131239fb3a7bdab"
+  end
+
   def install
-    system "cmake", ".", *std_cmake_args
+    system "cmake", ".", "-DBUILD_SHARED_LIBS=TRUE", *std_cmake_args
     system "make", "install"
+    system "make", "clean"
+    system "cmake", ".", "-DBUILD_SHARED_LIBS=FALSE", *std_cmake_args
+    system "make"
+    lib.install "libfmt.a"
   end
 
   test do

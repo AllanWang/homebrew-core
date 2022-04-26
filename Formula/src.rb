@@ -1,25 +1,25 @@
 class Src < Formula
   desc "Simple revision control: RCS reloaded with a modern UI"
   homepage "http://www.catb.org/~esr/src/"
-  url "http://www.catb.org/~esr/src/src-1.18.tar.gz"
-  sha256 "cc0897c1763f57e6627fd912a315de5554e4bb53fa0958c8578223e5379c1a58"
+  url "http://www.catb.org/~esr/src/src-1.29.tar.gz"
+  sha256 "4dcfaa0612ed0bdbb6dc1aea567880a6b015f1885710bbdb327f97c4de414241"
+  license "BSD-2-Clause"
+
+  livecheck do
+    url :homepage
+    regex(/href=.*?src[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "c5da1fd27c011587281c2e991f53e03c06b32e78b23d293be173141ca007be73" => :mojave
-    sha256 "7b8177edd573490081ab245c28b9b7d93ad333837d754d6ec444461977f79e3d" => :high_sierra
-    sha256 "7b8177edd573490081ab245c28b9b7d93ad333837d754d6ec444461977f79e3d" => :sierra
-    sha256 "7b8177edd573490081ab245c28b9b7d93ad333837d754d6ec444461977f79e3d" => :el_capitan
+    sha256 cellar: :any_skip_relocation, all: "1be6e1ab14e7503ebe94f2e896af8c3e9d605232e3ea18f09f7248a2350f90e4"
   end
 
   head do
-    url "https://gitlab.com/esr/src.git"
+    url "https://gitlab.com/esr/src.git", branch: "master"
     depends_on "asciidoc" => :build
   end
 
   depends_on "rcs"
-
-  conflicts_with "srclib", :because => "both install a 'src' binary"
 
   def install
     ENV["XML_CATALOG_FILES"] = "#{etc}/xml/catalog" if build.head?
@@ -28,8 +28,16 @@ class Src < Formula
   end
 
   test do
+    require "pty"
     (testpath/"test.txt").write "foo"
-    system "#{bin}/src", "commit", "-m", "hello", "test.txt"
-    system "#{bin}/src", "status", "test.txt"
+    PTY.spawn("sh", "-c", "#{bin}/src commit -m hello test.txt; #{bin}/src status test.txt") do |r, _w, _pid|
+      output = ""
+      begin
+        r.each_line { |line| output += line }
+      rescue Errno::EIO
+        # GNU/Linux raises EIO when read is done on closed pty
+      end
+      assert_match(/^=\s*test.txt/, output)
+    end
   end
 end

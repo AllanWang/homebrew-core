@@ -3,24 +3,27 @@ class Yapf < Formula
 
   desc "Formatter for python code"
   homepage "https://github.com/google/yapf"
-  url "https://files.pythonhosted.org/packages/0c/ad/1dd7e729e9d707c602267ed9a6ca9b771a507862f85456bf18f5fff8f0d1/yapf-0.27.0.tar.gz"
-  sha256 "34f6f80c446dcb2c44bd644c4037a2024b6645e293a4c9c4521983dd0bb247a1"
+  url "https://files.pythonhosted.org/packages/c2/cd/d0d1e95b8d78b8097d90ca97af92f4af7fb2e867262a2b6e37d6f48e612a/yapf-0.32.0.tar.gz"
+  sha256 "a3f5085d37ef7e3e004c4ba9f9b3e40c54ff1901cd111f05145ae313a7c67d1b"
+  license "Apache-2.0"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "67911f42c81041f0d536ca48fec3aaeacaed7dae99c62729c8eb6d35760a8c7e" => :mojave
-    sha256 "2c886ed4aafbd5052a3d1221c282de5c7a5aa927dd3ba5bed2bc3ec29ac8946b" => :high_sierra
-    sha256 "cc84f98a4cdfd183c2ba7b86ce21612e063d22d2574559474dfeaa64281f8d03" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "a25c9162e29ad3b06cde091efdfabc4181b24256bcd50091eabd5ed534c45161"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "a25c9162e29ad3b06cde091efdfabc4181b24256bcd50091eabd5ed534c45161"
+    sha256 cellar: :any_skip_relocation, monterey:       "7ad8f128e5f4f718b996176bb36d47b3f32083f1e60b58793a82a6530b2eb56c"
+    sha256 cellar: :any_skip_relocation, big_sur:        "7ad8f128e5f4f718b996176bb36d47b3f32083f1e60b58793a82a6530b2eb56c"
+    sha256 cellar: :any_skip_relocation, catalina:       "7ad8f128e5f4f718b996176bb36d47b3f32083f1e60b58793a82a6530b2eb56c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "8781942adadad33fecf2bb9e527116939c2c51a9674ceab4ec97d48d91da3748"
   end
 
-  depends_on "python"
+  depends_on "python@3.10"
 
   def install
     virtualenv_install_with_resources
   end
 
   test do
-    output = shell_output("echo \"x='homebrew'\" | #{bin}/yapf")
+    output = pipe_output("#{bin}/yapf", "x='homebrew'")
     assert_equal "x = 'homebrew'", output.strip
   end
 end

@@ -3,16 +3,27 @@ class Pwsafe < Formula
   homepage "https://github.com/nsd20463/pwsafe"
   url "https://src.fedoraproject.org/repo/pkgs/pwsafe/pwsafe-0.2.0.tar.gz/4bb36538a2772ecbf1a542bc7d4746c0/pwsafe-0.2.0.tar.gz"
   sha256 "61e91dc5114fe014a49afabd574eda5ff49b36c81a6d492c03fcb10ba6af47b7"
-  revision 3
+  license "GPL-2.0"
+  revision 4
 
-  bottle do
-    cellar :any
-    sha256 "026ad06d35f0ae8b1a6e2699d02803e45df2aa05289d7ec2beb839ec5e6c232f" => :mojave
-    sha256 "a737903a6af98cf1de3bef38bc2e168d0d2fdc0beb1a708b872776b4298d1100" => :high_sierra
-    sha256 "a0c772ed64270de75bba371d2c4292f898127c08e68adc4edd6bfc35cf769854" => :sierra
+  livecheck do
+    url "https://src.fedoraproject.org/repo/pkgs/pwsafe/"
+    regex(/href=.*?pwsafe[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
-  depends_on "openssl"
+  bottle do
+    sha256 cellar: :any,                 arm64_monterey: "cb5377b3ac24b40fcdc24660caef85d16af615e4b17c7f18729b7ed84bfe5708"
+    sha256 cellar: :any,                 arm64_big_sur:  "a275c6ed6882cc4d69656ce9b779be2ac3cec24a53e2e6a32668f78681a99ec3"
+    sha256 cellar: :any,                 monterey:       "f11ebb686f3af73a247dafdbb2ea299ecbf4ee913e668c23d5b233447daa1dd0"
+    sha256 cellar: :any,                 big_sur:        "69517fc542457fad58bbebe4e2f60c8316de47f5e50ac546370dc40afc62c5e6"
+    sha256 cellar: :any,                 catalina:       "5f952aa85147c86d2f77f9054fe228484820388c3b1e92c39c12432a15ca0f54"
+    sha256 cellar: :any,                 mojave:         "94c4b9684c2709c7cbd168609db33271ede431f1f72c348bb508e65a07bf8faa"
+    sha256 cellar: :any,                 high_sierra:    "5d5a277678e752596a342712e46dd2e1ce015d6897ad7f74437509a39f47b5ce"
+    sha256 cellar: :any,                 sierra:         "e5fd7f0c41f73c0bdf2f455b7ad659d27931afc1e78536e11a0553be0e8cade1"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "45c3ced398e2ae04a1449deb1bf23b033a9d82a44d00d1d7da788ce04f81fde1"
+  end
+
+  depends_on "openssl@1.1"
   depends_on "readline"
 
   # A password database for testing is provided upstream. How nice!

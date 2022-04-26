@@ -1,26 +1,39 @@
 class Unoconv < Formula
+  include Language::Python::Shebang
+
   desc "Convert between any document format supported by OpenOffice"
-  homepage "http://dag.wiee.rs/home-made/unoconv/"
-  url "https://files.pythonhosted.org/packages/a2/b8/3131d20bfa2065e489edc7ca2dbfd66fd8d4fcbbde3476c76605a7e69269/unoconv-0.8.2.tar.gz"
-  sha256 "c7091a409384c05b3509b18be6c8d7059d26f491dfa78660ecdfbde3e72b03be"
-  revision 1
-  head "https://github.com/dagwieers/unoconv.git"
+  homepage "https://github.com/unoconv/unoconv"
+  url "https://files.pythonhosted.org/packages/ab/40/b4cab1140087f3f07b2f6d7cb9ca1c14b9bdbb525d2d83a3b29c924fe9ae/unoconv-0.9.0.tar.gz"
+  sha256 "308ebfd98e67d898834876348b27caf41470cd853fbe2681cc7dacd8fd5e6031"
+  license "GPL-2.0"
+  revision 3
+  head "https://github.com/unoconv/unoconv.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "07a0230f3b34e5d3566bf167320563d7923deb380e78c6d8380f7f2b56f0b50b" => :mojave
-    sha256 "af451c29611a9fed41fb2b68984a20f80ff9a812a23c28233878ee84fb8dc208" => :high_sierra
-    sha256 "af451c29611a9fed41fb2b68984a20f80ff9a812a23c28233878ee84fb8dc208" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "632fc4da008b323aa3aeb15c6960b4e5c31b05f282db84616258881ade4bf0f8"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "632fc4da008b323aa3aeb15c6960b4e5c31b05f282db84616258881ade4bf0f8"
+    sha256 cellar: :any_skip_relocation, monterey:       "b7e53457a5a8af631877af85382c03dbfc9b37ca410a287966a05d0fa89568fb"
+    sha256 cellar: :any_skip_relocation, big_sur:        "b7e53457a5a8af631877af85382c03dbfc9b37ca410a287966a05d0fa89568fb"
+    sha256 cellar: :any_skip_relocation, catalina:       "b7e53457a5a8af631877af85382c03dbfc9b37ca410a287966a05d0fa89568fb"
+    sha256 cellar: :any_skip_relocation, mojave:         "b7e53457a5a8af631877af85382c03dbfc9b37ca410a287966a05d0fa89568fb"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "632fc4da008b323aa3aeb15c6960b4e5c31b05f282db84616258881ade4bf0f8"
   end
 
-  depends_on "python"
+  depends_on "python@3.10"
 
   def install
+    rewrite_shebang detected_python_shebang, "unoconv"
+
     system "make", "install", "prefix=#{prefix}"
   end
 
-  def caveats; <<~EOS
-    In order to use unoconv, a copy of LibreOffice between versions 3.6.0.1 - 4.3.x must be installed.
-  EOS
+  def caveats
+    <<~EOS
+      In order to use unoconv, a copy of LibreOffice between versions 3.6.0.1 - 4.3.x must be installed.
+    EOS
+  end
+
+  test do
+    assert_match "office installation", pipe_output("#{bin}/unoconv 2>&1")
   end
 end

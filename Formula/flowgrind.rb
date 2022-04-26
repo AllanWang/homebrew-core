@@ -3,14 +3,20 @@ class Flowgrind < Formula
   homepage "https://launchpad.net/flowgrind"
   url "https://launchpad.net/flowgrind/trunk/flowgrind-0.8.0/+download/flowgrind-0.8.0.tar.bz2"
   sha256 "2e8b58fc919bb1dae8f79535e21931336355b4831d8b5bf75cf43eacd1921d04"
+  revision 4
+
+  livecheck do
+    url :stable
+    regex(%r{<div class="version">\s*Latest version is flowgrind[._-]v?(\d+(?:\.\d+)+)\s*</div>}i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "a46d6483368a731836bf8f241212b879af1ccaa8d1c46ce0958ee5918b705e38" => :mojave
-    sha256 "fc136acf25aed179051b10dd46fe655f0eca478f3918029931b961402c3ff416" => :high_sierra
-    sha256 "10f9b511118c62e1302d427a91b0972d61638a43b64594ba04731b7fa50fce77" => :sierra
-    sha256 "112a89ea6071526c1604047b40cf5f168cc1ca3d779fa2c4b4093c8ee3675c39" => :el_capitan
-    sha256 "a39cc57cb6353dfeae30da6c204c35956f6ef1570c3caf0419fa6c6e75ff0998" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "936a077b8e11db4f99e5058f066587c21422f031b9fce0b744497056eb2824ef"
+    sha256 cellar: :any,                 arm64_big_sur:  "5197881bee816a11514b94fe4081de199060a9f97a21bab350cbfa299f438a4b"
+    sha256 cellar: :any,                 monterey:       "0a3ef485aae774dca957e4546cbbbae4c3cf218049429bf8f3b1fd030467be6b"
+    sha256 cellar: :any,                 big_sur:        "d9e948718dbc34b0d94b63bd7dac9f139558011c3a46e17caa8fc009b344afa4"
+    sha256 cellar: :any,                 catalina:       "458cdff62eb81824a84f0303649766b48f42a2a04dd71f9708947134d887b721"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "3adf0b567ee925141f552e7c8bfc8efb552853f314bf0039e64c5e6ee01c87aa"
   end
 
   depends_on "gsl"

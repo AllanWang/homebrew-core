@@ -2,28 +2,26 @@ class Gowsdl < Formula
   desc "WSDL2Go code generation as well as its SOAP proxy"
   homepage "https://github.com/hooklift/gowsdl"
   url "https://github.com/hooklift/gowsdl.git",
-      :tag      => "v0.3.1",
-      :revision => "2375731131398bde30666dc45b48cd92f937de98"
-  head "https://github.com/hooklift/gowsdl.git"
+      tag:      "v0.5.0",
+      revision: "51f3ef6c0e8f41ed1bdccce4c04e86b6769da313"
+  license "MPL-2.0"
+  head "https://github.com/hooklift/gowsdl.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "2ac105a303ffb54fb2fe09be85a6b913aca155cbd8c3a3fb07a525dcc662af64" => :mojave
-    sha256 "e9c472ac11711508d3d4d7dc403d2697b178b9eb82b4283f5801e49a07b34353" => :high_sierra
-    sha256 "83fa8252186b7c1c2d6ed205ea90a7e479c5e7df2891d77ddc3229dbaa98b49b" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "0391c1e4a9fdbd2f14d5daff2789d490802da3b4a09a227d021dcb1a58b2f92a"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "1e00fdcd6cf4d9f6b4d8df22fbd7622ec946b4188944e4f5fb04aed3c29878f4"
+    sha256 cellar: :any_skip_relocation, monterey:       "c810ea3ef7b3a12aeb84b71b71c0c67f6853857cd6fd778c65b9bb0b9fad157e"
+    sha256 cellar: :any_skip_relocation, big_sur:        "311386c63c7c7ffda0e89c0cf753b5ce53745909e492b2866f75c157c97e48a8"
+    sha256 cellar: :any_skip_relocation, catalina:       "5decccb2c1f5b9c093dc045fceede062ea21bfb0273c7cfa9d7c1cde04229e4c"
+    sha256 cellar: :any_skip_relocation, mojave:         "5fa5da76a1c3677059c85a6001e90b1a1d3256d7a7942133ca4824365dbc7fec"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "0f90850655453570875a7087b0ac6a850d059a68afba01b62a5e30e6aa7cfecc"
   end
 
   depends_on "go" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-
-    srcpath = buildpath/"src/github.com/hooklift/gowsdl"
-    srcpath.install buildpath.children
-    srcpath.cd do
-      system "make", "build"
-      bin.install "build/gowsdl"
-    end
+    system "make", "build"
+    bin.install "build/gowsdl"
   end
 
   test do

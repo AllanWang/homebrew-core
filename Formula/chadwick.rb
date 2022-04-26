@@ -1,17 +1,30 @@
 class Chadwick < Formula
   desc "Tools for parsing Retrosheet MLB play-by-play files"
   homepage "https://chadwick.sourceforge.io"
-  url "https://downloads.sourceforge.net/project/chadwick/chadwick-0.6/chadwick-0.6.5/chadwick-0.6.5.tar.gz"
-  sha256 "fed87dee762eb8550253ac86b42e5ffcd5abbd87509b708e523fffed105ab547"
+  url "https://downloads.sourceforge.net/project/chadwick/chadwick-0.7/chadwick-0.7.2/chadwick-0.7.2.tar.gz"
+  sha256 "f7b3af15281106e101e2ccc4cb182a3f15dbdc3327f2bcb045bfc486a8fda46e"
+  license "GPL-2.0"
+
+  livecheck do
+    url :stable
+    regex(%r{url=.*?/chadwick[._-]v?(\d+(?:\.\d+)+)\.t}i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "1fef298b5a3cfdeea069b05a4cffd3df89627374ac3d3f161e7295db8976cdb8" => :mojave
-    sha256 "9696854624d829ac76b9185425c9d123495f4905ad40d9a82cf25908cab66c0c" => :high_sierra
-    sha256 "9e861062afe571d353e11df00146c5eafb3bad33cc747bc0b63b2441f1d52d10" => :sierra
-    sha256 "9b62dbf5675819d3ba2f770ab04086702d22054133c37096582a744624c41fce" => :el_capitan
-    sha256 "3975fe87dde078bf3fe1bfa23738e81dc2da185f8ea021a536e653749e33f944" => :yosemite
-    sha256 "f1d8a2d60be50146451c1581e536e5f22929c8846d8c6e625ee9ee2910348a35" => :mavericks
+    sha256 cellar: :any,                 arm64_monterey: "38685dff8c84293981d24cb109e29e7daab5054c8b643e5d4f4345a6ca5b68ab"
+    sha256 cellar: :any,                 arm64_big_sur:  "3feae6163c485d40c22f4dcbd0f2772245e8010e7beb4b9f9c399bd93d46f475"
+    sha256 cellar: :any,                 monterey:       "12a233aaf2854a5ab2d7561581465d51f014f9622e2231b5e3da98f4041937be"
+    sha256 cellar: :any,                 big_sur:        "d03f388d1a56550fdc5b9832bf0a952c35a5b7d38f0661885c0dc4b7ee01d718"
+    sha256 cellar: :any,                 catalina:       "693c6ee0980401936a83453bdbc398aeb0eb06ba9bb8e101046508b14edfdc98"
+    sha256 cellar: :any,                 mojave:         "a068fd25b1e8b3d6f9a56a8a1d4ac18a49f07f82450b1ab3f3766b86fb0a362a"
+    sha256 cellar: :any,                 high_sierra:    "427b5c0fca10b23b66c56bda3537080df2ba467edea59a9dfd2f0fba56f50f9b"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "a384612258d503ddcdf39abc98c60e3cfdad289aaaad89169ee18f6f4e596639"
+  end
+
+  # Fix -flat_namespace being used on Big Sur and later.
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-pre-0.4.2.418-big_sur.diff"
+    sha256 "83af02f2aa2b746bb7225872cab29a253264be49db0ecebb12f841562d9a2923"
   end
 
   def install
@@ -29,9 +42,9 @@ class Chadwick < Formula
     date_xml_slug = date_xml.delete "/"
 
     # game_id and attributes for the retrosheet "team file"
-    attr = { :game_id => "ATL#{date_xml_slug}0", :home => "ATL", :home_name => "Braves",
-             :home_city => "Atlanta", :visitor => "NYN", :visitor_name => "Mets",
-             :visitor_city => "New York" }
+    attr = { game_id: "ATL#{date_xml_slug}0", home: "ATL", home_name: "Braves",
+             home_city: "Atlanta", visitor: "NYN", visitor_name: "Mets",
+             visitor_city: "New York" }
 
     # retrosheet "event file" name, chadwick's xml name?, our value
     attr_map_info = [
@@ -46,9 +59,9 @@ class Chadwick < Formula
     ]
 
     # expected (computed) score related data in chadwick's output
-    exp_linescore = { :away_runs => "1", :away_hits => "1", :away_errors => "0",
-                      :home_runs => "0", :home_hits => "3", :home_errors => "0" }
-    exp_ing_ln_score = { :away => ["0", "0", "1"], :home => ["0", "0", "0"] }
+    exp_linescore = { away_runs: "1", away_hits: "1", away_errors: "0",
+                      home_runs: "0", home_hits: "3", home_errors: "0" }
+    exp_ing_ln_score = { away: ["0", "0", "1"], home: ["0", "0", "0"] }
     exp_innings_cnt = exp_ing_ln_score.values[0].size
     exp_tmplayers_cnt = 9 # expected player count for each team
 

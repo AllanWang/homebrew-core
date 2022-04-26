@@ -1,16 +1,24 @@
 class TidyHtml5 < Formula
   desc "Granddaddy of HTML tools, with support for modern standards"
   homepage "https://www.html-tidy.org/"
-  url "https://github.com/htacg/tidy-html5/archive/5.6.0.tar.gz"
-  sha256 "08a63bba3d9e7618d1570b4ecd6a7daa83c8e18a41c82455b6308bc11fe34958"
-  head "https://github.com/htacg/tidy-html5.git", :branch => "next"
+  url "https://github.com/htacg/tidy-html5/archive/5.8.0.tar.gz"
+  sha256 "59c86d5b2e452f63c5cdb29c866a12a4c55b1741d7025cf2f3ce0cde99b0660e"
+  license "Zlib"
+  head "https://github.com/htacg/tidy-html5.git", branch: "next"
+
+  livecheck do
+    url :stable
+    regex(/^v?(\d+\.\d*?[02468](?:\.\d+)*)$/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "bd3ca7dc82a913c8576716cbcc957260251132f6dd7b8c526c9ef0c4674faf0f" => :mojave
-    sha256 "af9633f1578980fe3d4351c3d71b4b83cc79f814d87310e4b7d05830c53c9621" => :high_sierra
-    sha256 "6c8f843d25d6964b18d4c2fa15aaf2606b36decbbe65c31b38a7982e499a9d28" => :sierra
-    sha256 "48416711a2f1a080e9eae1ecba30773ee48eae98181e25c6ae5ace07cb7ac8ee" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "15f70f84c933bc11475f62c0cda4e1ccc72e5786bdbd64da76249fbfb35be8e5"
+    sha256 cellar: :any,                 arm64_big_sur:  "de46584bc851655bae8d839b27b4423f8309e0c8de3923deb5be554a57617f45"
+    sha256 cellar: :any,                 monterey:       "eb97c832fbe63a48464dee4dbef7a9e370906360dc36cd664af6a6abe738faec"
+    sha256 cellar: :any,                 big_sur:        "9127cf10347816285db70f0ec794a08433e44426f9f4320d5fecedbdcfb15e2b"
+    sha256 cellar: :any,                 catalina:       "fe486f6a2455b7c59eac3ba8a5e4b2e1a6ff49bb6440465d9470013a23a5fe0f"
+    sha256 cellar: :any,                 mojave:         "4ae3afab500044dfd0fb4cf982ce9411859f50548149cc4f99f8720de1bbd754"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "2f80a0abaed47dfa224213a413fbe6f23d1a538cf4bfeb633296f5e7e465fb2d"
   end
 
   depends_on "cmake" => :build
@@ -24,7 +32,7 @@ class TidyHtml5 < Formula
 
   test do
     output = pipe_output(bin/"tidy -q", "<!doctype html><title></title>")
-    assert_match /^<!DOCTYPE html>/, output
-    assert_match /HTML Tidy for HTML5/, output
+    assert_match(/^<!DOCTYPE html>/, output)
+    assert_match "HTML Tidy for HTML5", output
   end
 end

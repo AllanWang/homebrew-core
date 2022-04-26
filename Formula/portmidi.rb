@@ -1,37 +1,66 @@
 class Portmidi < Formula
   desc "Cross-platform library for real-time MIDI I/O"
-  homepage "https://sourceforge.net/projects/portmedia/"
-  url "https://downloads.sourceforge.net/project/portmedia/portmidi/217/portmidi-src-217.zip"
-  sha256 "08e9a892bd80bdb1115213fb72dc29a7bf2ff108b378180586aa65f3cfd42e0f"
-  revision 2
+  homepage "https://github.com/PortMidi/portmidi"
+  url "https://github.com/PortMidi/portmidi/archive/refs/tags/v2.0.3.tar.gz"
+  sha256 "934f80e1b09762664d995e7ab5a9932033bc70639e8ceabead817183a54c60d0"
+  license "MIT"
+  version_scheme 1
 
   bottle do
-    cellar :any
-    sha256 "0dfe3a9b8ba85cf769c54a66fef958bfc0579700c3b8a3b494597a931e78db00" => :mojave
-    sha256 "746ef0d9f4013333e18b65160559ad578f2e491d5252ea22434cf8718885eb1e" => :high_sierra
-    sha256 "fba5058ec32b4f448c35104824f503a687bca51201e47c9e27020c08dd21fc41" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "8ec4a3364a27fc26ca308b668cc16a487833110ebc2bc18414c4f21465f15b65"
+    sha256 cellar: :any,                 arm64_big_sur:  "100d2ff0ac315d597f7aa5b33262d18a0323e63a8bd4f370953396946cf7c038"
+    sha256 cellar: :any,                 monterey:       "87e050e43e85e7f7a3da7df96fe5ce56a76ce175e25869318b298d7dc310fdb1"
+    sha256 cellar: :any,                 big_sur:        "e97ac2b923ac89752aa3d4eaa9d9bd68335248575cf1b94387c896c1e9b6f788"
+    sha256 cellar: :any,                 catalina:       "b0bad0f22a7eb7933950aad6d684d5a382921ea43687bd662a054d60f8b12aaa"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "179bf2d45bb53a20c90906acac509e723cefe2ffe078a500456ff000fd1609b7"
   end
 
   depends_on "cmake" => :build
 
+  on_linux do
+    depends_on "alsa-lib"
+  end
+
   def install
-    if MacOS.version == :sierra || MacOS.version == :el_capitan
-      ENV["SDKROOT"] = MacOS.sdk_path
-    end
-
-    inreplace "pm_mac/Makefile.osx", "PF=/usr/local", "PF=#{prefix}"
-
     # need to create include/lib directories since make won't create them itself
     include.mkpath
     lib.mkpath
 
-    # Fix outdated SYSROOT to avoid:
-    # No rule to make target `/Developer/SDKs/MacOSX10.5.sdk/...'
-    inreplace "pm_common/CMakeLists.txt",
-              "set(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX10.5.sdk CACHE",
-              "set(CMAKE_OSX_SYSROOT /#{MacOS.sdk_path} CACHE"
+    if OS.mac?
+      # Fix "fatal error: 'os/availability.h' file not found" on 10.11 and
+      # "error: expected function body after function declarator" on 10.12
+      # Requires the CLT to be the active developer directory if Xcode is installed
+      ENV["SDKROOT"] = MacOS.sdk_path if MacOS.version <= :sierra
 
-    system "make", "-f", "pm_mac/Makefile.osx"
-    system "make", "-f", "pm_mac/Makefile.osx", "install"
+      inreplace "pm_mac/Makefile.osx", "PF=/usr/local", "PF=#{prefix}"
+
+      system "make", "-f", "pm_mac/Makefile.osx"
+      system "make", "-f", "pm_mac/Makefile.osx", "install"
+      mv lib/shared_library("libportmidi"), lib/shared_library("libportmidi", version)
+    else
+      system "cmake", ".", *std_cmake_args, "-DCMAKE_CACHEFILE_DIR=#{buildpath}/build"
+      system "make", "install"
+      lib.install_symlink shared_library("libportmidi", version) => shared_library("libportmidi", 0)
+    end
+    lib.install_symlink shared_library("libportmidi", version) => shared_library("libportmidi")
+    lib.install_symlink shared_library("libportmidi", version) => shared_library("libportmidi", version.major.to_s)
+  end
+
+  test do
+    (testpath/"test.c").write <<~EOS
+      #include <portmidi.h>
+
+      int main()
+      {
+        int count = -1;
+        count = Pm_CountDevices();
+        if(count >= 0)
+            return 0;
+        else
+            return 1;
+      }
+    EOS
+    system ENV.cc, "test.c", "-L#{lib}", "-lportmidi", "-o", "test"
+    system "./test"
   end
 end

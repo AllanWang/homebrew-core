@@ -1,20 +1,23 @@
 class Minidlna < Formula
   desc "Media server software, compliant with DLNA/UPnP-AV clients"
   homepage "https://sourceforge.net/projects/minidlna/"
-  url "https://downloads.sourceforge.net/project/minidlna/minidlna/1.2.1/minidlna-1.2.1.tar.gz"
-  sha256 "67388ba23ab0c7033557a32084804f796aa2a796db7bb2b770fb76ac2a742eec"
-  revision 1
+  url "https://downloads.sourceforge.net/project/minidlna/minidlna/1.3.0/minidlna-1.3.0.tar.gz"
+  sha256 "47d9b06b4c48801a4c1112ec23d24782728b5495e95ec2195bbe5c81bc2d3c63"
+  license "GPL-2.0-only"
+  revision 2
 
   bottle do
-    cellar :any
-    sha256 "e47addf7d21436e3b534b14024271d1d3355818f2e11a04da53a924f2acfe8e3" => :mojave
-    sha256 "ed1b022aaea8beed91a26b9907c8253da9c5c441fa52482ae0255571cd1744ad" => :high_sierra
-    sha256 "5145b3bae1ebb4add544bc8877668a5cea2e80a380a5a0beaba94a6e88cbf33c" => :sierra
-    sha256 "16fb753050582f030bcc16de31ccac3faa74f5ada3d1bed4d17895dd8628f772" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "cbe84dc9d2a120e54adfac02535fa45f8ef563f652c5045f4f70ad149d6c038f"
+    sha256 cellar: :any,                 arm64_big_sur:  "17fbf29b2147f239fb8735d045982503aa02ad5754ae8d594db0dd8c04ea072a"
+    sha256 cellar: :any,                 monterey:       "932bd20744ba7651d52fe94c30d22ba3e516262ba3a30fabeaf7df4bd8aa38b7"
+    sha256 cellar: :any,                 big_sur:        "74997619d4be6c977bc2897df4ac94ee73a27bbe691993a44920f919e7812556"
+    sha256 cellar: :any,                 catalina:       "227628b6e6547aad4698fe39234868a2ad3ef9b72a4bffbb60b8a482de7fe219"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "684149c230fa8e599513de4ede63d9eed17dd9d0726a04ac421e8e76a166d22d"
   end
 
   head do
-    url "https://git.code.sf.net/p/minidlna/git.git"
+    url "https://git.code.sf.net/p/minidlna/git.git", branch: "master"
+
     depends_on "autoconf" => :build
     depends_on "automake" => :build
     depends_on "gettext" => :build
@@ -30,6 +33,8 @@ class Minidlna < Formula
   depends_on "libvorbis"
   depends_on "sqlite"
 
+  fails_with gcc: "5" # ffmpeg is compiled with GCC
+
   def install
     system "./autogen.sh" if build.head?
     system "./configure", "--prefix=#{prefix}"
@@ -37,12 +42,14 @@ class Minidlna < Formula
   end
 
   def post_install
-    (pkgshare/"minidlna.conf").write <<~EOS
+    conf = <<~EOS
       friendly_name=Mac DLNA Server
       media_dir=#{ENV["HOME"]}/.config/minidlna/media
       db_dir=#{ENV["HOME"]}/.config/minidlna/cache
       log_dir=#{ENV["HOME"]}/.config/minidlna
     EOS
+
+    (pkgshare/"minidlna.conf").write conf unless File.exist? pkgshare/"minidlna.conf"
   end
 
   def caveats
@@ -56,43 +63,17 @@ class Minidlna < Formula
     EOS
   end
 
-  plist_options :manual => "minidlna"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>ProgramArguments</key>
-        <array>
-          <string>#{opt_sbin}/minidlnad</string>
-          <string>-d</string>
-          <string>-f</string>
-          <string>#{ENV["HOME"]}/.config/minidlna/minidlna.conf</string>
-          <string>-P</string>
-          <string>#{ENV["HOME"]}/.config/minidlna/minidlna.pid</string>
-        </array>
-        <key>KeepAlive</key>
-        <dict>
-          <key>Crashed</key>
-          <true/>
-          <key>SuccessfulExit</key>
-          <false/>
-        </dict>
-        <key>ProcessType</key>
-        <string>Background</string>
-        <key>StandardErrorPath</key>
-        <string>#{var}/log/minidlnad.log</string>
-        <key>StandardOutPath</key>
-        <string>#{var}/log/minidlnad.log</string>
-      </dict>
-    </plist>
-  EOS
+  service do
+    run [opt_sbin/"minidlnad", "-d", "-f", "#{ENV["HOME"]}/.config/minidlna/minidlna.conf",
+         "-P", "#{ENV["HOME"]}/.config/minidlna/minidlna.pid"]
+    keep_alive true
+    log_path var/"log/minidlnad.log"
+    error_log_path var/"log/minidlnad.log"
   end
 
   test do
+    require "expect"
+
     (testpath/".config/minidlna/media").mkpath
     (testpath/".config/minidlna/cache").mkpath
     (testpath/"minidlna.conf").write <<~EOS
@@ -102,14 +83,12 @@ class Minidlna < Formula
       log_dir=#{testpath}/.config/minidlna
     EOS
 
-    system sbin/"minidlnad", "-f", "minidlna.conf", "-p", "8081", "-P",
-                             testpath/"minidlna.pid"
-    sleep 2
+    port = free_port
 
-    begin
-      assert_match /MiniDLNA #{version}/, shell_output("curl localhost:8081")
-    ensure
-      Process.kill("SIGINT", File.read("minidlna.pid").to_i)
-    end
+    io = IO.popen("#{sbin}/minidlnad -d -f minidlna.conf -p #{port} -P #{testpath}/minidlna.pid", "r")
+    io.expect("debug: Initial file scan completed", 30)
+    assert_predicate testpath/"minidlna.pid", :exist?
+
+    assert_match "MiniDLNA #{version}", shell_output("curl localhost:#{port}")
   end
 end

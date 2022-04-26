@@ -1,29 +1,37 @@
 class Codequery < Formula
   desc "Code-understanding, code-browsing or code-search tool"
   homepage "https://github.com/ruben2020/codequery"
-  url "https://github.com/ruben2020/codequery/archive/v0.21.1.tar.gz"
-  sha256 "c20050dc6963472c7cb7ed4621c7187e24089fa458eb68748ef9d2aae53d991f"
+  url "https://github.com/ruben2020/codequery/archive/refs/tags/v0.25.0.tar.gz"
+  sha256 "200bed981e89fe02770a7a76516714d6d6345021d6ae89e68341b6af39728407"
+  license "MPL-2.0"
 
   bottle do
-    cellar :any
-    sha256 "1765b7bf67fd6eaef6b4464bfe06a0ae467165acca5dd17e78d371165a5db91a" => :mojave
-    sha256 "fe67cc5adc84bb2558ad4e67c5b02bfba8b80f3a18bc036801e4c1e1d81c96eb" => :high_sierra
-    sha256 "21a673797bdc3ff9c7453930499e7e29e7f1320eb4dbddec67f7127dee34a989" => :sierra
-    sha256 "15e18f6bb87bd489b33f4322af5d6351e28ec805aef291d6c0df50d80fb7958d" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "24a4898739d208f8dfda2bf7f02eed21dfe82bc4c8a938cef94c314c5658b97f"
+    sha256 cellar: :any,                 arm64_big_sur:  "3f80c4407314da08b4a576c3434c7e4ad29479752d6b45bf9572d3bd4010657d"
+    sha256 cellar: :any,                 monterey:       "0c9479b9d18664bedef6d9d9ac4582b536616b3fa87c64a6e0c75826a94fe50c"
+    sha256 cellar: :any,                 big_sur:        "1b660bfc8bc5dbe29ee1572d4f23ff97e8d0ce0f7010bdb9ee709ac87a323bde"
+    sha256 cellar: :any,                 catalina:       "78858d75d1980b20a592a04321fe552a3358155ed9f21b4b1a6ca15f10a9a50a"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d9838cc9f35121d8391d6ce91b60119d61c412bfe55f48e520014ca5888fe769"
   end
 
   depends_on "cmake" => :build
-  depends_on "qt"
+  depends_on "ninja" => :build
+  depends_on "qt@5"
+
+  on_linux do
+    depends_on "gcc"
+  end
+
+  fails_with gcc: "5"
 
   def install
     args = std_cmake_args
-    args << "-DBUILD_QT5=ON"
 
     share.install "test"
     mkdir "build" do
-      system "cmake", "..", "-G", "Unix Makefiles", *args
-      system "make"
-      system "make", "install"
+      system "cmake", "..", "-G", "Ninja", *args
+      system "ninja"
+      system "ninja", "install"
     end
   end
 

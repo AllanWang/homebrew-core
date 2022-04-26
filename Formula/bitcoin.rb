@@ -1,65 +1,56 @@
 class Bitcoin < Formula
   desc "Decentralized, peer to peer payment network"
-  homepage "https://bitcoin.org/"
-  url "https://bitcoin.org/bin/bitcoin-core-0.18.0/bitcoin-0.18.0.tar.gz"
-  sha256 "5e4e6890e07b620a93fdb24605dae2bb53e8435b2a93d37558e1db1913df405f"
-  revision 1
+  homepage "https://bitcoincore.org/"
+  url "https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0.tar.gz"
+  sha256 "26748bf49d6d6b4014d0fedccac46bf2bcca42e9d34b3acfd9e3467c415acc05"
+  license "MIT"
+  head "https://github.com/bitcoin/bitcoin.git", branch: "master"
+
+  livecheck do
+    url "https://bitcoincore.org/en/download/"
+    regex(/latest version.*?v?(\d+(?:\.\d+)+)/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "b90adc43e6fa8a3e44caf1ea4aceaedda17e73e5ddf595eaf5f23b986b479cbd" => :mojave
-    sha256 "d77a60aea170c72a60bf198d12ebd97a20b388fa5299551667774dc86c7bd2d0" => :high_sierra
-    sha256 "eb6a4279a322c29e853606792ed19e0fec2550560b74d6e2aa9b2bd36e20e27d" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "b0704a6dc3a96f5bbb71d93a468b1a4881e747e90ddfa14d6ff0d97d5a23c6eb"
+    sha256 cellar: :any,                 arm64_big_sur:  "6c8caf0509daf986cd3af45eeea78789ccd4b0a8eb5aa1dfddaa624425e5b959"
+    sha256 cellar: :any,                 monterey:       "2859a13d7a48dad1a6701476d66ddb0b6940dcfe4b809b1c54512d78de247e26"
+    sha256 cellar: :any,                 big_sur:        "e8a1f3389faae4245c5f6a6ec8f179cb46e19af31f4e4637c6d3f24d55804b45"
+    sha256 cellar: :any,                 catalina:       "3279bd808f42d6ea608d04860ac276afda7c6ac2cf5d708469d4dc66672f210a"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "cb60fb85781435dfb545cea0c7e08339a7b3e01d60df604ccf9cba830f148e36"
   end
 
-  head do
-    url "https://github.com/bitcoin/bitcoin.git"
-
-    depends_on "autoconf" => :build
-    depends_on "automake" => :build
-    depends_on "libtool" => :build
-  end
-
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
+  depends_on "libtool" => :build
   depends_on "pkg-config" => :build
   depends_on "berkeley-db@4"
-  depends_on "boost"
+  depends_on "boost@1.76"
   depends_on "libevent"
   depends_on "miniupnpc"
-  depends_on "openssl"
   depends_on "zeromq"
 
-  def install
-    if MacOS.version == :el_capitan && MacOS::Xcode.version >= "8.0"
-      ENV.delete("SDKROOT")
-    end
+  on_linux do
+    depends_on "util-linux" => :build # for `hexdump`
+    depends_on "gcc"
+  end
 
-    system "./autogen.sh" if build.head?
-    system "./configure", "--disable-dependency-tracking",
+  fails_with gcc: "5"
+
+  def install
+    ENV.delete("SDKROOT") if MacOS.version == :el_capitan && MacOS::Xcode.version >= "8.0"
+
+    system "./autogen.sh"
+    system "./configure", *std_configure_args,
+                          "--disable-dependency-tracking",
                           "--disable-silent-rules",
-                          "--with-boost-libdir=#{Formula["boost"].opt_lib}",
-                          "--prefix=#{prefix}"
+                          "--with-boost-libdir=#{Formula["boost@1.76"].opt_lib}"
     system "make", "install"
     pkgshare.install "share/rpcauth"
   end
 
-  plist_options :manual => "bitcoind"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-      <key>Label</key>
-      <string>#{plist_name}</string>
-      <key>ProgramArguments</key>
-      <array>
-        <string>#{opt_bin}/bitcoind</string>
-      </array>
-      <key>RunAtLoad</key>
-      <true/>
-    </dict>
-    </plist>
-  EOS
+  service do
+    run opt_bin/"bitcoind"
   end
 
   test do

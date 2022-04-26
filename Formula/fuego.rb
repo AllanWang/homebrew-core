@@ -1,16 +1,17 @@
 class Fuego < Formula
   desc "Collection of C++ libraries for the game of Go"
   homepage "https://fuego.sourceforge.io/"
-  url "https://svn.code.sf.net/p/fuego/code/trunk", :revision => 1981
+  url "https://svn.code.sf.net/p/fuego/code/trunk", revision: "1981"
   version "1.1.SVN"
-  revision 2
+  revision 3
   head "https://svn.code.sf.net/p/fuego/code/trunk"
 
   bottle do
-    sha256 "2e8c65ddbcbb76158ab22805982c75940ed1a6eddc033cc157a03bee1364d502" => :mojave
-    sha256 "7efef5865934cb21cce5a12c7adf39d3c74a86990067220d456e53db69f8861f" => :high_sierra
-    sha256 "828c076fbcd288d4cc2348323497983f78aceb8bd1b607403b13e35fa209a86f" => :sierra
-    sha256 "e0c9f36a60667bea6757170232cf45caeca7bff3cf75adb4994b3007d0fe6eb9" => :el_capitan
+    sha256 arm64_monterey: "fd608b01aa958d503f590b029525209ddd4d0e6817e4f722cf978e853d7555c4"
+    sha256 arm64_big_sur:  "95ec2ac797371b95af51822a496d20698a12ae3634957caffdee0960cb791be2"
+    sha256 monterey:       "32b9463d445e6655142662879346d4e6e19d4acc3df20cf79ee7d04d08763fbf"
+    sha256 big_sur:        "ec7e854d2bfa8853265051a3979e5dd49e357f5ae3a92fba709ba87016cfc4ac"
+    sha256 catalina:       "46cb29e00532a085978e00fa78a763b0273a7722e670f97ea1bd779c554cda62"
   end
 
   depends_on "autoconf" => :build

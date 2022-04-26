@@ -1,16 +1,21 @@
 class Htmldoc < Formula
   desc "Convert HTML to PDF or PostScript"
   homepage "https://www.msweet.org/htmldoc/"
-  url "https://github.com/michaelrsweet/htmldoc/releases/download/v1.9.5/htmldoc-1.9.5-source.tar.gz"
-  sha256 "0be1ae7986e01e94d482b3af7dcee19800117c8a61ef67426c30ae7744a79ea6"
-  head "https://github.com/michaelrsweet/htmldoc.git"
+  url "https://github.com/michaelrsweet/htmldoc/archive/v1.9.15.tar.gz"
+  sha256 "9dc88e5a2ce849105933c438bbe54f4383f0d1dadb494f52c6ec941317659431"
+  license "GPL-2.0-only"
+  head "https://github.com/michaelrsweet/htmldoc.git", branch: "master"
 
   bottle do
-    sha256 "3817f4de69634444205b0368f2e657851b2e73fceb63a70b77697a945dfba788" => :mojave
-    sha256 "22689d93e1257349bd0f89406c74728afb8b93b9ad5c9f6de5331d4b110b308a" => :high_sierra
-    sha256 "d7ff6b4d2e3a32ac482af05a7f52b643c528f5fcc31622b46e85e8be3c95f2ae" => :sierra
+    sha256 arm64_monterey: "39479bbbf19a5a2c35320aa410690830862ddc48f35c47b15a6f8e0388859765"
+    sha256 arm64_big_sur:  "1e9132616e07ca6999ddb9d6bb9b8456969b27e15e228bebfeca44dc05f34711"
+    sha256 monterey:       "9cbc78f597a80f0e2807cbf299b1a0cbb17d06cd27fa55697ae6ed8e1e5a132b"
+    sha256 big_sur:        "c4f86d41cf26e314deb251bde3a59cbaefcc15077b4fb365e8aa9e5b57723f33"
+    sha256 catalina:       "e0b03ef14f3c9ffa4ba04434f8cad7fa9646f701b633455b623312a57765fc10"
+    sha256 x86_64_linux:   "ce5c9fcc2a61dfb9784e7c60ab9cc9211ce0bec0b5f71537ccdf4bdbd59f2fd2"
   end
 
+  depends_on "pkg-config" => :build
   depends_on "jpeg"
   depends_on "libpng"
 

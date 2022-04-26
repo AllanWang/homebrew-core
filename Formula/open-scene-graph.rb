@@ -1,14 +1,17 @@
 class OpenSceneGraph < Formula
   desc "3D graphics toolkit"
   homepage "https://github.com/openscenegraph/OpenSceneGraph"
-  url "https://github.com/openscenegraph/OpenSceneGraph/archive/OpenSceneGraph-3.6.3.tar.gz"
-  sha256 "51bbc79aa73ca602cd1518e4e25bd71d41a10abd296e18093a8acfebd3c62696"
-  head "https://github.com/openscenegraph/OpenSceneGraph.git"
+  url "https://github.com/openscenegraph/OpenSceneGraph/archive/OpenSceneGraph-3.6.5.tar.gz"
+  sha256 "aea196550f02974d6d09291c5d83b51ca6a03b3767e234a8c0e21322927d1e12"
+  license "LGPL-2.1-or-later" => { with: "WxWindows-exception-3.1" }
+  revision 1
+  head "https://github.com/openscenegraph/OpenSceneGraph.git", branch: "master"
 
   bottle do
-    sha256 "153c47045ba21b94581aed7375218a38534077fc8920090dc541627d09ef36c5" => :mojave
-    sha256 "adabb1b668bdfec8e6ccc1e05a91577bbe0c58487d345b662c3acaae2298e8a9" => :high_sierra
-    sha256 "8f69c72133ca7100385f49d104f33517c66aefe7c76bb22e08b28c8aaa4c6385" => :sierra
+    sha256 arm64_big_sur: "83350482064d3e55281b5c4a808f4629ce0c243a49fb57e68e5f63d2d5a411c4"
+    sha256 big_sur:       "77b57e3edeb952002a4c43c90af2c2ada2813bb35d45b24a07720da89fa389cf"
+    sha256 catalina:      "dfa6322ce7e63ce9194a42d3dc1d630572ff7d818ac21e3533017a0bcf5821b6"
+    sha256 mojave:        "e347cc9ef89cd9b1e8fea9a6c14a4693f30cd2b43ab4754c61724e229c62849c"
   end
 
   depends_on "cmake" => :build
@@ -17,26 +20,27 @@ class OpenSceneGraph < Formula
   depends_on "pkg-config" => :build
   depends_on "freetype"
   depends_on "gtkglext"
-  depends_on "jpeg"
-  depends_on "sdl"
+  depends_on "jpeg-turbo"
+  depends_on "sdl2"
 
   # patch necessary to ensure support for gtkglext-quartz
-  # filed as an issue to the developers https://github.com/openscenegraph/osg/issues/34
+  # filed as an issue to the developers https://github.com/openscenegraph/OpenSceneGraph/issues/34
   patch :DATA
 
   def install
     # Fix "fatal error: 'os/availability.h' file not found" on 10.11 and
     # "error: expected function body after function declarator" on 10.12
-    if MacOS.version == :sierra || MacOS.version == :el_capitan
-      ENV["SDKROOT"] = MacOS.sdk_path
-    end
+    # Requires the CLT to be the active developer directory if Xcode is installed
+    ENV["SDKROOT"] = MacOS.sdk_path if MacOS.version <= :sierra
 
     args = std_cmake_args + %w[
       -DBUILD_DOCUMENTATION=ON
       -DCMAKE_DISABLE_FIND_PACKAGE_FFmpeg=ON
       -DCMAKE_DISABLE_FIND_PACKAGE_GDAL=ON
+      -DCMAKE_DISABLE_FIND_PACKAGE_Jasper=ON
+      -DCMAKE_DISABLE_FIND_PACKAGE_OpenEXR=ON
+      -DCMAKE_DISABLE_FIND_PACKAGE_SDL=ON
       -DCMAKE_DISABLE_FIND_PACKAGE_TIFF=ON
-      -DCMAKE_DISABLE_FIND_PACKAGE_cairo=ON
       -DCMAKE_CXX_FLAGS=-Wno-error=narrowing
       -DCMAKE_OSX_ARCHITECTURES=x86_64
       -DOSG_DEFAULT_IMAGE_PLUGIN_FOR_OSX=imageio
@@ -67,6 +71,7 @@ class OpenSceneGraph < Formula
     assert_equal `./test`.chomp, version.to_s
   end
 end
+
 __END__
 diff --git a/CMakeModules/FindGtkGl.cmake b/CMakeModules/FindGtkGl.cmake
 index 321cede..6497589 100644

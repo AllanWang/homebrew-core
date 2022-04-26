@@ -1,28 +1,42 @@
 class Qhull < Formula
   desc "Computes convex hulls in n dimensions"
   homepage "http://www.qhull.org/"
-  url "http://www.qhull.org/download/qhull-2015-src-7.2.0.tgz"
-  version "2015.2"
-  sha256 "78b010925c3b577adc3d58278787d7df08f7c8fb02c3490e375eab91bb58a436"
+  url "http://www.qhull.org/download/qhull-2020-src-8.0.2.tgz"
+  version "2020.2"
+  sha256 "b5c2d7eb833278881b952c8a52d20179eab87766b00b865000469a45c1838b7e"
+  license "Qhull"
+  head "https://github.com/qhull/qhull.git", branch: "master"
+
+  # It's necessary to match the version from the link text, as the filename
+  # only contains the year (`2020`), not a full version like `2020.2`.
+  livecheck do
+    url "http://www.qhull.org/download/"
+    regex(/href=.*?qhull[._-][^"' >]+?[._-]src[^>]*?\.t[^>]+?>[^<]*Qhull v?(\d+(?:\.\d+)*)/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "33b41bad4871bd781b91ca4c418a1b5c94dc29f676288bd8f41b5ae8c302b329" => :mojave
-    sha256 "91d7e43f955fb4d9513d588e4f56a6b6c6101e9a9e0f6ed73c63a045bd4b8c25" => :high_sierra
-    sha256 "2b0192507bef8e077cae894ee59a2a25b490170cc1be64413caa1ac6e48da86d" => :sierra
-    sha256 "98d3967e46833ff3278b6815b638b5c4b049bb621543b9015124fef83276ab01" => :el_capitan
-    sha256 "00fb087ce5f3d674d22959ea820b4e3605b02ea31694d4f00d2044bc54ca3c02" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "149d647d68ab1386f21996abde29a0c158cb11d740318c8c61112e77e3419170"
+    sha256 cellar: :any,                 arm64_big_sur:  "d54263b22f2c4effc10ab2dbab54ec0b7f2592d07cdad43c20ddfffff149aad0"
+    sha256 cellar: :any,                 monterey:       "91c5c29003c0f86c85b4e597b2aae623012517c8cf1696686a6d3f97b0c507f3"
+    sha256 cellar: :any,                 big_sur:        "1c0b6ed4613b8319859b7c0c15b174bb1e89178c79e060ccc400220beb079d46"
+    sha256 cellar: :any,                 catalina:       "b48c342482e1e50857c444f8eb39f71c36a522a9f0692bd479b93d2088672d2f"
+    sha256 cellar: :any,                 mojave:         "6bec66662d9b4d1942a959505442790cfafd482660a2c8785a45175714fe1ae6"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "97152aca48ede908990b7d3935bf3305b559833074bb4c92fc6fdab68f95fd23"
   end
 
   depends_on "cmake" => :build
 
   def install
-    system "cmake", ".", *std_cmake_args
-    system "make", "install"
+    ENV.cxx11
+
+    cd "build" do
+      system "cmake", "..", *std_cmake_args
+      system "make", "install"
+    end
   end
 
   test do
-    input = Utils.popen_read(bin/"rbox", "c", "D2")
+    input = shell_output(bin/"rbox c D2")
     output = pipe_output("#{bin}/qconvex s n 2>&1", input, 0)
     assert_match "Number of facets: 4", output
   end

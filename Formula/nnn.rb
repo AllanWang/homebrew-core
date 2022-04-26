@@ -1,34 +1,47 @@
 class Nnn < Formula
   desc "Tiny, lightning fast, feature-packed file manager"
   homepage "https://github.com/jarun/nnn"
-  url "https://github.com/jarun/nnn/archive/v2.5.tar.gz"
-  sha256 "3636f172a024de5c12420a80dbe3d006d42b5e0a17e70a527963c864af22655c"
-  head "https://github.com/jarun/nnn.git"
+  url "https://github.com/jarun/nnn/archive/v4.4.tar.gz"
+  sha256 "e04a3f0f0c2af1e18cb6f005d18267c7703644274d21bb93f03b30e4fd3d1653"
+  license "BSD-2-Clause"
+  revision 1
+  head "https://github.com/jarun/nnn.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "c032ece32ca1970c4a4224c246255191c42dac2f6ab6d6350dd87dc0770bf9a6" => :mojave
-    sha256 "161ac6aad7a8a4e1441dd8d2eee8ff8024f9f827c452ffe8504e83a6cfc9a6cf" => :high_sierra
-    sha256 "614a1b1a101ff166305e09052e3ed2e6422375637c00353b1f285b3c57aaf55c" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "0f206ccff6782172f2eafd1499cdc463b210cb00148b22abb5bc73a9676434c4"
+    sha256 cellar: :any,                 arm64_big_sur:  "8e0c86615ad8945427658c6886a7b223b8dd68fc7d3a317de19dede97c3a114f"
+    sha256 cellar: :any,                 monterey:       "12ad9fecb2c396e1279a343730dd2bb31ffb294d6e22e11dbf4e0a6e01ea0493"
+    sha256 cellar: :any,                 big_sur:        "2201c369d5254ccdd7425e1ad70363f587e9669ab0f45f16ac5a440fc5bb59db"
+    sha256 cellar: :any,                 catalina:       "e05ba96826682aebd0f64f22399b953ab32319b9ef9325a5bee6340ecdbf5dab"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "74c98fb8821d85c71097acd3de33468c6f0fecdce11b7738b28063213d643058"
   end
 
+  depends_on "gnu-sed"
+  depends_on "ncurses"
   depends_on "readline"
 
   def install
     system "make", "install", "PREFIX=#{prefix}"
 
-    bash_completion.install "scripts/auto-completion/bash/nnn-completion.bash"
-    zsh_completion.install "scripts/auto-completion/zsh/_nnn"
-    fish_completion.install "scripts/auto-completion/fish/nnn.fish"
+    bash_completion.install "misc/auto-completion/bash/nnn-completion.bash"
+    zsh_completion.install "misc/auto-completion/zsh/_nnn"
+    fish_completion.install "misc/auto-completion/fish/nnn.fish"
+
+    pkgshare.install "misc/quitcd"
   end
 
   test do
+    # Test fails on CI: Input/output error @ io_fread - /dev/pts/0
+    # Fixing it involves pty/ruby voodoo, which is not worth spending time on
+    return if OS.linux? && ENV["HOMEBREW_GITHUB_ACTIONS"]
+
     # Testing this curses app requires a pty
     require "pty"
 
-    PTY.spawn(bin/"nnn") do |r, w, _pid|
+    (testpath/"testdir").mkdir
+    PTY.spawn(bin/"nnn", testpath/"testdir") do |r, w, _pid|
       w.write "q"
-      assert_match testpath.realpath.to_s, r.read
+      assert_match "~/testdir", r.read
     end
   end
 end

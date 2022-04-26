@@ -1,12 +1,15 @@
 class Bee < Formula
   desc "Tool for managing database changes"
   homepage "https://github.com/bluesoft/bee"
-  url "https://github.com/bluesoft/bee/releases/download/1.71/bee-1.71.zip"
-  sha256 "d6b6bede523447101fe9f8d2b73c6c7e2c980f80aee60152ffdf784b430f92f3"
+  url "https://github.com/bluesoft/bee/releases/download/1.97/bee-1.97.zip"
+  sha256 "d97d7ef0b3dff27cb4c9eb5c9da3831fdf91105208fbae26cef46f86e1b8fbf3"
+  license "MPL-1.1"
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "95a35b0bb062508bb8b7fcc3f79e485ddc4f06583f41b272d397f347ec93662e"
+  end
 
-  depends_on :java => "1.8"
+  depends_on "openjdk@8"
 
   def install
     rm_rf Dir["bin/*.bat"]

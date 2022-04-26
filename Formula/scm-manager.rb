@@ -1,72 +1,45 @@
 class ScmManager < Formula
   desc "Manage Git, Mercurial, and Subversion repos over HTTP"
   homepage "https://www.scm-manager.org"
-  url "https://maven.scm-manager.org/nexus/content/repositories/releases/sonia/scm/scm-server/1.59/scm-server-1.59-app.tar.gz"
-  sha256 "8628e82f3bfd452412260dd2d82c2e76ee57013223171f2908d75cbc6258f261"
+  url "https://packages.scm-manager.org/repository/releases/sonia/scm/packaging/unix/2.32.1/unix-2.32.1.tar.gz"
+  sha256 "da4f3437e69c8b9954d590f6cdd4154a58c62376700cd415a4d3d0862e14ec70"
+  license all_of: ["Apache-2.0", "MIT"]
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "d28ad275b745fb546973c9d451df374f994eaeade2d351732ab31a7141260372" => :mojave
-    sha256 "42e177bd72cba3b27750308aeeaf8afa0ec8cc553b8a9acf1a02a6d5a698ce14" => :high_sierra
-    sha256 "42e177bd72cba3b27750308aeeaf8afa0ec8cc553b8a9acf1a02a6d5a698ce14" => :sierra
-    sha256 "42e177bd72cba3b27750308aeeaf8afa0ec8cc553b8a9acf1a02a6d5a698ce14" => :el_capitan
+    sha256 cellar: :any_skip_relocation, all: "29ae96d30e53f7cbb394225b681cd021dde8dd5267b68f71e0baf2bd24b8ffcf"
   end
 
-  depends_on :java => "1.8"
-
-  resource "client" do
-    url "https://maven.scm-manager.org/nexus/content/repositories/releases/sonia/scm/clients/scm-cli-client/1.59/scm-cli-client-1.59-jar-with-dependencies.jar"
-    sha256 "ac09437ae6cf20d07224895b30b23369e142055b9d1713835d8c0e3095bf68d2"
-  end
+  depends_on "jsvc"
+  depends_on "openjdk"
 
   def install
-    rm_rf Dir["bin/*.bat"]
-
+    # Replace pre-built `jsvc` with formula to add Apple Silicon support
+    inreplace "bin/scm-server", %r{ \$BASEDIR/libexec/jsvc-.*"}, " #{Formula["jsvc"].opt_bin}/jsvc\""
+    rm Dir["libexec/jsvc-*"]
     libexec.install Dir["*"]
 
-    (bin/"scm-server").write <<~EOS
-      #!/bin/bash
-      BASEDIR="#{libexec}"
-      REPO="#{libexec}/lib"
-      export JAVA_HOME=$(#{Language::Java.java_home_cmd("1.8")})
-      "#{libexec}/bin/scm-server" "$@"
-    EOS
-    chmod 0755, bin/"scm-server"
-
-    tools = libexec/"tools"
-    tools.install resource("client")
-
-    scm_cli_client = bin/"scm-cli-client"
-    scm_cli_client.write <<~EOS
-      #!/bin/bash
-      export JAVA_HOME=$(#{Language::Java.java_home_cmd("1.8")})
-      java -jar "#{tools}/scm-cli-client-#{version}-jar-with-dependencies.jar" "$@"
-    EOS
-    chmod 0755, scm_cli_client
+    env = Language::Java.overridable_java_home_env
+    env["BASEDIR"] = libexec
+    env["REPO"] = libexec/"lib"
+    (bin/"scm-server").write_env_script libexec/"bin/scm-server", env
   end
 
-  plist_options :manual => "scm-server start"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>ProgramArguments</key>
-        <array>
-          <string>#{opt_bin}/scm-server</string>
-          <string>start</string>
-        </array>
-        <key>RunAtLoad</key>
-        <true/>
-      </dict>
-    </plist>
-  EOS
+  service do
+    run [opt_bin/"scm-server"]
   end
 
   test do
-    assert_match version.to_s, shell_output("#{bin}/scm-cli-client version")
+    port = free_port
+    cp_r (libexec/"conf").children, testpath
+    inreplace testpath/"server-config.xml" do |s|
+      s.gsub! %r{<SystemProperty .*/>/work}, testpath/"work"
+      s.gsub! "default=\"8080\"", "default=\"#{port}\""
+    end
+    ENV["JETTY_BASE"] = testpath
+    pid = fork { exec bin/"scm-server" }
+    sleep 30
+    assert_match "<title>SCM-Manager</title>", shell_output("curl http://localhost:#{port}/scm/")
+  ensure
+    Process.kill "TERM", pid
   end
 end

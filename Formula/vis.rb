@@ -1,16 +1,19 @@
 class Vis < Formula
   desc "Vim-like text editor"
   homepage "https://github.com/martanne/vis"
-  url "https://github.com/martanne/vis/archive/v0.5.tar.gz"
-  sha256 "77ea70ebc9c811d88e32199ef5b3ee9b834ac1e880fb61b6d2460f93f0587df5"
-  head "https://github.com/martanne/vis.git"
+  url "https://github.com/martanne/vis/archive/v0.7.tar.gz"
+  sha256 "359ebb12a986b2f4e2a945567ad7587eb7d354301a5050ce10d51544570635eb"
+  license "ISC"
+  head "https://github.com/martanne/vis.git", branch: "master"
 
   bottle do
-    rebuild 1
-    sha256 "93c11117e6a40af5059b02810737dbb1cd494a1eae88acc0d0230d0afeae4768" => :mojave
-    sha256 "da6c3c09d9b53f77c0aecbdd99d145447ed12505f3d2103532502415b53f4564" => :high_sierra
-    sha256 "831f3f4424b231e086784a1741eb1bdc94b5134fa220176a24848f7f226634ab" => :sierra
-    sha256 "d902e9dbb59c21ab7b8d3476c9125a160c8633599ed1097caa001f32ac50f3b4" => :el_capitan
+    sha256 arm64_monterey: "c56a9d6e6bd646696f063896a2e6226369ce37898ad5bbc202d5ac9418382f38"
+    sha256 arm64_big_sur:  "38e336f42ba65ee1cc621b885d364b0568fe8522ddf0ad370425b4409bc41f81"
+    sha256 monterey:       "ec510528e1658ffae66d067b89f93f586010b597d74dfccf6e5204837dba6b6d"
+    sha256 big_sur:        "4aeb0308a6d979940de003d4c2013c5c5b85eecf600b5f44351f5dae5bdfa99d"
+    sha256 catalina:       "801a96b4aa47cbe0196af84017177d9e3bde18561a75bcf3e7bee970c491973a"
+    sha256 mojave:         "4abbde51b5cf5b4451678d2d4a6d8c1279c64cac44970b3715416beffb726b0f"
+    sha256 x86_64_linux:   "d8e0518e1be04971a161c1e7dee27f5ba311b702743c865d23e61121c4b720ae"
   end
 
   depends_on "luarocks" => :build
@@ -18,37 +21,55 @@ class Vis < Formula
   depends_on "libtermkey"
   depends_on "lua"
 
+  uses_from_macos "unzip" => :build
+  uses_from_macos "ncurses"
+
   resource "lpeg" do
     url "https://luarocks.org/manifests/gvvaughan/lpeg-1.0.1-1.src.rock"
     sha256 "149be31e0155c4694f77ea7264d9b398dd134eca0d00ff03358d91a6cfb2ea9d"
   end
 
   def install
+    # Make sure I point to the right version!
+    lua = Formula["lua"]
+
     luapath = libexec/"vendor"
-    ENV["LUA_PATH"] = "#{luapath}/share/lua/5.3/?.lua"
-    ENV["LUA_CPATH"] = "#{luapath}/lib/lua/5.3/?.so"
+    ENV["LUA_PATH"] = "#{luapath}/share/lua/#{lua.version.major_minor}/?.lua"
+    ENV["LUA_CPATH"] = "#{luapath}/lib/lua/#{lua.version.major_minor}/?.so"
 
     resource("lpeg").stage do
       system "luarocks", "build", "lpeg", "--tree=#{luapath}"
     end
 
-    system "./configure", "--prefix=#{prefix}"
+    system "./configure", "--prefix=#{prefix}", "--enable-lua"
     system "make", "install"
 
-    env = { :LUA_PATH => ENV["LUA_PATH"], :LUA_CPATH => ENV["LUA_CPATH"] }
-    bin.env_script_all_files(libexec/"bin", env)
-    # Rename vis & the matching manpage to avoid clashing with the system.
-    mv bin/"vis", bin/"vise"
-    mv man1/"vis.1", man1/"vise.1"
+    luaenv = { LUA_PATH: ENV["LUA_PATH"], LUA_CPATH: ENV["LUA_CPATH"] }
+    bin.env_script_all_files(libexec/"bin", luaenv)
+
+    if OS.mac?
+      # Rename vis & the matching manpage to avoid clashing with the system.
+      mv bin/"vis", bin/"vise"
+      mv man1/"vis.1", man1/"vise.1"
+    end
   end
 
-  def caveats; <<~EOS
-    To avoid a name conflict with the macOS system utility /usr/bin/vis,
-    this text editor must be invoked by calling `vise` ("vis-editor").
-  EOS
+  def caveats
+    on_macos do
+      <<~EOS
+        To avoid a name conflict with the macOS system utility /usr/bin/vis,
+        this text editor must be invoked by calling `vise` ("vis-editor").
+      EOS
+    end
   end
 
   test do
-    assert_match "vis v#{version} +curses +lua", shell_output("#{bin}/vise -v 2>&1")
+    binary = if OS.mac?
+      bin/"vise"
+    else
+      bin/"vis"
+    end
+
+    assert_match "vis v#{version} +curses +lua", shell_output("#{binary} -v 2>&1")
   end
 end

@@ -1,15 +1,21 @@
 class Shogun < Formula
   desc "Large scale machine learning toolbox"
-  homepage "http://www.shogun-toolbox.org/"
-  url "http://shogun-toolbox.org/archives/shogun/releases/6.1/sources/shogun-6.1.3.tar.bz2"
-  sha256 "57169dc8c05b216771c567b2ee2988f14488dd13f7d191ebc9d0703bead4c9e6"
-  revision 5
+  homepage "https://github.com/shogun-toolbox/shogun"
+  url "https://github.com/shogun-toolbox/shogun.git",
+      tag:      "shogun_6.1.4",
+      revision: "ab274e7ab6bf24dd598c1daf1e626cb686d6e1cc"
+  license "BSD-3-Clause"
+  revision 12
 
   bottle do
-    sha256 "3158c1d5951a23e542749a3dea2d6e8c03bbd19a933aaddc0d5486a98cebddfc" => :mojave
-    sha256 "53d96f0be033c8ce7c8ff3109469b2ada7ab627bb33820f501525b553f0fdf75" => :high_sierra
-    sha256 "79cce50d58895d20c9e2f11eb16461ae72318d9f7de69df86e755c1f10d3f294" => :sierra
+    sha256 cellar: :any,                 arm64_big_sur: "4e39c797d38f15383d76c312d84313ce3757b33d6cb42393de432db7a9ee6391"
+    sha256 cellar: :any,                 big_sur:       "bfefc3fb2694eb343be5fcb54b6b922ee462f6c3f4cbe38bf7392600db03ba5d"
+    sha256 cellar: :any,                 catalina:      "88ac63fbb529bf14938d9b5032aa58a6718f27a5953a47ec4498404953c982a9"
+    sha256 cellar: :any,                 mojave:        "589e96815f03a551445e9817da9781e5f4613a80411cb3d42085aaa5fd491be4"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:  "1da85e8939d3f09b5d9d6d7e90b9df560ca4a14e668dfc44ff62100e022ae548"
   end
+
+  disable! date: "2021-11-15", because: "has an incompatible license"
 
   depends_on "cmake" => :build
   depends_on "pkg-config" => :build

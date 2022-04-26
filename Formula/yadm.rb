@@ -1,21 +1,24 @@
 class Yadm < Formula
   desc "Yet Another Dotfiles Manager"
-  homepage "https://thelocehiliosan.github.io/yadm/"
-  url "https://github.com/TheLocehiliosan/yadm/archive/1.12.0.tar.gz"
-  sha256 "c3d612d01e2027d5f457e0f7d120bc67251b716c373d99fe70638bd86edf107f"
+  homepage "https://yadm.io/"
+  url "https://github.com/TheLocehiliosan/yadm/archive/3.2.1.tar.gz"
+  sha256 "6b7e0b32bdca074cbf36e64d8dd528f37c05ce0786fec1099cf374d81cd7d68e"
+  license "GPL-3.0-or-later"
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "59521d8b8fb32be4504ac837a7e08e98505d397e92f6a88474759cc2bf5f3cab"
+  end
 
   def install
-    bin.install "yadm"
-    man1.install "yadm.1"
-    bash_completion.install "completion/yadm.bash_completion"
-    zsh_completion.install  "completion/yadm.zsh_completion" => "_yadm"
+    system "make", "install", "PREFIX=#{prefix}"
+    bash_completion.install "completion/bash/yadm"
+    fish_completion.install "completion/fish/yadm.fish"
+    zsh_completion.install "completion/zsh/_yadm"
   end
 
   test do
     system bin/"yadm", "init"
-    assert_predicate testpath/".yadm/repo.git/config", :exist?, "Failed to init repository."
+    assert_predicate testpath/".local/share/yadm/repo.git/config", :exist?, "Failed to init repository."
     assert_match testpath.to_s, shell_output("#{bin}/yadm gitconfig core.worktree")
 
     # disable auto-alt

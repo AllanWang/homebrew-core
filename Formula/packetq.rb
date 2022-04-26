@@ -1,21 +1,28 @@
 class Packetq < Formula
-  desc "SQL-frontend to PCAP-files"
+  desc "SQL-like frontend to PCAP files"
   homepage "https://www.dns-oarc.net/tools/packetq"
-  url "https://www.dns-oarc.net/files/packetq/packetq-1.4.1.tar.gz"
-  sha256 "de374930dcc36c4b23ef4807ac798016fef6f45d29d3464f993df21e154e57d1"
+  url "https://www.dns-oarc.net/files/packetq/packetq-1.7.0.tar.gz"
+  sha256 "6c275d1a0139ed191973593895ac0b313866a4bfb832e969eec0650d1c03f82f"
+  license "GPL-3.0-or-later"
 
-  bottle do
-    cellar :any_skip_relocation
-    sha256 "58d903042f0fb1c352bdd422f087c444796dc11161d50de69093e4a583d02b59" => :mojave
-    sha256 "299409c99a253199b8b5896ecc8f1490ef4989ff72b10abd2651981a0bd47974" => :high_sierra
-    sha256 "eda7fdbbfc232e370b03e762c24551e92c3207f23f66e42db1c9ec10c448e1e1" => :sierra
-    sha256 "1cc4d10a81e062c41d7641d8fc3a7e94a1bf3b9e92ad6c4d70c8bdc730cee1d4" => :el_capitan
+  livecheck do
+    url :homepage
+    regex(/href=.*?packetq[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
+  bottle do
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "3b18d16fd291fbcc6e7b89e94d1beb38c28c55d9058aecc5a47762e544451842"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "602151d75bfa0684f3aa52b957b6e63a51757741e8a67647abbc5a500e9bf838"
+    sha256 cellar: :any_skip_relocation, monterey:       "fd2d3343a6a827431b84d4ca63a61b025cbed8c8bacfe89f82ed2af66d0290ec"
+    sha256 cellar: :any_skip_relocation, big_sur:        "c2a675266e49a77bd5ccc5b354506c0fe41bcaca3254126363ad9f3df1b5f8a6"
+    sha256 cellar: :any_skip_relocation, catalina:       "a7ab7f52ebef6e9ef147be842e3cc1ca4e25a4a456850072e1b33841391451b9"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "87eac1791759336c6189f9b4d055ddbab4674523848b1aa54511e9f5dcc9f5ab"
+  end
+
+  uses_from_macos "zlib"
+
   def install
-    system "./configure", "--disable-dependency-tracking",
-                          "--disable-silent-rules",
-                          "--prefix=#{prefix}"
+    system "./configure", *std_configure_args
     system "make", "install"
   end
 

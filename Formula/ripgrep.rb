@@ -1,29 +1,33 @@
 class Ripgrep < Formula
   desc "Search tool like grep and The Silver Searcher"
   homepage "https://github.com/BurntSushi/ripgrep"
-  url "https://github.com/BurntSushi/ripgrep/archive/11.0.1.tar.gz"
-  sha256 "ba106404342160a66f703b8c9db9d45117c1a3664a0996822496bcb9f238b184"
-  head "https://github.com/BurntSushi/ripgrep.git"
+  url "https://github.com/BurntSushi/ripgrep/archive/13.0.0.tar.gz"
+  sha256 "0fb17aaf285b3eee8ddab17b833af1e190d73de317ff9648751ab0660d763ed2"
+  license "Unlicense"
+  head "https://github.com/BurntSushi/ripgrep.git", branch: "master"
 
-  bottle do
-    cellar :any
-    sha256 "db7aa040d1dace4cc4225493ca37802cf7c3769b26e3ed0d1cdd32780aeda252" => :mojave
-    sha256 "d205bcd983c83ec1097523502d44598b844c3a13760e88449cd05b34e0ceba77" => :high_sierra
-    sha256 "1212eb9d8a2a38bc54cbbb38cc92015c6572622324bdd049b3e016564a8571da" => :sierra
+  livecheck do
+    url :stable
+    strategy :github_latest
   end
 
-  depends_on "asciidoc" => :build
-  depends_on "docbook-xsl" => :build
+  bottle do
+    sha256 cellar: :any,                 arm64_monterey: "ea67bdf39c1727b2b6b5b5f5110d1736b42b3eb0ec2068aa99903b670545b015"
+    sha256 cellar: :any,                 arm64_big_sur:  "d3e0ae859dc1e66ebecbc66a8ad1ec2abac59bc707d2305dde66212e71406d36"
+    sha256 cellar: :any,                 monterey:       "db0260c6be9656c54575a4d82c720fb24141be38a17350d6cddba7be14f104e6"
+    sha256 cellar: :any,                 big_sur:        "a8f2bd6586de9f7aa36eaaefd36777309f9b5d57f01bf33bf022d715fd3dbb89"
+    sha256 cellar: :any,                 catalina:       "0edcffa1251002e2747020d62a16ae077bd7aa5fb289d351622e0065c9686c40"
+    sha256 cellar: :any,                 mojave:         "b57024c0d221249a1f5eaef1069ac90d44e54afdadb146acd117ae23b7de98c6"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "34e3140b55f0fb5efb8db70e0709afe091632efaa84465e4c1c9ca3c8afa1bf2"
+  end
+
+  depends_on "asciidoctor" => :build
   depends_on "pkg-config" => :build
   depends_on "rust" => :build
   depends_on "pcre2"
 
   def install
-    ENV["XML_CATALOG_FILES"] = etc/"xml/catalog"
-
-    system "cargo", "install", "--root", prefix,
-                               "--path", ".",
-                               "--features", "pcre2"
+    system "cargo", "install", "--features", "pcre2", *std_cargo_args
 
     # Completion scripts and manpage are generated in the crate's build
     # directory, which includes a fingerprint hash. Try to locate it first

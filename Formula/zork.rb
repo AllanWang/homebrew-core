@@ -1,17 +1,21 @@
 class Zork < Formula
-  desc "The Dungeon modified from FORTRAN to C"
+  desc "Dungeon modified from FORTRAN to C"
   homepage "https://github.com/devshane/zork"
-  url "https://github.com/devshane/zork/archive/v1.0.2.tar.gz"
-  sha256 "169e1848b1e3c503591c23ad4e66ce45e1d5ae617831634e1da9c8fca659e283"
-  head "https://github.com/devshane/zork.git"
+  url "https://github.com/devshane/zork/archive/v1.0.3.tar.gz"
+  sha256 "929871abae9be902d4fb592f2e76e52b58b386d208f127c826ae1d7b7bade9ef"
+  head "https://github.com/devshane/zork.git", branch: "master"
 
   bottle do
-    sha256 "0290ba47e707b2812ae354672fd59409acd354fe00b445c424e07c2f3ae8133c" => :mojave
-    sha256 "13e9074fc59bcaeb1dbb5fdeb536da90cd33ef23889109fe20e79429ead56444" => :high_sierra
-    sha256 "d2fe9ee55de4906a3a99d30070d81f73637f3972a6e0c44eb7ab2461c024c684" => :sierra
-    sha256 "8dc6fd49cf72dfa69f677eb1cfd7850f781271c35e4adbacdac00bf918ce6fec" => :el_capitan
-    sha256 "cb1076cd985679e6d9d093f4887c95bc7f0eb046c2799ec5000611703f428d47" => :yosemite
+    sha256 arm64_monterey: "506debc59ab6d891ce98da1bfe4c8a6e5604dc9a91cf225ed19fe3027544f3ea"
+    sha256 arm64_big_sur:  "3f9f282ff618e0a31976bbae0b95e1fabcab2053cef50e2e54bce7877533bbec"
+    sha256 monterey:       "6693bf5507881124657a5cbeb75fc6df3d2f21aafbecce1967212d631924a5cf"
+    sha256 big_sur:        "d8138472c8d3b67db24ce72d03228081118aed98007d5280f6713f556fea337e"
+    sha256 catalina:       "694460ddf13fb4e4f05ef49dde4472dcce56dbc7a945c99307d3e34e35301aa2"
+    sha256 mojave:         "2c5a5b9e024a752e705b85c4420baf74aa27c5ed1088afbf043efadc7307aed3"
+    sha256 x86_64_linux:   "b6205ffff9a5874f180fd92c609e23cbf079799d9c43523b9f05befde770f712"
   end
+
+  uses_from_macos "ncurses"
 
   def install
     system "make", "DATADIR=#{share}", "BINDIR=#{bin}"

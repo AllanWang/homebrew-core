@@ -1,23 +1,29 @@
 class ScalaAT212 < Formula
   desc "JVM-based programming language"
   homepage "https://www.scala-lang.org/"
-  url "https://downloads.lightbend.com/scala/2.12.8/scala-2.12.8.tgz"
-  mirror "https://www.scala-lang.org/files/archive/scala-2.12.8.tgz"
-  mirror "https://downloads.typesafe.com/scala/2.12.8/scala-2.12.8.tgz"
-  sha256 "440ea00c818fd88c5261dd85889711a9d1f7e6a39caa475fcf0583ab57db80a3"
+  url "https://downloads.lightbend.com/scala/2.12.14/scala-2.12.14.tgz"
+  mirror "https://www.scala-lang.org/files/archive/scala-2.12.14.tgz"
+  mirror "https://downloads.typesafe.com/scala/2.12.14/scala-2.12.14.tgz"
+  sha256 "fd7e3e4032288013a29c0a1447c597faf7b0e499762c0d981db21099e9780426"
+  license "Apache-2.0"
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "cdf530f84277789ecac9c149fe5b3c13e68dcabfef366194b02b463a5ac1ae1d"
+  end
 
   keg_only :versioned_formula
 
-  depends_on :java => "1.8+"
+  depends_on "openjdk"
 
   def install
+    inreplace Dir["man/man1/scala{,c}.1"], "/usr/local", HOMEBREW_PREFIX
+
     rm_f Dir["bin/*.bat"]
     doc.install Dir["doc/*"]
     share.install "man"
     libexec.install "bin", "lib"
-    bin.install_symlink Dir["#{libexec}/bin/*"]
+    bin.install Dir["#{libexec}/bin/*"]
+    bin.env_script_all_files libexec/"bin", Language::Java.overridable_java_home_env
 
     # Set up an IntelliJ compatible symlink farm in 'idea'
     idea = prefix/"idea"
@@ -25,10 +31,11 @@ class ScalaAT212 < Formula
     idea.install_symlink doc => "doc"
   end
 
-  def caveats; <<~EOS
-    To use with IntelliJ, set the Scala home to:
-      #{opt_prefix}/idea
-  EOS
+  def caveats
+    <<~EOS
+      To use with IntelliJ, set the Scala home to:
+        #{opt_prefix}/idea
+    EOS
   end
 
   test do

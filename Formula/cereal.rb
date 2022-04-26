@@ -1,24 +1,16 @@
 class Cereal < Formula
   desc "C++11 library for serialization"
   homepage "https://uscilab.github.io/cereal/"
-  url "https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz"
-  sha256 "1921f26d2e1daf9132da3c432e2fd02093ecaedf846e65d7679ddf868c7289c4"
-  head "https://github.com/USCiLab/cereal.git", :branch => "develop"
+  url "https://github.com/USCiLab/cereal/archive/v1.3.2.tar.gz"
+  sha256 "16a7ad9b31ba5880dac55d62b5d6f243c3ebc8d46a3514149e56b5e7ea81f85f"
+  license "BSD-3-Clause"
+  head "https://github.com/USCiLab/cereal.git", branch: "develop"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "4edf85b9241c722b6938386d01edf3b6c8cc57060ffb38a9d5d70ef76273ab61" => :mojave
-    sha256 "f7df56c0cb700d08a326948a052486c3899a0a38c0ede5af78b4d1d69a22fcf0" => :high_sierra
-    sha256 "d0cf1bf42b9a95b861b96d456c528996e5918821b9f63e8d8dbf3bb44381378c" => :sierra
-    sha256 "c4a716ed280100209d328085a3996c3116041bfaa78b9eeb837367de338efb95" => :el_capitan
-    sha256 "c4a716ed280100209d328085a3996c3116041bfaa78b9eeb837367de338efb95" => :yosemite
+    sha256 cellar: :any_skip_relocation, all: "13b3cb91e465c3857b307912e79bc1531167deccf9a2823d1c6e69abb8833792"
   end
 
   depends_on "cmake" => :build
-
-  # error: chosen constructor is explicit in copy-initialization
-  # Reported 3 Sep 2016: https://github.com/USCiLab/cereal/issues/339
-  depends_on :macos => :yosemite
 
   def install
     system "cmake", ".", "-DJUST_INSTALL_CEREAL=ON", *std_cmake_args
@@ -75,7 +67,8 @@ class Cereal < Formula
         return 0;
       }
     EOS
-    system ENV.cc, "-std=c++11", "-stdlib=libc++", "-lc++", "-o", "test", "test.cpp"
+    system ENV.cxx, "test.cpp", "-std=c++11", "-I#{include}", "-o", "test"
     system "./test"
+    assert_predicate testpath/"out.cereal", :exist?
   end
 end

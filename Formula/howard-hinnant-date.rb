@@ -1,15 +1,18 @@
 class HowardHinnantDate < Formula
   desc "C++ library for date and time operations based on <chrono>"
   homepage "https://github.com/HowardHinnant/date"
-  url "https://github.com/HowardHinnant/date/archive/v2.4.1.tar.gz"
-  sha256 "98907d243397483bd7ad889bf6c66746db0d7d2a39cc9aacc041834c40b65b98"
+  url "https://github.com/HowardHinnant/date/archive/v3.0.1.tar.gz"
+  sha256 "7a390f200f0ccd207e8cff6757e04817c1a0aec3e327b006b7eb451c57ee3538"
+  license "MIT"
 
   bottle do
-    cellar :any
-    sha256 "4fa9af2ae9c888fdc73395b7d243bbcc36dbeee17b4165b3754444a21b803fc5" => :mojave
-    sha256 "92fa4808e4dcde7540032ce0aac6a0a33e468e654944706ba2661187e2111616" => :high_sierra
-    sha256 "f42440908ef92ade61d8b1b3c152355162768b0a5eaca3fcc1ed3deae72f8c17" => :sierra
-    sha256 "c3902905c2a51ae0e35fe54b84b00f68d97408f502d83b21f293087d16b9e175" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "52811eb710a07d879d153a65bc6c771a8ff801f990a6bd2f968d1238c6000b03"
+    sha256 cellar: :any,                 arm64_big_sur:  "deff47e2027f805ef5cd430d0700470cf8bada0cde442e8674ae6a832e3b9888"
+    sha256 cellar: :any,                 monterey:       "0098680dad7ff5cb5854d04ab0aff279641892d1c8c3079658bfe2762bb1b6f9"
+    sha256 cellar: :any,                 big_sur:        "b8fc90e684f2d3b711fcb405c082f8ad637eac8f6c5816b746284c911950eb5a"
+    sha256 cellar: :any,                 catalina:       "bebf754666baa69673a77fb5eeb3c0ebe9931b7aa2d3991a3f6fa235a439d11b"
+    sha256 cellar: :any,                 mojave:         "d140b4b590c5ef8c25e80abaa8466dbcb6f10a95ca0dec551de7fb0e213171b4"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "2361559d178154d8e6f69b1da915838ab17271a61d3ff808db1ed2ca8ce7091f"
   end
 
   depends_on "cmake" => :build
@@ -18,7 +21,8 @@ class HowardHinnantDate < Formula
     system "cmake", ".", *std_cmake_args,
                          "-DENABLE_DATE_TESTING=OFF",
                          "-DUSE_SYSTEM_TZ_DB=ON",
-                         "-DBUILD_SHARED_LIBS=ON"
+                         "-DBUILD_SHARED_LIBS=ON",
+                         "-DBUILD_TZ_LIB=ON"
     system "make", "install"
   end
 
@@ -32,7 +36,7 @@ class HowardHinnantDate < Formula
         std::cout << t << std::endl;
       }
     EOS
-    system ENV.cxx, "test.cpp", "-std=c++1y", "-ltz", "-o", "test"
+    system ENV.cxx, "test.cpp", "-std=c++1y", "-L#{lib}", "-ldate-tz", "-o", "test"
     system "./test"
   end
 end

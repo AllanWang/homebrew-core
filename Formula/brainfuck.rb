@@ -1,19 +1,23 @@
 class Brainfuck < Formula
   desc "Interpreter for the brainfuck language"
   homepage "https://github.com/fabianishere/brainfuck"
-  url "https://github.com/fabianishere/brainfuck/archive/2.7.1.tar.gz"
-  sha256 "06534de715dbc614f08407000c2ec6d497770069a2d7c84defd421b137313d71"
-  head "https://github.com/fabianishere/brainfuck.git"
+  url "https://github.com/fabianishere/brainfuck/archive/2.7.3.tar.gz"
+  sha256 "d99be61271b4c27e26a8154151574aa3750133a0bedd07124b92ccca1e03b5a7"
+  license "Apache-2.0"
+  head "https://github.com/fabianishere/brainfuck.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "a9e9509e4f0cd5345ffeac741c3a74d5575e17c99ea53822dd77fd4f98687b57" => :mojave
-    sha256 "cf3c31fcf7c4cf099b348d01e619d1791aa3a255199de80afbc637e331947abf" => :high_sierra
-    sha256 "354bb3372301325b49bfd4bd9b53084061af3bc3a3d6375e1c4635297c0dd008" => :sierra
-    sha256 "f8289bed7e6455b63f05baf367069f60fe478f6c78f064c06ab1e571a181c3b7" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "b753b7dd2274926dbd763571f8b922fe270e25ee527ddd3a71cc4a1f7acb94de"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "802734b20ee8e8fc6eed4a1894c10b5e11810d006ff9346897179b085a4d244b"
+    sha256 cellar: :any_skip_relocation, monterey:       "482ca8d67a9fd57c88e24d5763194e8e70f7e9d7c9dd8a7f3b5827097e2dfb6a"
+    sha256 cellar: :any_skip_relocation, big_sur:        "3120d4eda67a0cf102317a5e0a4ecb36ca8ab99b75c2f0c8b76eabdffb31e252"
+    sha256 cellar: :any_skip_relocation, catalina:       "3bc5affaa9e6ba7d7dc6c2f94ad1e63f36a6e19553a8f0183077322f4c9e9026"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "3554b9a52daf8e246b2459186a891b82c2aa4ce70d900735288903cbc5150152"
   end
 
   depends_on "cmake" => :build
+
+  uses_from_macos "libedit"
 
   def install
     system "cmake", ".", *std_cmake_args, "-DBUILD_SHARED_LIB=ON",

@@ -1,16 +1,20 @@
 class Libgnomecanvas < Formula
   desc "Highlevel, structured graphics library"
-  homepage "https://developer.gnome.org/libgnomecanvas/2.30/"
+  homepage "https://gitlab.gnome.org/Archive/libgnomecanvas"
   url "https://download.gnome.org/sources/libgnomecanvas/2.30/libgnomecanvas-2.30.3.tar.bz2"
   sha256 "859b78e08489fce4d5c15c676fec1cd79782f115f516e8ad8bed6abcb8dedd40"
-  revision 4
+  revision 5
 
   bottle do
-    cellar :any
-    sha256 "9ccb81e0493aa409725fe76ae345d5910be9ea3c782e4d9a46c24c42b0537150" => :mojave
-    sha256 "3c4443a3944a6834a107e2752c95174b49c83c3213be2ac3df319bfd900c22e6" => :high_sierra
-    sha256 "9b2e28d2331f1c24d8b320cc6509e5da3e3c748fac44d078e1f95c6c701b7b10" => :sierra
+    sha256 cellar: :any, arm64_monterey: "aef7d6bf446277bc167f620e3cb3da665cbd18a3b118b2234816078525b9d171"
+    sha256 cellar: :any, arm64_big_sur:  "ed9d17d2b7100e9c5ef536c547119eb78e8658bc273f958e673d47383290c3d7"
+    sha256 cellar: :any, monterey:       "496d5c87547b25b2f57f676fd627d58a0663737dbf993e2c11a3d535f87c03d1"
+    sha256 cellar: :any, big_sur:        "e2ae279ca7759e74bf93ed0577838d7e80fef134ad5f76c671263d023bca3dd1"
+    sha256 cellar: :any, catalina:       "816cd9bf11520fba1126073191c236f2355c45a137905ba978f16a506960fef0"
+    sha256 cellar: :any, mojave:         "bedab86245aa4185fc9c009496ec2d0fc0d1ea53074493db08afc81bdf424a60"
   end
+
+  deprecate! date: "2021-11-03", because: :repo_archived
 
   depends_on "intltool" => :build
   depends_on "pkg-config" => :build
@@ -18,6 +22,12 @@ class Libgnomecanvas < Formula
   depends_on "gtk+"
   depends_on "libart"
   depends_on "libglade"
+
+  # Fix -flat_namespace being used on Big Sur and later.
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-pre-0.4.2.418-big_sur.diff"
+    sha256 "83af02f2aa2b746bb7225872cab29a253264be49db0ecebb12f841562d9a2923"
+  end
 
   def install
     system "./configure", "--disable-dependency-tracking",
@@ -80,17 +90,22 @@ class Libgnomecanvas < Formula
       -lart_lgpl_2
       -latk-1.0
       -lcairo
-      -lgdk-quartz-2.0
       -lgdk_pixbuf-2.0
       -lgio-2.0
       -lglib-2.0
       -lgnomecanvas-2
       -lgobject-2.0
-      -lgtk-quartz-2.0
-      -lintl
       -lpango-1.0
       -lpangocairo-1.0
     ]
+    if OS.mac?
+      flags << "-lgdk-quartz-2.0"
+      flags << "-lgtk-quartz-2.0"
+      flags << "-lintl"
+    else
+      flags << "-lgdk-x11-2.0"
+      flags << "-lgtk-x11-2.0"
+    end
     system ENV.cc, "test.c", "-o", "test", *flags
     system "./test"
   end

@@ -1,19 +1,22 @@
 class Rsnapshot < Formula
   desc "File system snapshot utility (based on rsync)"
   homepage "https://www.rsnapshot.org/"
-  url "https://github.com/rsnapshot/rsnapshot/releases/download/1.4.2/rsnapshot-1.4.2.tar.gz"
-  sha256 "042a81c45b325296b21c363f417985d857f083f87c5c27f5a64677a052f24e16"
-  head "https://github.com/DrHyde/rsnapshot.git"
+  url "https://github.com/rsnapshot/rsnapshot/releases/download/1.4.4/rsnapshot-1.4.4.tar.gz"
+  sha256 "c1cb7cb748c5a9656c386362bdf6c267959737724abb505fbf9e940a9d988579"
+  license "GPL-2.0"
+  head "https://github.com/rsnapshot/rsnapshot.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "58aaff911593d284a63426d0ec4f1328910b9a6cb5a6ecb64f4853d0300a3184" => :mojave
-    sha256 "27e99660b73118874b5ba4ba355a0bf9b5db71933138a6b719869da01164a12a" => :high_sierra
-    sha256 "998faa778dcfdef5b362b10aeaffadc97e40f63ec6df72d9bd25029ab82f2550" => :sierra
-    sha256 "21823489c045150e8d8e51addba52b6cd75eedaec93357732db859ba738f59d5" => :el_capitan
-    sha256 "d6374fba65d24f7067197c9a7732f6f629dcb537f0687ab91f4f15d5c55d6cc6" => :yosemite
-    sha256 "66cc127c640855b029881b2cd029197b093d92b8d77c3bb9a61167cbaedfedd8" => :mavericks
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "51bde7434f2ad12b3d0ce70396665ab1d636e41639a87ec7da43f7d5a57ef991"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "d3b962467213ee16410bc0e619994698c176ca9795ddb6f6087dbba934687144"
+    sha256 cellar: :any_skip_relocation, monterey:       "b80d39853be289fe0056893db5c0f977540a01704e65eb0a12168761a62c137d"
+    sha256 cellar: :any_skip_relocation, big_sur:        "18ba069ea2a52a986acf2027299e9ae5d85593c011361e2448f3b54752e42078"
+    sha256 cellar: :any_skip_relocation, catalina:       "9d5272a4186bd3d895a5491bac76e66e3cac54e906bf03022d6ea7ad421b8fd8"
+    sha256 cellar: :any_skip_relocation, mojave:         "9d5272a4186bd3d895a5491bac76e66e3cac54e906bf03022d6ea7ad421b8fd8"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "167623261bb7075b7f2bd0c781c0ca08c081bb4f8ce4166cd3da6ce671575fe8"
   end
+
+  uses_from_macos "rsync" => :build
 
   def install
     system "./configure", "--prefix=#{prefix}", "--mandir=#{man}"

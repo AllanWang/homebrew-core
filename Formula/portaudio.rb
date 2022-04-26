@@ -1,33 +1,48 @@
 class Portaudio < Formula
   desc "Cross-platform library for audio I/O"
   homepage "http://www.portaudio.com"
-  url "http://www.portaudio.com/archives/pa_stable_v190600_20161030.tgz"
-  version "19.6.0"
-  sha256 "f5a21d7dcd6ee84397446fa1fa1a0675bb2e8a4a6dceb4305a8404698d8d1513"
+  url "http://files.portaudio.com/archives/pa_stable_v190700_20210406.tgz"
+  version "19.7.0"
+  sha256 "47efbf42c77c19a05d22e627d42873e991ec0c1357219c0d74ce6a2948cb2def"
+  license "MIT"
   version_scheme 1
-  head "https://git.assembla.com/portaudio.git"
+  head "https://github.com/PortAudio/portaudio.git", branch: "master"
+
+  livecheck do
+    url "http://files.portaudio.com/download.html"
+    regex(/href=.*?pa[._-]stable[._-]v?(\d+)(?:[._-]\d+)?\.t/i)
+    strategy :page_match do |page, regex|
+      # Modify filename version (190700) to match formula version (19.7.0)
+      page.scan(regex).map { |match| match&.first&.scan(/\d{2}/)&.map(&:to_i)&.join(".") }
+    end
+  end
 
   bottle do
-    cellar :any
-    sha256 "54d0d7a2e270221cef38c5405a5102a0efc19df4aa88d907d74d0eefebbc31ba" => :mojave
-    sha256 "c8c55723ecdb61b8e4f4431062814d6ce8a267a19fe3e34c70b2bd677a0e20f9" => :high_sierra
-    sha256 "4fb62387583b02607e013f376c02b4a1f6c2a2fa9b68ee43e79c9c04d12f9a45" => :sierra
-    sha256 "96afa37e0de1723e4fa206360f189ed0486ecd74a5554dcab75eb47395be78db" => :el_capitan
-    sha256 "64b21e55c28066264ee09918c045b77c0b1049a19f8df4636283ce17b1d84944" => :yosemite
+    rebuild 1
+    sha256 cellar: :any,                 arm64_monterey: "8f390bc5ee1fffa1191df48e2947acafd5063abdc713c595760f3ac6a7a8ebd6"
+    sha256 cellar: :any,                 arm64_big_sur:  "3daf7c4d5a1b948b2564de026336e3f3496f693ea0743e42b50f78d09ee32469"
+    sha256 cellar: :any,                 monterey:       "69daed6f99f96edb350f06043d5d7121bb0d3eaa88e64ef5bac247f300d552e9"
+    sha256 cellar: :any,                 big_sur:        "f67d3a167142d0afa6ef446260075a7e1c29cf3d1246a95bac2f12732004398a"
+    sha256 cellar: :any,                 catalina:       "9b0934f5a868dc0c3874ae6491d685cff6537923cc49d6abea18c1bf59cddaea"
+    sha256 cellar: :any,                 mojave:         "e69bcb7966fae64dabb4866a9f791437b59ef1991112b2a6fb31ee94a76b9244"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "01048cd3e5c934f5fb7b7cd11430833c69022a621fcc2d868159e07bbef1e3e4"
   end
 
   depends_on "pkg-config" => :build
 
+  on_linux do
+    depends_on "alsa-lib"
+    depends_on "jack"
+  end
+
   def install
-    system "./configure", "--prefix=#{prefix}",
-                          "--disable-debug",
-                          "--disable-dependency-tracking",
+    system "./configure", *std_configure_args,
                           "--enable-mac-universal=no",
                           "--enable-cxx"
     system "make", "install"
 
     # Need 'pa_mac_core.h' to compile PyAudio
-    include.install "include/pa_mac_core.h"
+    include.install "include/pa_mac_core.h" if OS.mac?
   end
 
   test do

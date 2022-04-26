@@ -1,13 +1,22 @@
 class Libgphoto2 < Formula
   desc "Gphoto2 digital camera library"
   homepage "http://www.gphoto.org/proj/libgphoto2/"
-  url "https://downloads.sourceforge.net/project/gphoto/libgphoto/2.5.22/libgphoto2-2.5.22.tar.bz2"
-  sha256 "15d7327aa9a986af1e1dbfd8f15ba81352b67450d30e44562ce768ff9435ce58"
+  url "https://downloads.sourceforge.net/project/gphoto/libgphoto/2.5.29/libgphoto2-2.5.29.tar.bz2"
+  sha256 "dbe3cefad8c634fc134d93467a33e242cb1030f0b9829deb9f1703f368ac027e"
+  license "LGPL-2.1-or-later"
+
+  livecheck do
+    url :stable
+    regex(%r{url=.*?/libgphoto2[._-]v?(\d+(?:\.\d+)+)\.t}i)
+  end
 
   bottle do
-    sha256 "40c6940be0084a5a5abfad2f5213ea738038db424199caa3ef2b4866494125b7" => :mojave
-    sha256 "fa391a414d685195eac9e1b70a8e4682b7a633eb43e70ac9f1ff2ca7f52ce5d1" => :high_sierra
-    sha256 "e527d28dcc0a31f39ed20360d2a3f0a7068090f6f6c7b89d267107449ce6b523" => :sierra
+    sha256 arm64_monterey: "6c80831d84e3ab5b262ab6b7efa2732af36aa92a88e7e0a63d0a37535d2161ef"
+    sha256 arm64_big_sur:  "0e79ac4d1a57cee1f3008f0eab644c6c2f451fd7a2ea67053d2cd4a14763ec55"
+    sha256 monterey:       "af7f3362d28e36f23256e99b3205fe6ac469afbfd47fa75862729e6d3c8ca771"
+    sha256 big_sur:        "6a613d9f83b3f272294448b9b07152537bd5a66390972cb4deaadffc28e5fa45"
+    sha256 catalina:       "988a6f660584ae3395ee839533614a869c6177c931791cf074db133e3c0c57e0"
+    sha256 x86_64_linux:   "206f9db7933f05ac5ddffe94e58009268968e58702d406a94b6f1dc200b95c71"
   end
 
   head do

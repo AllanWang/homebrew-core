@@ -3,13 +3,18 @@ class Libnids < Formula
   homepage "https://libnids.sourceforge.io/"
   url "https://downloads.sourceforge.net/project/libnids/libnids/1.24/libnids-1.24.tar.gz"
   sha256 "314b4793e0902fbf1fdb7fb659af37a3c1306ed1aad5d1c84de6c931b351d359"
-  revision 1
+  license "GPL-2.0-only"
+  revision 2
 
   bottle do
-    cellar :any
-    sha256 "d42b4d49f5b6e4b465cbed83337adcc218d32c99c754b89b249d8f2c675a02f9" => :mojave
-    sha256 "35f886a96ce255259d1cef139939cf760f3fc3b3b35664f9a59e9a8bdf27f072" => :high_sierra
-    sha256 "b0ab2ca7fe6339f9ce06b6916e6205792a62b123e3887f7e372a9ed3a6ce85ed" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "085e5576236a751d84a975412ef34f206f2eb0c639c826dde4a7298cea4f00d3"
+    sha256 cellar: :any,                 arm64_big_sur:  "6c7f242b8c5564eebc95837bf61f5760b88e2e543772357d43132921f20f858d"
+    sha256 cellar: :any,                 monterey:       "bb00ea7f83f736bb27b63da94cd2fe4ad077c5aab62a357a4e996fa2cc98e123"
+    sha256 cellar: :any,                 big_sur:        "0235b5bccac955c60852984ed13fa3213e3ccad9c0fe36ae522b5ac53f1f2a42"
+    sha256 cellar: :any,                 catalina:       "0cd6c420a38ea61eb8abe96b6b2f754bddf1ca5583b3dbccfb1b268990426764"
+    sha256 cellar: :any,                 mojave:         "175d04b2db4bc65923eed696272339f4533ea8277ec64f01ba6a2b9a6019c8d6"
+    sha256 cellar: :any,                 high_sierra:    "e9e968ec057ae597b39c45ff1e804fde87f265c6783e62cb70e009ecc4aafd05"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "53191548aacc1a482ec1bec888da8809da4c17b7b88e631b7c725acce36456e9"
   end
 
   depends_on "autoconf" => :build
@@ -19,8 +24,15 @@ class Libnids < Formula
   depends_on "glib"
   depends_on "libnet"
 
+  uses_from_macos "libpcap"
+
   # Patch fixes -soname and .so shared library issues. Unreported.
-  patch :DATA
+  on_macos do
+    patch do
+      url "https://raw.githubusercontent.com/Homebrew/formula-patches/85fa66a9dc80757ba32bf5d818d70fc26bb24b6f/libnids/1.24.patch"
+      sha256 "d9339c16f89915a02025f10f26aab5bb77c2af85926d2d9ff52e9c7bf2092215"
+    end
+  end
 
   def install
     # autoreconf the old 2005 era code for sanity.
@@ -30,34 +42,3 @@ class Libnids < Formula
     system "make", "install"
   end
 end
-
-__END__
---- a/src/Makefile.in	2010-03-01 13:13:17.000000000 -0800
-+++ b/src/Makefile.in	2012-09-19 09:48:23.000000000 -0700
-@@ -13,7 +13,7 @@
- libdir		= @libdir@
- mandir		= @mandir@
- LIBSTATIC      = libnids.a
--LIBSHARED      = libnids.so.1.24
-+LIBSHARED      = libnids.1.24.dylib
- 
- CC		= @CC@
- CFLAGS		= @CFLAGS@ -DLIBNET_VER=@LIBNET_VER@ -DHAVE_ICMPHDR=@ICMPHEADER@ -DHAVE_TCP_STATES=@TCPSTATES@ -DHAVE_BSD_UDPHDR=@HAVE_BSD_UDPHDR@
-@@ -65,7 +65,7 @@
- 	ar -cr $@ $(OBJS)
- 	$(RANLIB) $@
- $(LIBSHARED): $(OBJS_SHARED)
--	$(CC) -shared -Wl,-soname,$(LIBSHARED) -o $(LIBSHARED) $(OBJS_SHARED) $(LIBS) $(LNETLIB) $(PCAPLIB)
-+	$(CC) -dynamiclib -Wl,-dylib -Wl,-install_name,$(LIBSHARED) -Wl,-headerpad_max_install_names -o $(LIBSHARED) $(OBJS_SHARED) $(LIBS) $(LNETLIB) $(PCAPLIB)
- 
- _install install: $(LIBSTATIC)
- 	../mkinstalldirs $(install_prefix)$(libdir)
-@@ -76,7 +76,7 @@
- 	$(INSTALL) -c -m 644 libnids.3 $(install_prefix)$(mandir)/man3
- _installshared installshared: install $(LIBSHARED)
- 	$(INSTALL) -c -m 755 $(LIBSHARED) $(install_prefix)$(libdir)
--	ln -s -f $(LIBSHARED) $(install_prefix)$(libdir)/libnids.so
-+	ln -s -f $(LIBSHARED) $(install_prefix)$(libdir)/libnids.dylib
-  
- clean:
- 	rm -f *.o *~ $(LIBSTATIC) $(LIBSHARED)

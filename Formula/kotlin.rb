@@ -1,15 +1,26 @@
 class Kotlin < Formula
   desc "Statically typed programming language for the JVM"
   homepage "https://kotlinlang.org/"
-  url "https://github.com/JetBrains/kotlin/releases/download/v1.3.41/kotlin-compiler-1.3.41.zip"
-  sha256 "c44ab6866895606e408b60934ebe45d4befcbc33ea0e4ea73c4b3b89ad770132"
+  url "https://github.com/JetBrains/kotlin/releases/download/v1.6.21/kotlin-compiler-1.6.21.zip"
+  sha256 "632166fed89f3f430482f5aa07f2e20b923b72ef688c8f5a7df3aa1502c6d8ba"
+  license "Apache-2.0"
 
-  bottle :unneeded
+  livecheck do
+    url :stable
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
+  end
+
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "4c53c499a664e15a04789fcb915d1d01b7548d64427086fce3f625621977a558"
+  end
+
+  depends_on "openjdk"
 
   def install
     libexec.install "bin", "build.txt", "lib"
-    rm Dir["#{libexec}/bin/*.bat"]
-    bin.install_symlink Dir["#{libexec}/bin/*"]
+    rm Dir[libexec/"bin/*.bat"]
+    bin.install Dir[libexec/"bin/*"]
+    bin.env_script_all_files libexec/"bin", Language::Java.overridable_java_home_env
     prefix.install "license"
   end
 
@@ -19,8 +30,8 @@ class Kotlin < Formula
         println("Hello World!")
       }
     EOS
-    system "#{bin}/kotlinc", "test.kt", "-include-runtime", "-d", "test.jar"
-    system "#{bin}/kotlinc-js", "test.kt", "-output", "test.js"
-    system "#{bin}/kotlinc-jvm", "test.kt", "-include-runtime", "-d", "test.jar"
+    system bin/"kotlinc", "test.kt", "-include-runtime", "-d", "test.jar"
+    system bin/"kotlinc-js", "test.kt", "-output", "test.js"
+    system bin/"kotlinc-jvm", "test.kt", "-include-runtime", "-d", "test.jar"
   end
 end

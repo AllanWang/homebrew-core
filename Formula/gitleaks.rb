@@ -1,32 +1,41 @@
 class Gitleaks < Formula
   desc "Audit git repos for secrets"
   homepage "https://github.com/zricethezav/gitleaks"
-  url "https://github.com/zricethezav/gitleaks/archive/v2.0.0.tar.gz"
-  sha256 "85a5c98dedeb4e85e07eb18247b63318aa266ef3046c2022eac949cc6f254da0"
+  url "https://github.com/zricethezav/gitleaks/archive/v8.8.2.tar.gz"
+  sha256 "de027c9eb14af60ed93fb38e52d89b9f14bd929627890d83baafea615ab60820"
+  license "MIT"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "1ce44002a739b7a76d7787bcbf392b2e615e3b553ddc4d29c38e68d16cd00549" => :mojave
-    sha256 "aa7e9017ba5541dfcbead6483e97f813fdbdfa0aae9b453b40e41c62fa03d7b3" => :high_sierra
-    sha256 "7543cd36fe58a29d41f12b7a55dfc7bbf4fa31e75051041a50bc430779a435e7" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "66fb3c17d60def6d4934133c138702dff146d9f342e7b36825c164e5ac90fc37"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "a1f1cb22ec98eaeba5d0657b97be748c4daa8ca9c679be49bec89e0a30e417cf"
+    sha256 cellar: :any_skip_relocation, monterey:       "8a7014f62a4817886ea78fd0dcf27ad658721253eefcad6629e570bc846991c0"
+    sha256 cellar: :any_skip_relocation, big_sur:        "89265bb860190b854445f31a77f0408e5ae2ae0b4123706d65334a565ee767fe"
+    sha256 cellar: :any_skip_relocation, catalina:       "290f20b43759b9ec9bb587bdec84357978daccae8d98a109b00cf2b267cb1ef7"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "a480868455ee1648a6d2aff36735414cac7f536b53923b47a4f90002d9d788fb"
   end
 
   depends_on "go" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-    ENV["GO111MODULE"] = "on"
+    ldflags = "-X github.com/zricethezav/gitleaks/v#{version.major}/cmd.Version=#{version}"
+    system "go", "build", *std_go_args(ldflags: ldflags)
 
-    dir = buildpath/"github.com/zricethezav/gitleaks"
-    dir.install buildpath.children
+    bash_output = Utils.safe_popen_read(bin/"gitleaks", "completion", "bash")
+    (bash_completion/"gitleaks").write bash_output
 
-    cd dir do
-      system "go", "build", "-o", bin/"gitleaks"
-      prefix.install_metafiles
-    end
+    zsh_output = Utils.safe_popen_read(bin/"gitleaks", "completion", "zsh")
+    (zsh_completion/"_gitleaks").write zsh_output
+
+    fish_output = Utils.safe_popen_read(bin/"gitleaks", "completion", "fish")
+    (fish_completion/"gitleaks.fish").write fish_output
   end
 
   test do
-    assert_includes shell_output("#{bin}/gitleaks -r https://github.com/gitleakstest/emptyrepo.git"), "0 leaks detected"
+    (testpath/"README").write "ghp_deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+    system "git", "init"
+    system "git", "add", "README"
+    system "git", "commit", "-m", "Initial commit"
+    assert_match(/WRN\S* leaks found: [1-9]/, shell_output("#{bin}/gitleaks detect 2>&1", 1))
+    assert_equal version.to_s, shell_output("#{bin}/gitleaks version").strip
   end
 end

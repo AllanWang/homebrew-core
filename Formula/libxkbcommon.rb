@@ -1,34 +1,46 @@
 class Libxkbcommon < Formula
   desc "Keyboard handling library"
   homepage "https://xkbcommon.org/"
-  url "https://xkbcommon.org/download/libxkbcommon-0.8.2.tar.xz"
-  sha256 "7ab8c4b3403d89d01898066b72cb6069bddeb5af94905a65368f671a026ed58c"
+  url "https://xkbcommon.org/download/libxkbcommon-1.4.0.tar.xz"
+  sha256 "106cec5263f9100a7e79b5f7220f889bc78e7d7ffc55d2b6fdb1efefb8024031"
+  license "MIT"
+  head "https://github.com/xkbcommon/libxkbcommon.git", branch: "master"
 
-  bottle do
-    sha256 "95c1b24529a35cc2653397c3d7505fa26332e531264163e3ca6c96b15fef9a67" => :mojave
-    sha256 "68c2c32d4a35e4c7b3984fd4df45b29aef77a3cb74da4bb301ce9e3fff86f2ff" => :high_sierra
-    sha256 "b8deb446b227b5d6b19e752083486168f76e9c911e542b2cad2bf00f310612ec" => :sierra
-    sha256 "ca1f6ac28d09ce0178b219003a3368e60ed3c7de36ec48cb9ea8c57eb844e643" => :el_capitan
+  livecheck do
+    url :homepage
+    regex(/href=.*?libxkbcommon[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
-  head do
-    url "https://github.com/xkbcommon/libxkbcommon.git"
-
-    depends_on "autoconf" => :build
-    depends_on "automake" => :build
-    depends_on "libtool" => :build
+  bottle do
+    sha256 arm64_monterey: "a75c6677a5c45eabcd73867086dff4c704900ac9cf6ce8e26dd1be5a6ff1157a"
+    sha256 arm64_big_sur:  "4de98d422442bc15aaf7b0e78f2c4312c1ae73a12eb48e87c051b0cffc5db57c"
+    sha256 monterey:       "c6b33b38933fc09c5b8759976f24ce1c556cd56a62e8e1504173016e1ff665f5"
+    sha256 big_sur:        "8c90166b1335ba095d76506b61a9cdfb97e67b9a603da2654fcca8328a2429a6"
+    sha256 catalina:       "ac9c4b144d43a06ea024febda54a957490b0d985156adeee86fc4358288ade84"
+    sha256 x86_64_linux:   "a691f0e653cae432d021079871bbe82589b9614248973b81191e1c5ab93845ba"
   end
 
   depends_on "bison" => :build
+  depends_on "meson" => :build
+  depends_on "ninja" => :build
   depends_on "pkg-config" => :build
-  depends_on :x11
+  depends_on "libx11"
+  depends_on "libxcb"
+  depends_on "xkeyboardconfig"
+
+  uses_from_macos "libxml2"
 
   def install
-    system "./autogen.sh" if build.head?
-    system "./configure", "--disable-dependency-tracking",
-                          "--disable-silent-rules",
-                          "--prefix=#{prefix}"
-    system "make", "install"
+    args = %W[
+      -Denable-wayland=false
+      -Denable-docs=false
+      -Dxkb-config-root=#{HOMEBREW_PREFIX}/share/X11/xkb
+      -Dx-locale-root=#{HOMEBREW_PREFIX}/share/X11/locale
+    ]
+    mkdir "build" do
+      system "meson", *std_meson_args, *args, ".."
+      system "ninja", "install", "-v"
+    end
   end
 
   test do

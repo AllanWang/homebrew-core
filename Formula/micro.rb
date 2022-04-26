@@ -1,30 +1,29 @@
 class Micro < Formula
   desc "Modern and intuitive terminal-based text editor"
   homepage "https://github.com/zyedidia/micro"
-  url "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-src.tar.gz"
-  sha256 "0b516826226cf1ddf2fbb274f049cab456a5c162efe3d648f0871564fadcf812"
-  head "https://github.com/zyedidia/micro.git", :shallow => false
+  url "https://github.com/zyedidia/micro.git",
+      tag:      "v2.0.10",
+      revision: "b97638566ea8431712f0faafe23661da2db0e8ec"
+  license "MIT"
+  head "https://github.com/zyedidia/micro.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "f5176ac6e12e25b7b8c88965cc8d92fe0892f6eaec60c28359c3be3e2f460df0" => :mojave
-    sha256 "863a1f4f3cb0f48efe6ca22a0df05cf2c9adcaf63857aea622f2e26e21836dc5" => :high_sierra
-    sha256 "8426c70077cf223e6fb677de514ede5546c3635b9760da0c1980577c7b2dd016" => :sierra
-    sha256 "73755f137c49c168bf9ccc817df71b067959609fa2dc3eabda8002fb8f253e67" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "c8a19557c64667e27d9dea4c4321465297ec8669d05566518b7f2bc4b39cd88b"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "6cb2c86f690a52f3242021d6a567b0f15943f8c68af263298aae17c67bdcfcc4"
+    sha256 cellar: :any_skip_relocation, monterey:       "455091c0d41b4f4bc2bb8f4c7a00f61e1231df00e7b8be557127f652df358603"
+    sha256 cellar: :any_skip_relocation, big_sur:        "5bcf6e60611b745183aeda8294088f9b42bbcc367ba9765c570b6c4224e26047"
+    sha256 cellar: :any_skip_relocation, catalina:       "2915aafc3513241afd778caeadc146ad0df2a7124e03012c1bf2ba867194deb2"
+    sha256 cellar: :any_skip_relocation, mojave:         "35b0c0717cfb5c7c78cfa2f51bf162594f7f6f84ac88243c51e40c0ada9fb496"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "4a284bc50e33f7792f802e460c2c400ffcbfb392927e6ece1dfba876c5c5d33f"
   end
 
   depends_on "go" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-
-    (buildpath/"src/github.com/zyedidia/micro").install buildpath.children
-
-    cd "src/github.com/zyedidia/micro" do
-      system "make", "build-quick"
-      bin.install "micro"
-      prefix.install_metafiles
-    end
+    system "make", "build-tags"
+    bin.install "micro"
+    man1.install "assets/packaging/micro.1"
+    prefix.install_metafiles
   end
 
   test do

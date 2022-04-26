@@ -1,16 +1,25 @@
 class Pigz < Formula
   desc "Parallel gzip"
   homepage "https://zlib.net/pigz/"
-  url "https://zlib.net/pigz/pigz-2.4.tar.gz"
-  sha256 "a4f816222a7b4269bd232680590b579ccc72591f1bb5adafcd7208ca77e14f73"
+  url "https://zlib.net/pigz/pigz-2.7.tar.gz"
+  sha256 "b4c9e60344a08d5db37ca7ad00a5b2c76ccb9556354b722d56d55ca7e8b1c707"
+  license "Zlib"
+
+  livecheck do
+    url :homepage
+    regex(/href=.*?pigz[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "341c5f3c0a82aedd822b2dd187ecc12b3dbdea9b2f00b08ce7ba049916557314" => :mojave
-    sha256 "216e716eafd2786ed6fa672daf27bb77b420e05f92a14cfeccab28a6be6b7778" => :high_sierra
-    sha256 "9173b4bdf36c787ad7a3b7d738236e0393430b607ba44d5a32fa387b008a347a" => :sierra
-    sha256 "d0c4ec5ac96ab0262d5e67bd5df5432d7dc40ac1404341962c02835ca8451b5c" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "87eb60dff0d81ca7f81cf246c2da0be06d6f909e209accf8666247d769a9b219"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "51fb51dc19db67ecf6bb7b76454cc83b00171247e9dfc095f46553c6bca8729f"
+    sha256 cellar: :any_skip_relocation, monterey:       "bffb52ab8c1c4936c352e9fbb97fc789ddd86546a274f6b35d0f6524315ad007"
+    sha256 cellar: :any_skip_relocation, big_sur:        "6d089d60ff92c745931331b2c624178c79bb6640c2022b8dd988ec50ab369e15"
+    sha256 cellar: :any_skip_relocation, catalina:       "900864364a7ee537d5f99a765007861b432a435f2613a4c53ae8a570ec12fa7a"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "0a6ba53a70f69c7db90ab0f69af67ae3abfa95058cdb1ac319b3bfffbdbc6847"
   end
+
+  uses_from_macos "zlib"
 
   def install
     # Fix dyld: lazy symbol binding failed: Symbol not found: _deflatePending
@@ -32,7 +41,7 @@ class Pigz < Formula
     assert (testpath/"example.gz").file?
     system bin/"unpigz", testpath/"example.gz"
     assert_equal test_data, (testpath/"example").read
-    system "/bin/dd", "if=/dev/random", "of=foo.bin", "bs=1m", "count=10"
+    system "/bin/dd", "if=/dev/random", "of=foo.bin", "bs=1024k", "count=10"
     system bin/"pigz", "foo.bin"
   end
 end

@@ -1,21 +1,29 @@
 class Libdnet < Formula
   desc "Portable low-level networking library"
-  homepage "https://github.com/dugsong/libdnet"
-  url "https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/libdnet/libdnet-1.12.tgz"
-  sha256 "83b33039787cf99990e977cef7f18a5d5e7aaffc4505548a83d31bd3515eb026"
+  homepage "https://github.com/ofalk/libdnet"
+  url "https://github.com/ofalk/libdnet/archive/libdnet-1.14.tar.gz"
+  sha256 "592599c54a57102a177270f3a2caabda2c2ac7768b977d7458feba97da923dfe"
+  license "BSD-3-Clause"
+
+  livecheck do
+    url :homepage
+    regex(/^libdnet[._-]v?(\d+(?:\.\d+)+)$/i)
+  end
 
   bottle do
-    cellar :any
-    rebuild 3
-    sha256 "5b9ce1110f17d6191bbb917e7bcecca734fc741d3534e67a10326314e15ecccb" => :mojave
-    sha256 "a9747616e12b57f7d3bd14e070d2054c2f3bfd836be6328005b964ccbe85a3f9" => :high_sierra
-    sha256 "c9c71fab92a207e7a9bceef1d4102a545c36c5f23aae9d4774d46de4c8b22890" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "589d70b5dcf0377cca4636db9b3141f5b9032a1d65bb689ad0cab8a5af24dd85"
+    sha256 cellar: :any,                 arm64_big_sur:  "54a55ad8719e269c07cbef8a5c61924e2431a5a5c88cce4148dbeffede79a353"
+    sha256 cellar: :any,                 monterey:       "e5672d9ee85274aea69f2cb3a180ba097e652ddedb5ccae9e67cce5faa46ed1a"
+    sha256 cellar: :any,                 big_sur:        "8e5f269aa55ecbf1a5f6855ef355696159b6155ea338cfb1e3b3b4ae8409bb72"
+    sha256 cellar: :any,                 catalina:       "f8c9ace5eb112c484f50da7624df13c551b14114ece91a155ce2394b30e264b7"
+    sha256 cellar: :any,                 mojave:         "1e967ac6c5b9c70f72efba9082844c755dba2d62054a4c4dfbd5629da3cb0b76"
+    sha256 cellar: :any,                 high_sierra:    "fd53de5c1830dcdb52ecba97cf0c9c6afccf44037e6df6f64ef1d163d6c6adff"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "310b847c745827989b5b5394342e28fbb5ae8a25babe9399867648bab637c779"
   end
 
   depends_on "autoconf" => :build
   depends_on "automake" => :build
   depends_on "libtool" => :build
-  depends_on "python@2" # does not support Python 3
 
   def install
     # autoreconf to get '.dylib' extension on shared lib
@@ -24,8 +32,7 @@ class Libdnet < Formula
 
     system "./configure", "--disable-dependency-tracking",
                           "--prefix=#{prefix}",
-                          "--mandir=#{man}",
-                          "--with-python"
+                          "--mandir=#{man}"
     system "make", "install"
   end
 

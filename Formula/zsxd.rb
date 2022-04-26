@@ -1,21 +1,27 @@
 class Zsxd < Formula
   desc "Zelda Mystery of Solarus XD"
   homepage "https://www.solarus-games.org/en/games/the-legend-of-zelda-mystery-of-solarus-xd"
-  url "https://github.com/christopho/zsxd/archive/zsxd-1.11.0.tar.gz"
-  sha256 "4c6e744ecc5b7e123f5e085ed993e8234cbef8046d2717d16121a2b711e0ccde"
-  head "https://github.com/christopho/zsxd.git"
+  url "https://gitlab.com/solarus-games/zsxd/-/archive/v1.12.2/zsxd-v1.12.2.tar.bz2"
+  sha256 "656ac2033db2aca7ad0cd5c7abb25d88509b312b155ab83546c90abbc8583df1"
+  head "https://gitlab.com/solarus-games/zsxd.git", branch: "dev"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "f98aa8c723cfddb79aead81d9a4c9ede96d2c7d19ea3dba87d8f2ee069f67877" => :mojave
-    sha256 "771e8ae2db1b6ab59d0ecaceee0265540a9a9d7f46b0be1fc7017842e743158a" => :high_sierra
-    sha256 "cf2a0976c81fd8e06116d7728804ce266265447ebede2f80182f9f07071ec2da" => :sierra
-    sha256 "56bd3750bfa55261fc43cb13144d3b81db7ae6743eb14ab0d2efa0783efb7e26" => :el_capitan
-    sha256 "03135d1568d306d2c7918c643f4cca1071cf463fb62ce1af28b3fcca8ed5b4cb" => :yosemite
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "ee42ed381fd488a0e538e30eeff539346f71c0822fcc899907792fc4acc5988a"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "4092f599ecb1631608fe3a5109006480d6797bee0ec8b4cd4878b451f4400720"
+    sha256 cellar: :any_skip_relocation, monterey:       "5641638453928b8d7dc434051961417e5c3e768c06fc35f9879737640027ece3"
+    sha256 cellar: :any_skip_relocation, big_sur:        "ccae47d22a42e29f9d5d37fdd0be7cfa8f451d3b0f42d2db2b933f6a7ae1d129"
+    sha256 cellar: :any_skip_relocation, catalina:       "aabcc393aae8f00a45ffa24d959ff57a6023caace90a815f8107c579e113b87e"
+    sha256 cellar: :any_skip_relocation, mojave:         "8b6e336bd61f16c620ab8323ccd15dfc35cf1665c71799a838c4436fefd561b0"
+    sha256 cellar: :any_skip_relocation, high_sierra:    "fa0726547d624647bd7453100b6e2221ce0ec9174e0cd43275844b09aefb6c0d"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "6b29f50a29f5874e4197504acbc4bd1f0162df77d8e30152a10c4bf82befc446"
   end
 
   depends_on "cmake" => :build
   depends_on "solarus"
+
+  uses_from_macos "zip" => :build
+  uses_from_macos "unzip" => :test
 
   def install
     system "cmake", ".", *std_cmake_args, "-DSOLARUS_INSTALL_DATADIR=#{share}"
@@ -24,6 +30,6 @@ class Zsxd < Formula
 
   test do
     system Formula["solarus"].bin/"solarus-run", "-help"
-    system "/usr/bin/unzip", pkgshare/"data.solarus"
+    system "unzip", pkgshare/"data.solarus"
   end
 end

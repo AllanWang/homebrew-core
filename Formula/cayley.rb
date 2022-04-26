@@ -1,35 +1,47 @@
 class Cayley < Formula
   desc "Graph database inspired by Freebase and Knowledge Graph"
   homepage "https://github.com/cayleygraph/cayley"
-  url "https://github.com/cayleygraph/cayley/archive/v0.7.5.tar.gz"
-  sha256 "4fcc8bf44f775dbbbd6146713f6fbdc80f2d88e2e8b93767f62eb5d635a56739"
-  head "https://github.com/google/cayley.git"
+  url "https://github.com/cayleygraph/cayley.git",
+      tag:      "v0.7.7",
+      revision: "dcf764fef381f19ee49fad186b4e00024709f148"
+  license "Apache-2.0"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "377e5180df5cf802155e5d2af615f226706c0f02774b50a53b2b5d44480a151d" => :mojave
-    sha256 "ce7a9c57fbf969e0cf60bc9cdf8f6e1d57e254dc506a9e509cc4d7052bbb53df" => :high_sierra
-    sha256 "a745c0d7c87f43e62232be852ec8df3b8ee5e18cb6595725b5588843521164a4" => :sierra
+    rebuild 2
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "63e5659661c157f2eec496d2c0075a7d91cd25d4985a35935a34fa5a4cdb6142"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "ead8a905c38526bdc7812eb1d500cf9dcb90c8c9dbb73126e1b3da463a4520c9"
+    sha256 cellar: :any_skip_relocation, monterey:       "b621ff9b1017dac7f6cbe723abbd85256d04be2f31b4e527a569d2b5d66e54bb"
+    sha256 cellar: :any_skip_relocation, big_sur:        "9217369e4d1d1863fd23a2694a3962510a52380b385c199008191c302629f0ac"
+    sha256 cellar: :any_skip_relocation, catalina:       "7fe446d8eaa6ed43ae226027feec3878e437708d4a59c5aab761ab249bc9ba56"
+    sha256 cellar: :any_skip_relocation, mojave:         "7084bd5b3b7dc66c9c50266f2831951f995901f2a326905c760646ebe66a3b96"
+    sha256 cellar: :any_skip_relocation, high_sierra:    "0dc598decbc9c70660d22fc670f71581e7fec09e5c9d9bc13ccee4c88c758338"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d3068fa07874df5d0abb42373433c4f0997d2693f20b859bfdddf36390ea15fe"
   end
 
-  depends_on "bazaar" => :build
-  depends_on "dep" => :build
-  depends_on "go" => :build
+  depends_on "breezy" => :build
+  # Bump to 1.18 on the next release, if possible.
+  depends_on "go@1.17" => :build
   depends_on "mercurial" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
+    dir = buildpath/"src/github.com/cayleygraph/cayley"
+    dir.install buildpath.children
 
-    (buildpath/"src/github.com/cayleygraph/cayley").install buildpath.children
-    cd "src/github.com/cayleygraph/cayley" do
-      system "dep", "ensure", "-vendor-only"
-      system "go", "build", "-o", bin/"cayley", "-ldflags",
-             "-X main.Version=#{version}", ".../cmd/cayley"
+    cd dir do
+      # Run packr to generate .go files that pack the static files into bytes that can be bundled into the Go binary.
+      system "go", "run", "github.com/gobuffalo/packr/v2/packr2"
+
+      ldflags = %W[
+        -s -w
+        -X github.com/cayleygraph/cayley/version.Version=#{version}
+        -X github.com/cayleygraph/cayley/version.GitHash=#{Utils.git_short_head}
+      ]
+
+      # Build the binary
+      system "go", "build", "-o", bin/"cayley", "-ldflags", ldflags.join(" "), "./cmd/cayley"
 
       inreplace "cayley_example.yml", "./cayley.db", var/"cayley/cayley.db"
       etc.install "cayley_example.yml" => "cayley.yml"
-
-      (pkgshare/"assets").install "docs", "static", "templates"
 
       # Install samples
       system "gzip", "-d", "data/30kmoviedata.nq.gz"
@@ -46,41 +58,23 @@ class Cayley < Formula
     end
   end
 
-  plist_options :manual => "cayley http --assets=#{HOMEBREW_PREFIX}/share/cayley/assets --config=#{HOMEBREW_PREFIX}/etc/cayley.conf"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>KeepAlive</key>
-        <dict>
-          <key>SuccessfulExit</key>
-          <false/>
-        </dict>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>ProgramArguments</key>
-        <array>
-          <string>#{opt_bin}/cayley</string>
-          <string>http</string>
-          <string>--assets=#{opt_pkgshare}/assets</string>
-          <string>--config=#{etc}/cayley.conf</string>
-        </array>
-        <key>RunAtLoad</key>
-        <true/>
-        <key>WorkingDirectory</key>
-        <string>#{var}/cayley</string>
-        <key>StandardErrorPath</key>
-        <string>#{var}/log/cayley.log</string>
-        <key>StandardOutPath</key>
-        <string>#{var}/log/cayley.log</string>
-      </dict>
-    </plist>
-  EOS
+  service do
+    run [opt_bin/"cayley", "http", "--config=#{etc}/cayley.conf"]
+    keep_alive true
+    error_log_path var/"log/cayley.log"
+    log_path var/"log/cayley.log"
+    working_dir var/"cayley"
   end
 
   test do
     assert_match version.to_s, shell_output("#{bin}/cayley version")
+
+    http_port = free_port
+    fork do
+      exec "#{bin}/cayley", "http", "--host=127.0.0.1:#{http_port}"
+    end
+    sleep 3
+    response = shell_output("curl -s -i 127.0.0.1:#{http_port}")
+    assert_match "HTTP\/1.1 200 OK", response
   end
 end

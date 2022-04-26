@@ -3,19 +3,22 @@ class Csvtomd < Formula
 
   desc "CSV to Markdown table converter"
   homepage "https://github.com/mplewis/csvtomd"
-  url "https://files.pythonhosted.org/packages/2f/41/289bedde7fb32d817d5802eff68b99546842cb34df840665ec39b363f258/csvtomd-0.2.1.tar.gz"
-  sha256 "d9fdf166c3c299ad5800b3cb1661f223b98237f38f22e9d253d45d321f70ec72"
-  revision 4
+  url "https://files.pythonhosted.org/packages/9d/59/ea3c8b102f9c72e5d276a169f7f343432213441c39a6eac7a8f444c66681/csvtomd-0.3.0.tar.gz"
+  sha256 "a1fbf1db86d4b7b62a75dc259807719b2301ed01db5d1d7d9bb49c4a8858778b"
+  license "MIT"
+  revision 3
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "4ca9e89b41c681120bdf0900fbf5833463115b8d5373a64227ba61ceb252cfef" => :mojave
-    sha256 "9676da327548cff3c4e1235b7d9071939315b22f8a7fcce3c555b308890b8338" => :high_sierra
-    sha256 "b38719288a0ba84c2a2143ac0f13965eac1f796e2a6ab20918fc59d304415f2b" => :sierra
-    sha256 "d343b9087bbaf2b5a5be09f71d23ff9b07742cc262f5fd66b7b220d2db73b4b2" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "8685baa5ab7f599731b2ce2e300efddd740fed6c786a371b725abebd5f2e72ee"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "8685baa5ab7f599731b2ce2e300efddd740fed6c786a371b725abebd5f2e72ee"
+    sha256 cellar: :any_skip_relocation, monterey:       "2ed6b67a278e0266bda516a475867129cff5e93fad695f4e029e4119b199f123"
+    sha256 cellar: :any_skip_relocation, big_sur:        "2ed6b67a278e0266bda516a475867129cff5e93fad695f4e029e4119b199f123"
+    sha256 cellar: :any_skip_relocation, catalina:       "2ed6b67a278e0266bda516a475867129cff5e93fad695f4e029e4119b199f123"
+    sha256 cellar: :any_skip_relocation, mojave:         "2ed6b67a278e0266bda516a475867129cff5e93fad695f4e029e4119b199f123"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d047da6a41a03db412406412f4741715b7446630a5ba5558fac8bda7b66668e9"
   end
 
-  depends_on "python"
+  depends_on "python@3.10"
 
   def install
     virtualenv_install_with_resources

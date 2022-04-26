@@ -3,14 +3,17 @@ require "language/node"
 class AskCli < Formula
   desc "CLI tool for Alexa Skill Kit"
   homepage "https://www.npmjs.com/package/ask-cli"
-  url "https://registry.npmjs.org/ask-cli/-/ask-cli-1.7.4.tgz"
-  sha256 "9ca7336fa098f9545165890f7134a5af3a8f58372f916f11f7838bd12bdce791"
+  url "https://registry.npmjs.org/ask-cli/-/ask-cli-2.27.0.tgz"
+  sha256 "9b96ed121ddcc0f7c281be6125d4d7eb03478fa0586d8e9f0c5f10c5db279aeb"
+  license "Apache-2.0"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "413e608795ad827eb5c57e5a77a4af06a36e012fbdf63439bb25effc0420720c" => :mojave
-    sha256 "52846f5f38f1fdd59f1b04a3a9e48de39648b7d26d47acdc3e60b759acaea961" => :high_sierra
-    sha256 "9eb1ed76f0af0550d4638103f0a1e8584bbc112e62bfae427a6ed6845cfb8183" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "6c453a4507ef4b1a8abf80a0789e409438828ac392691450c022632b60ab8f03"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "d4969c588256b4e5bc563a95eb13bb70fbe04769fa3ea61d1ea4d6ad892aca53"
+    sha256 cellar: :any_skip_relocation, monterey:       "09c6d86999ba960f954684b367b9681e8af1844a234dc3c3d3a28d2f195c7690"
+    sha256 cellar: :any_skip_relocation, big_sur:        "c5fa02c34a8c9b1be5f597794518ee9e639e24372169a9c82bae3a72865f988f"
+    sha256 cellar: :any_skip_relocation, catalina:       "826eaaa3e956fc0ceaf74965d006b1694445a6332982a2e8d142cd069e7da7fc"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "3a010949de4c007fdc30c3ce0aa64f70239a485eeb7dc5475f04f7d4278deebc"
   end
 
   depends_on "node"
@@ -18,11 +21,13 @@ class AskCli < Formula
   def install
     system "npm", "install", *Language::Node.std_npm_install_args(libexec)
     bin.write_exec_script libexec/"bin/ask"
+
+    # Replace universal binaries with native slices
+    deuniversalize_machos
   end
 
   test do
     output = shell_output("#{bin}/ask deploy 2>&1", 1)
-    assert_match %r{\AInvalid json: [^ ]+\/.ask\/cli_config\Z}, output
-    system "#{bin}/ask", "lambda", "--help"
+    assert_match "[Error]: CliFileNotFoundError: File #{testpath}/.ask/cli_config not exists.", output
   end
 end

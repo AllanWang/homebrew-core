@@ -3,12 +3,26 @@ class Timidity < Formula
   homepage "https://timidity.sourceforge.io/"
   url "https://downloads.sourceforge.net/project/timidity/TiMidity++/TiMidity++-2.15.0/TiMidity++-2.15.0.tar.bz2"
   sha256 "161fc0395af16b51f7117ad007c3e434c825a308fa29ad44b626ee8f9bb1c8f5"
+  revision 1
+
+  livecheck do
+    url :stable
+    regex(%r{url=.*?/TiMidity%2B%2B[._-]v?(\d+(?:\.\d+)+)\.t}i)
+  end
 
   bottle do
-    sha256 "9fbf48450ffbdc5920914f0b1ba2b845504b0621b9bf76f3e21ec4cd0fe97da8" => :mojave
-    sha256 "f8ce899eb5c5d67e78e713ec18bdc385ce388b43b425bd05bc9ebedf86be36ef" => :high_sierra
-    sha256 "53406bf74847960d1c1871975a76175638e906225c28e40e0b930a557ceabb52" => :sierra
+    rebuild 1
+    sha256 arm64_monterey: "207353939838f83aec0c2fd6f68363f7f961f7f08d69f317aecfece613732583"
+    sha256 arm64_big_sur:  "b6a5b9258ca86e58a8f535a3d7d2c8c51faf608df5bc119b37d99dccfb549142"
+    sha256 monterey:       "61d1189c1afa7ca17680f8e8bcfc4f5277f9e30e7b2e47f89a246714606059e3"
+    sha256 big_sur:        "513868c11a5ecbc1b8044eea517c19490858173d6b61f0245c54f9b061956237"
+    sha256 catalina:       "31a2aaefcf9e293bbfce210de4a0521bdf6df205f4fb5bb009f98ad1c01bd6f1"
+    sha256 mojave:         "9dec67aa3004c6ad228dd143eea25c2db9fc568269cae1f80320c00addc3c782"
   end
+
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
+  depends_on "libtool" => :build
 
   depends_on "flac"
   depends_on "libao"
@@ -22,11 +36,19 @@ class Timidity < Formula
   end
 
   def install
-    system "./configure", "--disable-debug",
-                          "--disable-dependency-tracking",
+    audio_options = %w[
+      vorbis
+      flac
+      speex
+      ao
+    ]
+    audio_options << "darwin" if OS.mac?
+
+    system "./autogen.sh" if Hardware::CPU.arm?
+    system "./configure", "--disable-dependency-tracking",
                           "--prefix=#{prefix}",
                           "--mandir=#{man}",
-                          "--enable-audio=darwin,vorbis,flac,speex,ao"
+                          "--enable-audio=#{audio_options.join(",")}"
     system "make", "install"
 
     # Freepats instrument patches from https://freepats.zenvoid.org/

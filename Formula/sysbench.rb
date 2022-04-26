@@ -1,32 +1,35 @@
 class Sysbench < Formula
   desc "System performance benchmark tool"
   homepage "https://github.com/akopytov/sysbench"
-  url "https://github.com/akopytov/sysbench/archive/1.0.17.tar.gz"
-  sha256 "9bcad62eaf473510f5184f33cc41f1e07c2640c8810ae9eebe25ba27ba04df5d"
+  url "https://github.com/akopytov/sysbench/archive/1.0.20.tar.gz"
+  sha256 "e8ee79b1f399b2d167e6a90de52ccc90e52408f7ade1b9b7135727efe181347f"
+  license "GPL-2.0-or-later"
+  revision 1
+  head "https://github.com/akopytov/sysbench.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "064afff9de05baa1de8eea0fb9d4c94fb247c87364e7bdbe238e127b68922971" => :mojave
-    sha256 "39aef6117641eebb5157d30a6523b9881e9049d5f5cfabb9710f34f37387cb1a" => :high_sierra
-    sha256 "e58185196573b1731c1ba57f9356798ab91fa35d9d0e89b23e03e0bfc9491dc3" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "a2e6d63cc73dbf9a22e3894dc69582f395a6e3aa2abb7add620c9fda852d07f0"
+    sha256 cellar: :any,                 arm64_big_sur:  "8f5fd6827291b2eb5f3a5b4c842a059182802d2ad97dcbd894046e5b2750914f"
+    sha256 cellar: :any,                 monterey:       "51e65a1c503cd2f938629137647592fa4744577987bcd3759fcc7fc2b139a092"
+    sha256 cellar: :any,                 big_sur:        "a9c638a46ddda6841018ad7354673315882a83e2aad7a480f46663db25e3c553"
+    sha256 cellar: :any,                 catalina:       "f85e28b078ef05d9a155d0655275e6a9418494d94ab3dd524607a9c6ca84806b"
+    sha256 cellar: :any,                 mojave:         "a29e37acd73943d5a1d72e6a5cb2f0812e2be3aeb061f919d271a8b31f2ac412"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "8f9cf704a34e18ddf2b4e826500a6b98b6e0df6e9b2dcf85e93dfe9f5fa2988f"
   end
 
   depends_on "autoconf" => :build
   depends_on "automake" => :build
   depends_on "libtool" => :build
   depends_on "pkg-config" => :build
+  depends_on "luajit-openresty"
   depends_on "mysql-client"
-  depends_on "openssl"
+  depends_on "openssl@1.1"
+
+  uses_from_macos "vim" # needed for xxd
 
   def install
     system "./autogen.sh"
-
-    # Fix for luajit build breakage.
-    # Per https://luajit.org/install.html: If MACOSX_DEPLOYMENT_TARGET
-    # is not set then it's forced to 10.4, which breaks compile on Mojave.
-    ENV["MACOSX_DEPLOYMENT_TARGET"] = MacOS.version
-
-    system "./configure", "--prefix=#{prefix}", "--with-mysql"
+    system "./configure", "--prefix=#{prefix}", "--with-mysql", "--with-system-luajit"
     system "make", "install"
   end
 

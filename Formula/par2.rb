@@ -1,15 +1,24 @@
 class Par2 < Formula
   desc "Parchive: Parity Archive Volume Set for data recovery"
   homepage "https://github.com/Parchive/par2cmdline"
-  url "https://github.com/Parchive/par2cmdline/releases/download/v0.8.0/par2cmdline-0.8.0.tar.bz2"
-  sha256 "496430e185f2d82e54245a0554341a1826f06c5e673fa12a10f176c7f9b42964"
+  url "https://github.com/Parchive/par2cmdline/releases/download/v0.8.1/par2cmdline-0.8.1.tar.bz2"
+  sha256 "5fcd712cae2b73002b0bf450c939b211b3d1037f9bb9c3ae52d6d24a0ba075e4"
+  license "GPL-2.0"
+
+  livecheck do
+    url :stable
+    strategy :github_latest
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "b47768e76669350def4fa99bd4c5f6462a8f73446d7709c00453e1acceab66df" => :mojave
-    sha256 "569f6c3227a6e65de30991c3b921e321cb3b5e4e85e341042b2e3fcb00d2685e" => :high_sierra
-    sha256 "85ca540e5daeb33c115c6cc37ae2bcb52b4db822679471ccf31598125f475d63" => :sierra
-    sha256 "d6e135782c3e4279e2233cba53d5fc62dc6ea3b5c8f0d2c07c653cc66cac2bcd" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "fb4dab9fec0be03e27ff19f97c08170b4603f01c232eb0b75f0f2422e34a9b19"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "1a31a28b5aa927f4b5fbf4778e0df5ce27e567cfd1db41f60ad5374c70a7d24b"
+    sha256 cellar: :any_skip_relocation, monterey:       "21124f8c1c080a67ee9ad88adbf361163031672a0a7446fead075644628bb56d"
+    sha256 cellar: :any_skip_relocation, big_sur:        "8379fe417ad00b81929cef774072179d9f2497156a5b06b706a6cf182d2f93dd"
+    sha256 cellar: :any_skip_relocation, catalina:       "26609c45028599a4845f68cda2a5cd08c2a0dc37ae3987d4abf86aed99499f50"
+    sha256 cellar: :any_skip_relocation, mojave:         "cded10d8f18c5ab236ceb624854afb672681bd1a86f21e47d70de793db378580"
+    sha256 cellar: :any_skip_relocation, high_sierra:    "35477bcfecd91b7fe885739737f576b63545aab51ba997bc60f9a74927b775dc"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "68a34f74212b806d82f10515575e8f62a90eb2066d6fffb24c5f422a380854fb"
   end
 
   def install

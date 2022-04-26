@@ -1,24 +1,28 @@
 class Percol < Formula
+  include Language::Python::Virtualenv
+
   desc "Interactive grep tool"
   homepage "https://github.com/mooz/percol"
-  url "https://github.com/mooz/percol/archive/v0.2.1.tar.gz"
-  sha256 "75056ba1fe190ae4c728e68df963c0e7d19bfe5a85649e51ae4193d4011042f9"
-  revision 1
-  head "https://github.com/mooz/percol.git"
+  url "https://files.pythonhosted.org/packages/50/ea/282b2df42d6be8d4292206ea9169742951c39374af43ae0d6f9fff0af599/percol-0.2.1.tar.gz"
+  sha256 "7a649c6fae61635519d12a6bcacc742241aad1bff3230baef2cedd693ed9cfe8"
+  license "MIT"
+  revision 4
+  head "https://github.com/mooz/percol.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "43a0d42c2184fcc78ee6cb187c0bd4167133debe35be81d724bd3b2a26848de3" => :mojave
-    sha256 "dee76bc835dadd9f37058c6ef642eddca4278d5f5d0995b72bdb0c5fa4d537a4" => :high_sierra
-    sha256 "dee76bc835dadd9f37058c6ef642eddca4278d5f5d0995b72bdb0c5fa4d537a4" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "6fb4f3792ab7e2a2c1dc1808d4e9d2de64ab257d7b5662ec698b445bdbaafb66"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "6fb4f3792ab7e2a2c1dc1808d4e9d2de64ab257d7b5662ec698b445bdbaafb66"
+    sha256 cellar: :any_skip_relocation, monterey:       "e8c42fa54505580142f2850d3f4fd77c8150618b4018ef731feab7ef196df03a"
+    sha256 cellar: :any_skip_relocation, big_sur:        "e8c42fa54505580142f2850d3f4fd77c8150618b4018ef731feab7ef196df03a"
+    sha256 cellar: :any_skip_relocation, catalina:       "e8c42fa54505580142f2850d3f4fd77c8150618b4018ef731feab7ef196df03a"
+    sha256 cellar: :any_skip_relocation, mojave:         "e8c42fa54505580142f2850d3f4fd77c8150618b4018ef731feab7ef196df03a"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "85e58c86eaf02e87796f3b30f81cf3c070408d25525aa9857366e47c3e015384"
   end
 
-  depends_on "python"
+  depends_on "python@3.10"
+  depends_on "six"
 
-  resource "six" do
-    url "https://files.pythonhosted.org/packages/16/d8/bc6316cf98419719bd59c91742194c111b6f2e85abac88e496adefaf7afe/six-1.11.0.tar.gz"
-    sha256 "70e8a77beed4562e7f14fe23a786b54f6296e34344c23bc42f07b15018ff98e9"
-  end
+  uses_from_macos "expect" => :test
 
   resource "cmigemo" do
     url "https://files.pythonhosted.org/packages/2f/e4/374df50b655e36139334046f898469bf5e2d7600e1e638f29baf05b14b72/cmigemo-0.1.6.tar.gz"
@@ -26,19 +30,7 @@ class Percol < Formula
   end
 
   def install
-    xy = Language::Python.major_minor_version "python3"
-    ENV.prepend_create_path "PYTHONPATH", libexec/"vendor/lib/python#{xy}/site-packages"
-    resources.each do |r|
-      r.stage do
-        system "python3", *Language::Python.setup_install_args(libexec/"vendor")
-      end
-    end
-
-    ENV.prepend_create_path "PYTHONPATH", libexec/"lib/python#{xy}/site-packages"
-    system "python3", *Language::Python.setup_install_args(libexec)
-
-    bin.install Dir["#{libexec}/bin/*"]
-    bin.env_script_all_files(libexec/"bin", :PYTHONPATH => ENV["PYTHONPATH"])
+    virtualenv_install_with_resources
   end
 
   test do
@@ -49,6 +41,6 @@ class Percol < Formula
       spawn #{bin}/percol --query=Homebrew textfile
       expect "QUERY> Homebrew"
     EOS
-    assert_match "Homebrew", shell_output("/usr/bin/expect -f expect-script")
+    assert_match "Homebrew", shell_output("expect -f expect-script")
   end
 end

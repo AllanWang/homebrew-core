@@ -1,24 +1,31 @@
 class Libre < Formula
   desc "Toolkit library for asynchronous network I/O with protocol stacks"
-  homepage "http://www.creytiv.com"
-  url "http://www.creytiv.com/pub/re-0.6.0.tar.gz"
-  sha256 "0e97bcb5cc8f84d6920aa78de24c7d4bf271c5ddefbb650848e0db50afe98131"
+  homepage "https://github.com/baresip/re"
+  url "https://github.com/baresip/re/archive/refs/tags/v2.2.2.tar.gz"
+  sha256 "25d66108f827507d1a08dc15d4a2a6d994e0cc2368f2faa6778b3a48c0d15f2f"
+  license "BSD-3-Clause"
 
   bottle do
-    cellar :any
-    sha256 "ce0476d0d26515adbcf11f27d185cf503214a1efa95223d1eba02840f090af85" => :mojave
-    sha256 "9679c767b3cd61b552b03bf7f6b9d97b9ae056076fa3aa84262ee086f606f481" => :high_sierra
-    sha256 "290fdbf6dd3a1b2064d00badb610ee1af38d1c070f38a72a54ec5a02ba3b4b2f" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "5bc9f336f22aa81d3b732f0dc8dead3651d3dfae40480d551464f8ab6f19f120"
+    sha256 cellar: :any,                 arm64_big_sur:  "1a497b9c1d3f9308e4acfd44ea5c291178c9d8c2d3bf13d42f863645668aa788"
+    sha256 cellar: :any,                 monterey:       "8150099d5b7e255dbc738d52a0b208620b62564e5a99d8050c679ca1bad7623b"
+    sha256 cellar: :any,                 big_sur:        "3e9a01c65d13fc15caba8b35079f3be40db5393a5d38b1669d3dbc112a40d499"
+    sha256 cellar: :any,                 catalina:       "c96000ce4b17ed1a443ba5b65377fdadc74c5f62c7689c475f5eb397cae49929"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "69c917be149cf9df20db90b01b4d08a9fdb029829224421c20163b44e15a7f98"
   end
 
-  depends_on "openssl"
+  depends_on "openssl@1.1"
+
+  uses_from_macos "zlib"
 
   def install
-    system "make", "SYSROOT=#{MacOS.sdk_path}/usr", "install", "PREFIX=#{prefix}"
+    sysroot = "SYSROOT=#{MacOS.sdk_path}/usr" if OS.mac?
+    system "make", *sysroot, "install", "PREFIX=#{prefix}"
   end
 
   test do
     (testpath/"test.c").write <<~EOS
+      #include <stdint.h>
       #include <re/re.h>
       int main() {
         return libre_init();

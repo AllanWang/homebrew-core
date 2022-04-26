@@ -2,32 +2,35 @@ class Ldid < Formula
   desc "Lets you manipulate the signature block in a Mach-O binary"
   homepage "https://cydia.saurik.com/info/ldid/"
   url "https://git.saurik.com/ldid.git",
-      :tag      => "v1.2.1",
-      :revision => "e4b7adc1e02c9f0e16cc9ae2841192b386f6d4ea"
-  head "https://git.saurik.com/ldid.git"
+      tag:      "v2.1.5",
+      revision: "a23f0faadd29ec00a6b7fb2498c3d15af15a7100"
+  license "AGPL-3.0-or-later"
+  head "https://git.saurik.com/ldid.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    rebuild 1
-    sha256 "4e49148184ab10923e0d84a27476b2dd71a48d076a5424c266a012e0d7749f27" => :mojave
-    sha256 "2bf739a0271fc467fc18e26d9dd6bb54d824173af0cd45d466aeef3a37031c1b" => :high_sierra
-    sha256 "a10adbb230ad11abdb044006e740b2bb33023a998b111c62e99aa69d8dad4839" => :sierra
-    sha256 "a10adbb230ad11abdb044006e740b2bb33023a998b111c62e99aa69d8dad4839" => :el_capitan
-    sha256 "fda9d5608ad5e6446ed8fd7b3135d8407fc44b88f628dd4c19391738bd57bf6c" => :yosemite
+    sha256 cellar: :any, arm64_monterey: "0ac9a13e531213216609846e8119f52647b3a5a40f2e24a29cd4a1c670326c76"
+    sha256 cellar: :any, arm64_big_sur:  "24ad6542039d4d6be36a6d4ecd3f0c693e1f184608e68edbb47c9e9184af8b36"
+    sha256 cellar: :any, monterey:       "7cd2258538aab23539e42b7b6eddbd213c8a2d1e6a6ef5b1516d444657800b9e"
+    sha256 cellar: :any, big_sur:        "cc64fe39c44a0f1f8bd317526f7e9addb7462738fde043c428f2132119da8fdd"
+    sha256 cellar: :any, catalina:       "076869a16234577407b0ea659e117863b927f9c3ac3c5b7cbde9d73af0b998ac"
+    sha256 cellar: :any, mojave:         "986774410fa97d8f9afc40d378ee97c9ea6e3b18d8055f3881c12a68466e38b6"
   end
 
-  depends_on "openssl"
+  depends_on "libplist"
+  depends_on "openssl@1.1"
 
   def install
-    inreplace "make.sh" do |s|
-      s.gsub! %r{^.*/Applications/Xcode-5.1.1.app.*}, ""
-
-      # Reported upstream 2 Sep 2018 (to saurik via email)
-      s.gsub! "-mmacosx-version-min=10.4", "-mmacosx-version-min=#{MacOS.version}"
-      s.gsub! "for arch in i386 x86_64; do", "for arch in x86_64; do" if MacOS.version >= :mojave
-    end
-    system "./make.sh"
+    system ENV.cc, "-c",
+                   "-o", "lookup2.o", "lookup2.c",
+                   "-I."
+    system ENV.cxx, "-std=c++11",
+                    "-o", "ldid", "lookup2.o", "ldid.cpp",
+                    "-I.",
+                    "-framework", "CoreFoundation",
+                    "-framework", "Security",
+                    "-lcrypto", "-lplist-2.0", "-lxml2"
     bin.install "ldid"
+    ln_s bin/"ldid", bin/"ldid2"
   end
 
   test do

@@ -1,31 +1,24 @@
 class Lazygit < Formula
   desc "Simple terminal UI for git commands"
   homepage "https://github.com/jesseduffield/lazygit/"
-  url "https://github.com/jesseduffield/lazygit/archive/v0.8.1.tar.gz"
-  sha256 "274ba05573b38cccc56cb63053eec0972535979b95f1f30b6ca318d991f2c14c"
+  url "https://github.com/jesseduffield/lazygit/archive/v0.34.tar.gz"
+  sha256 "f715ab86b219fd42462399459bfa1e04a5925268bff4839c4d96bd01264d6847"
+  license "MIT"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "c496b0eb15a8125667fa0a3c894825c3f7bd15153bf6d73c2396cad5e6af0346" => :mojave
-    sha256 "347b4d71a314a38e4574ca61c3014d0cb037e93f413df07c80cfce289f577ee4" => :high_sierra
-    sha256 "216fece43e1dc34031bfd2bed23fcb26b9a62e8052ff961295d1823ed5062559" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "77c0725d4dae58f89a0f97b40f4bd7db99b0895d330e2fe3cacfb9a66e485b71"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "fbb1adc9a754bb656707cd43fe0a941599a79c449d4f23530857a74a346c3b87"
+    sha256 cellar: :any_skip_relocation, monterey:       "2992aa17a82fc5d61910732b69a2f5632f54dde5df6d7a577a2456a66c863340"
+    sha256 cellar: :any_skip_relocation, big_sur:        "cf4376ea6950a82e9d1dd41849d58fa1f228d3e9bc2c37e7f09ae6a532481f86"
+    sha256 cellar: :any_skip_relocation, catalina:       "a2feb23f65422d7f94c5a47363ad9338c729d49fc29e30d2170314c2327d8290"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "c7545e46900a94c0677bf159776dee2812e12a4c2d2349f87647e4677e2b3112"
   end
 
   depends_on "go" => :build
 
-  # adapted from https://kevin.burke.dev/kevin/install-homebrew-go/
   def install
-    ENV["GOPATH"] = buildpath
-
-    bin_path = buildpath/"src/github.com/jesseduffield/lazygit"
-    # Copy all files from their current location (GOPATH root)
-    # to $GOPATH/src/github.com/jesseduffield/lazygit
-    bin_path.install Dir["*"]
-    cd bin_path do
-      # Install the compiled binary into Homebrew's `bin` - a pre-existing
-      # global variable
-      system "go", "build", "-ldflags", "-X main.version=0.8 -X main.buildSource=homebrew", "-o", bin/"lazygit", "."
-    end
+    system "go", "build", "-mod=vendor", "-o", bin/"lazygit",
+      "-ldflags", "-X main.version=#{version} -X main.buildSource=homebrew"
   end
 
   # lazygit is a terminal GUI, but it can be run in 'client mode' for example to write to git's todo file

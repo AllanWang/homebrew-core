@@ -1,17 +1,27 @@
 class X3270 < Formula
   desc "IBM 3270 terminal emulator for the X Window System and Windows"
   homepage "http://x3270.bgp.nu/"
-  url "https://downloads.sourceforge.net/project/x3270/x3270/3.6ga5/suite3270-3.6ga5-src.tgz"
-  sha256 "bebd0770e23a87997fe1d2353e4f1473aabe461fdddedccbb41fd241e8b5b424"
+  url "http://x3270.bgp.nu/download/04.01/suite3270-4.1ga13-src.tgz"
+  sha256 "31b256f018099a613c4abc1836f72d00cd18def9df2486ce0ab01130bf9ca88e"
+  license "BSD-3-Clause"
 
-  bottle do
-    sha256 "910ce0d5e1b99a3bf06f74da9a73bca06478e2b18a719b1b9b7d2f45d50eeda4" => :mojave
-    sha256 "f67129f6e0d14448939953d4c8966a5770d8a65aecdf42108f43dd4914dda9d8" => :high_sierra
-    sha256 "08de119ad4c2626d8f8b5da84976601b89f1428af4274c2f5e1ed48b3805254d" => :sierra
-    sha256 "c82c4f5ceb379a44acab4592f3d1d9cd05d499541b806397bd656e2152474815" => :el_capitan
+  livecheck do
+    url "https://x3270.miraheze.org/wiki/Downloads"
+    regex(/href=.*?suite3270[._-]v?(\d+(?:\.\d+)+(?:ga\d+)?)(?:-src)?\.t/i)
   end
 
-  depends_on "openssl"
+  bottle do
+    sha256 arm64_monterey: "17eae1f7bb53abd100e3c0b12aa35fe8286a27026e5cc38a617756f4c6bf6c04"
+    sha256 arm64_big_sur:  "dfffc828fb2abea2e254cdc3f00c5ce9dbc6c539fbceb7bf86ef89cf231b3e28"
+    sha256 monterey:       "79c3fb4ae749288b70a7f8528d26321a8fef53cb40b98c82cf7c4969ab66ca25"
+    sha256 big_sur:        "2cbfb4bf23c1cf7c4f80158e2fcb73c25b75db02de757559987a767b0aeec4d9"
+    sha256 catalina:       "f3ee0a641f9a2c7962abaf2cf0c48212db3fb34b25c92297dbd495d3fb4bd316"
+    sha256 x86_64_linux:   "3e3162289affd48aef816b823497d33d1695814f6f2c151f0f89264d764dff77"
+  end
+
+  depends_on "readline"
+
+  uses_from_macos "tcl-tk"
 
   def install
     args = %W[
@@ -21,7 +31,6 @@ class X3270 < Formula
       --enable-s3270
       --enable-tcl3270
     ]
-
     system "./configure", *args
     system "make", "install"
     system "make", "install.man"

@@ -1,22 +1,34 @@
 class SpiceGtk < Formula
+  include Language::Python::Virtualenv
+
   desc "GTK client/libraries for SPICE"
   homepage "https://www.spice-space.org"
-  url "https://www.spice-space.org/download/gtk/spice-gtk-0.37.tar.bz2"
-  sha256 "1f28b706472ad391cda79a93fd7b4c7a03e84b88fc46ddb35dddbe323c923bb7"
+  url "https://www.spice-space.org/download/gtk/spice-gtk-0.40.tar.xz"
+  sha256 "23f5ff7fa80b75647ce73cda5eaf8b322f3432dbbb7f6f3a839634618adbced3"
+  license all_of: ["GPL-2.0-or-later", "LGPL-2.1-or-later", "BSD-3-Clause"]
 
-  bottle do
-    sha256 "2af8aeb54caf808c2714911e21645804e97c2e4e483188285349a5fb1db90f62" => :mojave
-    sha256 "3b8016d7bbe6a3d92b1da5c4783b527fda4e8070782ec32eaeb74af31945ad4d" => :high_sierra
-    sha256 "a0b7ef075bbbc7d4b67b8e6462b55717ac97703d3456a3ccdb599f1b5892b3a8" => :sierra
+  livecheck do
+    url "https://www.spice-space.org/download/gtk/"
+    regex(/href=.*?spice-gtk[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
-  depends_on "autoconf" => :build
-  depends_on "autogen" => :build
-  depends_on "automake" => :build
+  bottle do
+    sha256 arm64_monterey: "f8161b28e3cc0d1446594631094a4ad447eedcd0b61d575bb9f922c36a3af592"
+    sha256 arm64_big_sur:  "20739ef4960c33ecb9b47faf65e7b9558ae27a7f69d285914804b0f8e62d4b1a"
+    sha256 monterey:       "668f119fbe839ccecbe5d8ec12e6b65f101d88e1737b04ba2f75a4220392dd10"
+    sha256 big_sur:        "ddc6164a653342713455e30972a7874d399d185dff288fd5b42f1424ff17d80f"
+    sha256 catalina:       "76aa8d0050886028ee2f8e5080069d9d6d74a96529028e698a6f78f6fe1f10db"
+    sha256 x86_64_linux:   "6d40f60a0f8b50bbc672cbc368983f2ed0995b106eb85544379735a031e2b1b9"
+  end
+
   depends_on "gobject-introspection" => :build
   depends_on "intltool" => :build
   depends_on "libtool" => :build
+  depends_on "meson" => :build
+  depends_on "ninja" => :build
   depends_on "pkg-config" => :build
+  depends_on "python@3.9" => :build
+  depends_on "six" => :build
   depends_on "vala" => :build
 
   depends_on "atk"
@@ -35,36 +47,28 @@ class SpiceGtk < Formula
   depends_on "json-glib"
   depends_on "libusb"
   depends_on "lz4"
-  depends_on "openssl"
+  depends_on "openssl@1.1"
   depends_on "opus"
   depends_on "pango"
   depends_on "pixman"
   depends_on "spice-protocol"
   depends_on "usbredir"
 
-  # Upstream patch: https://gitlab.freedesktop.org/spice/spice-gtk/issues/88
-  patch do
-    url "https://gitlab.freedesktop.org/spice/spice-gtk/commit/3c9b37bfc7c88969dfe16b8bfd874745e0fceb8a.diff"
-    sha256 "c2bb9c6dc0d07f333d10077987386680818296f1deb3b796ea7e35453aba7d91"
+  resource "pyparsing" do
+    url "https://files.pythonhosted.org/packages/31/df/789bd0556e65cf931a5b87b603fcf02f79ff04d5379f3063588faaf9c1e4/pyparsing-3.0.8.tar.gz"
+    sha256 "7bf433498c016c4314268d95df76c81b842a4cb2b276fa3312cfb1e1d85f6954"
   end
 
   def install
-    args = %W[
-      --disable-dependency-tracking
-      --disable-silent-rules
-      --enable-introspection
-      --enable-gstvideo
-      --enable-gstaudio
-      --enable-gstreamer=1.0
-      --enable-vala
-      --with-coroutine=gthread
-      --with-gtk=3.0
-      --with-lz4
-      --prefix=#{prefix}
-    ]
-    system "autoreconf"
-    system "./configure", *args
-    system "make", "install"
+    venv = virtualenv_create(buildpath/"venv", "python3")
+    venv.pip_install resources
+    ENV.prepend_path "PATH", buildpath/"venv/bin"
+
+    mkdir "build" do
+      system "meson", *std_meson_args, ".."
+      system "ninja"
+      system "ninja", "install"
+    end
   end
 
   test do
@@ -82,6 +86,7 @@ class SpiceGtk < Formula
                    "-I#{Formula["glib"].include}/glib-2.0",
                    "-I#{Formula["glib"].lib}/glib-2.0/include",
                    "-I#{Formula["gtk+3"].include}/gtk-3.0",
+                   "-I#{Formula["harfbuzz"].opt_include}/harfbuzz",
                    "-I#{Formula["pango"].include}/pango-1.0",
                    "-I#{Formula["spice-protocol"].include}/spice-1",
                    "-I#{include}/spice-client-glib-2.0",

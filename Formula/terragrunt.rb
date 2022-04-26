@@ -1,28 +1,26 @@
 class Terragrunt < Formula
   desc "Thin wrapper for Terraform e.g. for locking state"
-  homepage "https://github.com/gruntwork-io/terragrunt"
-  url "https://github.com/gruntwork-io/terragrunt/archive/v0.19.8.tar.gz"
-  sha256 "cf0b9b500c7162ffd915f2bc302d4757c10d618cf3e72ee7cc6611a20cdaa040"
-  head "https://github.com/gruntwork-io/terragrunt.git"
+  homepage "https://terragrunt.gruntwork.io/"
+  url "https://github.com/gruntwork-io/terragrunt/archive/v0.36.7.tar.gz"
+  sha256 "89b5c3c46fe4b23a5da8baaca439dccfff18ba141023eac336e2e4fa72d08d67"
+  license "MIT"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "f72ab6319d3456fba966cf1e921c79bd3de6765dfa6a58bdb9b3a7b3b0642086" => :mojave
-    sha256 "7eb162f5820f7941efa06c21c1ca84b6526b541ff48d6d9d9a8117539803b4be" => :high_sierra
-    sha256 "16123a29e6ea40e08fee855a2d505dfdd3039e7e482ba61aecfa32f1f0b93297" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "0f9f70b4cf830872451898f6e24bdeb67751679350ebe92bf8a6013bbea27078"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "549fd3a8e5025417c898eb810cc60f06240d80a14689448a19c00939475b7f88"
+    sha256 cellar: :any_skip_relocation, monterey:       "ebcf33b95bcf8cb30bcd09ba9b2da8b8f7e4ac5071afa4880d0820c411eeb3d9"
+    sha256 cellar: :any_skip_relocation, big_sur:        "561cedf0c7a63fa45fa34a079d835252ccca91d35c2e0baedf36c651d733e8dd"
+    sha256 cellar: :any_skip_relocation, catalina:       "87ce0211b8f22bb73828aba80d0969902d0ffa89f2086e9990005c0ca7665561"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "cd36eef41aa0f4c89993317473feb7ceab1a54201cc943907675d29f5119c6c8"
   end
 
-  depends_on "dep" => :build
   depends_on "go" => :build
   depends_on "terraform"
 
+  conflicts_with "tgenv", because: "tgenv symlinks terragrunt binaries"
+
   def install
-    ENV["GOPATH"] = buildpath
-    (buildpath/"src/github.com/gruntwork-io/terragrunt").install buildpath.children
-    cd "src/github.com/gruntwork-io/terragrunt" do
-      system "dep", "ensure", "-vendor-only"
-      system "go", "build", "-o", bin/"terragrunt", "-ldflags", "-X main.VERSION=v#{version}"
-    end
+    system "go", "build", *std_go_args(ldflags: "-s -w -X main.VERSION=v#{version}")
   end
 
   test do

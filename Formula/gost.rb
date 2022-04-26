@@ -1,64 +1,37 @@
-require "language/go"
-
 class Gost < Formula
-  desc "Simple command-line utility for easily creating Gists for Github"
-  homepage "https://github.com/wilhelm-murdoch/gost"
-  url "https://github.com/wilhelm-murdoch/gost/archive/1.2.0.tar.gz"
-  sha256 "2dfe960f13a4dc6abb1148a28083d474f8caf63d5cf756558bf94772266f8512"
+  desc "GO Simple Tunnel - a simple tunnel written in golang"
+  homepage "https://github.com/ginuerzh/gost"
+  url "https://github.com/ginuerzh/gost/archive/v2.11.2.tar.gz"
+  sha256 "143174a9ba5b0b6251d1d9a52267220f97bec1319676618746c1a5d7a7a86d96"
+  license "MIT"
+  head "https://github.com/ginuerzh/gost.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "fa38308f78e658ab3b414c8c68e0c77c8d492a8214d8077075dd953720180f36" => :mojave
-    sha256 "c8407066ad901c76a0974c8f649082e74f5916b3b364443fe26bc52bd878ec6c" => :high_sierra
-    sha256 "45dee0c06d08b7db1b38509e496e8374d682ca1bfaad6a403fe4454ef3f4e5ef" => :sierra
-    sha256 "42a60235f9f31d12b59d33867b4f74ac4e4fa979fd92f7066bd5720da2eb607b" => :el_capitan
-    sha256 "7acb5fcbd1230614a630cb4c0fefaef4a40b66dba633e067a641c17a4d444db2" => :yosemite
-    sha256 "7cc1cf98d45f0cfd43e0d822d60430670e58dbd40f221033b2a446f0f03bb681" => :mavericks
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "f5112d60ba5a6090f3f3b36d0c59b6400cd24ea07bf03c186de395372b3d0862"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "3fcdb66e5d378771ffb01b848990ab32cdc5447597f5b075f1373023ead4aa72"
+    sha256 cellar: :any_skip_relocation, monterey:       "a803beb44f47f36f821f1eb0aa15892d9f95e20431150107c531f3d74fb9d464"
+    sha256 cellar: :any_skip_relocation, big_sur:        "b4e97c302058c91679e66f481745d7361045ccf85919eefe3aa8b282d3555dff"
+    sha256 cellar: :any_skip_relocation, catalina:       "d032da856ce53e033dea8c91142e8f218b55fb35f3d6e515038fd1256f2431d2"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "cf7813ce42f66f176ddc7f37aa5db4d466f38d831389bb3e13fe8b591c73c1bb"
   end
 
-  depends_on "go" => :build
-
-  go_resource "golang.org/x/oauth2" do
-    url "https://go.googlesource.com/oauth2.git",
-        :revision => "8434495902bd0900797016affe4ca35c55babb3f"
-  end
-
-  go_resource "golang.org/x/net" do
-    url "https://go.googlesource.com/net.git",
-        :revision => "35ec611a141ee705590b9eb64d673f9e6dfeb1ac"
-  end
-
-  go_resource "github.com/atotto/clipboard" do
-    url "https://github.com/atotto/clipboard.git",
-        :revision => "bb272b845f1112e10117e3e45ce39f690c0001ad"
-  end
-
-  go_resource "github.com/docopt/docopt.go" do
-    url "https://github.com/docopt/docopt.go.git",
-        :revision => "784ddc588536785e7299f7272f39101f7faccc3f"
-  end
-
-  go_resource "github.com/google/go-github" do
-    url "https://github.com/google/go-github.git",
-        :revision => "842c551fdeae14c97c04ef490f601ae4d849a00c"
-  end
-
-  go_resource "github.com/google/go-querystring" do
-    url "https://github.com/google/go-querystring.git",
-        :revision => "9235644dd9e52eeae6fa48efd539fdc351a0af53"
-  end
+  # Bump to 1.18 on the next release, if possible.
+  depends_on "go@1.17" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-
-    Language::Go.stage_deps resources, buildpath/"src"
-
-    system "go", "build", "-o", "gost"
-    bin.install "gost"
+    system "go", "build", *std_go_args, "./cmd/gost"
+    prefix.install "README_en.md"
   end
 
   test do
-    (testpath/"test.txt").write "42"
-    system bin/"gost", "--file=test.txt"
+    bind_address = "127.0.0.1:#{free_port}"
+    fork do
+      exec "#{bin}/gost -L #{bind_address}"
+    end
+    sleep 2
+    output = shell_output("curl -I -x #{bind_address} https://github.com")
+    assert_match %r{HTTP/\d+(?:\.\d+)? 200}, output
+    assert_match %r{Proxy-Agent: gost/#{version}}i, output
+    assert_match(/Server: GitHub.com/i, output)
   end
 end

@@ -1,15 +1,19 @@
 class Tnef < Formula
   desc "Microsoft MS-TNEF attachment unpacker"
   homepage "https://github.com/verdammelt/tnef"
-  url "https://github.com/verdammelt/tnef/archive/1.4.17.tar.gz"
-  sha256 "1dd87ebc0ff32c60ce2bc87362b880dc885525051bf3da55e11492565831c6da"
+  url "https://github.com/verdammelt/tnef/archive/1.4.18.tar.gz"
+  sha256 "fa56dd08649f51b173017911cae277dc4b2c98211721c2a60708bf1d28839922"
+  license "GPL-2.0"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "5ba739818e3a1d567b41b55d7f91b0cba091d72cae8163c81a4ce28580b362a8" => :mojave
-    sha256 "15020412f544e13024591117403ff6db1abe840a225d567c755c1f88652fc84d" => :high_sierra
-    sha256 "f7364607dc960c4b18ff4643cbbb5ebb89a591c36d71a6c2344ab99b725a6f27" => :sierra
-    sha256 "ab8d466c0d78822062f8b5a347cc0f5897e02b7c2754bf18613bad85c911c52b" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "1201de0e009993b46a273968cbcd8c9a43c468c30310807712052d398c7034f2"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "4e6bdd57047af524d3efd157858a47d857a12fc110142a3d94bd47c8552fdc0a"
+    sha256 cellar: :any_skip_relocation, monterey:       "a79b4c0a54e6b4454281c5f40a500e7f3923588815374f28684e9d0fc53adda4"
+    sha256 cellar: :any_skip_relocation, big_sur:        "37ce4eac19eaa6e7111d7ef7897595ac71ebb58f6d7da32dc309bb02bc5a90b4"
+    sha256 cellar: :any_skip_relocation, catalina:       "ff92eb820b2efae9e87e42491a590601f400160f27ea2804b176b02b1648be66"
+    sha256 cellar: :any_skip_relocation, mojave:         "2700f31ebcc1e2ba9219d6b6ac040846eba21ccc25baca4fea8b7d630b6673d2"
+    sha256 cellar: :any_skip_relocation, high_sierra:    "842ba6bbe666302bd39c1cf7d29caa7d5180c20757b8dfe91b99d3fe1d3da841"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "a295c834fdb6ae952708260a5a49bfd9771538ca5b6eda6014eeccaa1956dbbd"
   end
 
   depends_on "autoconf" => :build

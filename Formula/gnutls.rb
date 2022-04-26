@@ -1,18 +1,30 @@
 class Gnutls < Formula
   desc "GNU Transport Layer Security (TLS) Library"
   homepage "https://gnutls.org/"
-  url "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/gnutls-3.6.8.tar.xz"
-  mirror "https://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/gnutls/v3.6/gnutls-3.6.8.tar.xz"
-  sha256 "aa81944e5635de981171772857e72be231a7e0f559ae0292d2737de475383e83"
+  url "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.7/gnutls-3.7.4.tar.xz"
+  mirror "https://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/gnutls/v3.7/gnutls-3.7.4.tar.xz"
+  sha256 "e6adbebcfbc95867de01060d93c789938cf89cc1d1f6ef9ef661890f6217451f"
+  license all_of: ["LGPL-2.1-or-later", "GPL-3.0-only"]
+
+  livecheck do
+    url "https://www.gnutls.org/news.html"
+    regex(/>\s*GnuTLS\s*v?(\d+(?:\.\d+)+)\s*</i)
+  end
 
   bottle do
-    sha256 "6679cf795332813d1e41778272f3e8283dc13435c637a1f3b94c98956b490c93" => :mojave
-    sha256 "547c72cff04d3d125d92a0f1a9b96855fa77608471f86c04eaf84b8c11759c2d" => :high_sierra
-    sha256 "895d26abcb5e3d8ba7d48c7d4ccef936a7f1c570802f26f90303bbeed1c16bfc" => :sierra
+    sha256 arm64_monterey: "89de6f63ccc9c03cc1d4f5d10431593408de8f6733951b14bb396b2ed11ede38"
+    sha256 arm64_big_sur:  "479fb27f653caec6dee8cab71949a48c2e78b144b8ece0c480ff0126d26d171d"
+    sha256 monterey:       "1fb816706b998a0131ea2c4aed3a71143efc8101358d6c334e5dce23cd3f08a1"
+    sha256 big_sur:        "3ec77636e41fe64b2d42fbcecb8c1aa2d3fb1c1665a410151406108bd93a857f"
+    sha256 catalina:       "25c46e2fbf84940cdc5ad321b20528e8c211124fdd6d995ec691972cf238b897"
+    sha256 x86_64_linux:   "e01881a84a775b5cc5f5c76bde81f15da2dafc1f0dffe38e5fbe004ea178d446"
   end
 
   depends_on "pkg-config" => :build
+  depends_on "ca-certificates"
   depends_on "gmp"
+  depends_on "guile"
+  depends_on "libidn2"
   depends_on "libtasn1"
   depends_on "libunistring"
   depends_on "nettle"
@@ -20,14 +32,20 @@ class Gnutls < Formula
   depends_on "unbound"
 
   def install
+    # Fix compile crash on Apple Silicon.
+    # https://gitlab.com/gnutls/gnutls/-/issues/1347
+    inreplace "lib/accelerated/aarch64/Makefile.in", /^(AM_CCASFLAGS =) -Wa,-march=all$/, "\\1" if OS.mac?
+
     args = %W[
       --disable-dependency-tracking
       --disable-silent-rules
       --disable-static
       --prefix=#{prefix}
       --sysconfdir=#{etc}
-      --with-default-trust-store-file=#{etc}/openssl/cert.pem
-      --disable-guile
+      --with-default-trust-store-file=#{pkgetc}/cert.pem
+      --with-guile-site-dir=#{share}/guile/site/3.0
+      --with-guile-site-ccache-dir=#{lib}/guile/3.0/site-ccache
+      --with-guile-extension-dir=#{lib}/guile/3.0/extensions
       --disable-heartbeat-support
       --with-p11-kit
     ]
@@ -41,28 +59,37 @@ class Gnutls < Formula
   end
 
   def post_install
-    keychains = %w[
-      /System/Library/Keychains/SystemRootCertificates.keychain
-    ]
+    rm_f pkgetc/"cert.pem"
+    pkgetc.install_symlink Formula["ca-certificates"].pkgetc/"cert.pem"
 
-    certs_list = `security find-certificate -a -p #{keychains.join(" ")}`
-    certs = certs_list.scan(/-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----/m)
+    # Touch gnutls.go to avoid Guile recompilation.
+    # See https://github.com/Homebrew/homebrew-core/pull/60307#discussion_r478917491
+    touch lib/"guile/3.0/site-ccache/gnutls.go"
+  end
 
-    valid_certs = certs.select do |cert|
-      IO.popen("openssl x509 -inform pem -checkend 0 -noout", "w") do |openssl_io|
-        openssl_io.write(cert)
-        openssl_io.close_write
-      end
-
-      $CHILD_STATUS.success?
-    end
-
-    openssldir = etc/"openssl"
-    openssldir.mkpath
-    (openssldir/"cert.pem").atomic_write(valid_certs.join("\n"))
+  def caveats
+    <<~EOS
+      If you are going to use the Guile bindings you will need to add the following
+      to your .bashrc or equivalent in order for Guile to find the TLS certificates
+      database:
+        export GUILE_TLS_CERTIFICATE_DIRECTORY=#{pkgetc}/
+    EOS
   end
 
   test do
     system bin/"gnutls-cli", "--version"
+
+    gnutls = testpath/"gnutls.scm"
+    gnutls.write <<~EOS
+      (use-modules (gnutls))
+      (gnutls-version)
+    EOS
+
+    ENV["GUILE_AUTO_COMPILE"] = "0"
+    ENV["GUILE_LOAD_PATH"] = HOMEBREW_PREFIX/"share/guile/site/3.0"
+    ENV["GUILE_LOAD_COMPILED_PATH"] = HOMEBREW_PREFIX/"lib/guile/3.0/site-ccache"
+    ENV["GUILE_SYSTEM_EXTENSIONS_PATH"] = HOMEBREW_PREFIX/"lib/guile/3.0/extensions"
+
+    system "guile", gnutls
   end
 end

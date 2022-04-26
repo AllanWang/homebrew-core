@@ -1,51 +1,24 @@
-require "language/go"
-
 class DockerGen < Formula
   desc "Generate files from docker container metadata"
   homepage "https://github.com/jwilder/docker-gen"
-  url "https://github.com/jwilder/docker-gen/archive/0.7.4.tar.gz"
-  sha256 "7951b63684e4ace9eab4f87f0c5625648f8add2559fa7779fabdb141a8a83908"
+  url "https://github.com/jwilder/docker-gen/archive/0.9.0.tar.gz"
+  sha256 "9f270363d872e4d302b67b3baa3baec4d1c7b892814fd6a50e5953a2b90d745e"
+  license "MIT"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "00f1f34756eadc57f39945a00bc4e8c9e8ff2beefafbb58052667c2611e29e0f" => :mojave
-    sha256 "42d2757b01271ef6c14de5441b3c65507538388db1e00e69f322272a5ba5b59c" => :high_sierra
-    sha256 "222a5586670fec7643e9e7651f0b1fa82ff012048bd29b959ac720743f1a1a4f" => :sierra
-    sha256 "c274701a545e5a4885995718f5f01ca6df2f9c6b9a143d4ffcf46b1771ac4cbc" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "f40cb72aa44346dd276d00f9587d27e7ccb060684d138e3045e0207b2b3cc325"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "b8edafbe63fac9db91d1202f54f59ef1c6cc3e65c3de3f7c9546943d297a0a8c"
+    sha256 cellar: :any_skip_relocation, monterey:       "01164c6aa3f7a4aad182637b926a5c108154f115c5d1e3233d40237986fa8ce5"
+    sha256 cellar: :any_skip_relocation, big_sur:        "1575d5f789387db751721f1114683e38c61f2519d07afcb82f214c13ce2434bb"
+    sha256 cellar: :any_skip_relocation, catalina:       "47c4d2d964d487c1e45fdd9a4415fe5a1bff554f616eccc9e4a70930a205a752"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "e23c49eef1a172419af2bcaa3b35512401d45ad5d1b7e09e0d9e5af605230cf3"
   end
 
   depends_on "go" => :build
 
-  go_resource "github.com/agtorre/gocolorize" do
-    url "https://github.com/agtorre/gocolorize.git",
-        :revision => "99fea4bc9517f07eea8194702cb7076f4845b7de"
-  end
-
-  go_resource "github.com/robfig/glock" do
-    url "https://github.com/robfig/glock.git",
-        :revision => "428181ba14e0e3722090fe6e63402643a099e8bd"
-  end
-
-  go_resource "golang.org/x/tools" do
-    url "https://go.googlesource.com/tools.git",
-        :revision => "fbec762f837dc349b73d1eaa820552e2ad177942"
-  end
-
   def install
-    ENV["GOPATH"] = buildpath
-    (buildpath/"src/github.com/jwilder/docker-gen").install buildpath.children
-    Language::Go.stage_deps resources, buildpath/"src"
-
-    cd "src/github.com/robfig/glock" do
-      system "go", "install"
-    end
-
-    cd "src/github.com/jwilder/docker-gen" do
-      system buildpath/"bin/glock", "sync", "github.com/jwilder/docker-gen"
-      system "go", "build", "-ldflags", "-X main.buildVersion=#{version}", "-o",
-             bin/"docker-gen", "./cmd/docker-gen"
-      prefix.install_metafiles
-    end
+    ldflags = "-s -w -X main.buildVersion=#{version}"
+    system "go", "build", *std_go_args(ldflags: ldflags), "./cmd/docker-gen"
   end
 
   test do

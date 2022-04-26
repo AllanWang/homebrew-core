@@ -1,22 +1,26 @@
 class Blueutil < Formula
   desc "Get/set bluetooth power and discoverable state"
   homepage "https://github.com/toy/blueutil"
-  url "https://github.com/toy/blueutil/archive/v2.4.0.tar.gz"
-  sha256 "1697e6b8522841bf12208826ca22b164f83029a6196f28a0b00dc79d0d8252a5"
-  head "https://github.com/toy/blueutil.git"
+  url "https://github.com/toy/blueutil/archive/v2.9.0.tar.gz"
+  sha256 "cbd66abe0c4044b0d62095e340abf3e63925d4380e0dce710a550764a1f62352"
+  license "MIT"
+  head "https://github.com/toy/blueutil.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "aaa5f3d72a8abd32e6e19465a0d1b1061dcb694ca5552dd3fd44384f4be3707e" => :mojave
-    sha256 "00ac1b7cfb54b05a27c4ef31cad443a7c7ad00bc56adc77acde00d14c0e0a566" => :high_sierra
-    sha256 "68094b894edbcade821591c699cd5349ff42995db389694ac7c6c22af0d4182e" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "adcb4a19c564cbd895f7e216df0a3293e17a009b243f5710edb9ba60965231db"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "e29ddccdf7253406a3685f4099f3424ffb6d399ff2643f2d79f281ad97b93a67"
+    sha256 cellar: :any_skip_relocation, monterey:       "bdcffcaabd1270881f5b28da53aa1a6a28b93cbeb134d2b08891861653364b92"
+    sha256 cellar: :any_skip_relocation, big_sur:        "429703e2bae1445d2a6ae2e1f52ed2c1f0bad3a94e80b44bfe36e698ba5ded30"
+    sha256 cellar: :any_skip_relocation, catalina:       "3717d1a6753d4d94c4b4cbc92afa8ce58ed02bc1435806646fba4c7c1d04787a"
+    sha256 cellar: :any_skip_relocation, mojave:         "389cd2270eededef8623fda47663f998cca159b82f17ef030962ac7dbae3522b"
   end
 
-  depends_on :xcode => :build
+  depends_on xcode: :build
+  depends_on :macos
 
   def install
     # Set to build with SDK=macosx10.6, but it doesn't actually need 10.6
-    xcodebuild "SDKROOT=", "SYMROOT=build"
+    xcodebuild "-arch", Hardware::CPU.arch, "SDKROOT=", "SYMROOT=build"
     bin.install "build/Release/blueutil"
   end
 

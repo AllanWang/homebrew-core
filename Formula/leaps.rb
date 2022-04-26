@@ -1,48 +1,41 @@
 class Leaps < Formula
   desc "Collaborative web-based text editing service written in Golang"
   homepage "https://github.com/jeffail/leaps"
-  url "https://github.com/Jeffail/leaps.git",
-      :tag      => "v0.9.0",
-      :revision => "89d8ab9e9130238e56a0df283edbcd1115ec9225"
+  url "https://github.com/Jeffail/leaps/archive/v0.9.1.tar.gz"
+  sha256 "8335e2a939ac5928a05f71df4014529b5b0f2097152017d691a0fb6d5ae27be4"
+  license "MIT"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "9e40e4b5b75c73411f6ab74bea028f72f25f8b788eadf032f0f5cfed03baefae" => :mojave
-    sha256 "37343e978d4035fa9b2881c038748ec4704bf8a57308c59e64592dd404166e36" => :high_sierra
-    sha256 "d269ec8f0e492e2a9c7804ca2cc6d9211a9be7c3dfbb0daaab19c5b14bef5b24" => :sierra
-    sha256 "e36259af15ec8cf6546b1f7d99a105efb9a30c198f549a67964417e31892fe97" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "a50cb3d2e58261495fc33607825dade069b92d7f6fdb70cae7f1052182895d34"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "2602cc2c500cc446b5ceb72ffbb6dab1d339ffda72b5be20c73e33a432378e3e"
+    sha256 cellar: :any_skip_relocation, monterey:       "2417b908a0c2934b3d68ebddfabcdc2d59dbe08ba42d2521a66f107af9a74e98"
+    sha256 cellar: :any_skip_relocation, big_sur:        "8ed65478fa14879ff6c24e7e6710d09a8143fe33aad4f8f353bb4ab91e393824"
+    sha256 cellar: :any_skip_relocation, catalina:       "3b5cbe1f1da86d1cf1a3603fd6b0697a8fbe3bdffe6083dfc5b16c60cb5c3798"
+    sha256 cellar: :any_skip_relocation, mojave:         "1f777329b3f9c45a8d94ad10af2183067ca6d28c8f5db48d6c26d33e7d381961"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "8c1f94e5c2315b93194e5b5573de8ac9d57fe7b791e20538839df29b940d4824"
   end
 
-  depends_on "dep" => :build
   depends_on "go" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-    (buildpath/"src/github.com/jeffail/leaps").install buildpath.children
-    cd "src/github.com/jeffail/leaps" do
-      system "dep", "ensure", "-vendor-only"
-      system "go", "build", "-o", bin/"leaps", "./cmd/leaps"
-      prefix.install_metafiles
-    end
+    system "go", "build", *std_go_args(ldflags: "-s -w"), "./cmd/leaps"
   end
 
   test do
-    begin
-      port = ":8080"
+    port = ":#{free_port}"
 
-      # Start the server in a fork
-      leaps_pid = fork do
-        exec "#{bin}/leaps", "-address", port
-      end
-
-      # Give the server some time to start serving
-      sleep(1)
-
-      # Check that the server is responding correctly
-      assert_match "You are alone", shell_output("curl -o- http://localhost#{port}")
-    ensure
-      # Stop the server gracefully
-      Process.kill("HUP", leaps_pid)
+    # Start the server in a fork
+    leaps_pid = fork do
+      exec "#{bin}/leaps", "-address", port
     end
+
+    # Give the server some time to start serving
+    sleep(1)
+
+    # Check that the server is responding correctly
+    assert_match "You are alone", shell_output("curl -o- http://localhost#{port}")
+  ensure
+    # Stop the server gracefully
+    Process.kill("HUP", leaps_pid)
   end
 end

@@ -1,18 +1,18 @@
 class Makefile2graph < Formula
   desc "Create a graph of dependencies from GNU-Make"
   homepage "https://github.com/lindenb/makefile2graph"
-  url "https://github.com/lindenb/makefile2graph/archive/v1.5.0.tar.gz"
-  sha256 "9464c6c1291609c211284a9889faedbab22ef504ce967b903630d57a27643b40"
-  head "https://github.com/lindenb/makefile2graph.git"
+  url "https://github.com/lindenb/makefile2graph/archive/2021.11.06.tar.gz"
+  sha256 "5be8e528fa2945412357a8ef233e68fa3729639307ec1c38fd63768aad642c41"
+  license "MIT"
+  head "https://github.com/lindenb/makefile2graph.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "5b5cb69a698628af41b3de70146580bbcb2e88a8b6d87d7fe9b4f58a2f2fdfb2" => :mojave
-    sha256 "51231ed0ef44fd31a10f4ea0a7500570181332786ddd5a8a9a886958ad1b1408" => :high_sierra
-    sha256 "274ee025c45df9757d608249d64105b9314c8e59fc52a81ad6906f807498b67c" => :sierra
-    sha256 "ed1939b1b0fd106f3e328e310a887cf454b81481f78fdf57ce75c0480a922d7d" => :el_capitan
-    sha256 "37aebae489e0f341f80417ec711e5c2817f5b8097c3493dcc11bc754bdd1b1cf" => :yosemite
-    sha256 "0de3d4a2492797c3259798493e287ac2403f02254c6cfcf74948a16bcc4bcd0d" => :mavericks
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "96deab75f00bf9fa63e78af5b6623816b3a390c32adc0c4667099f3879938883"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "5eb90095c4579d7d8616732bec7f266164f7b5f7665ef15fd3272720a4577cae"
+    sha256 cellar: :any_skip_relocation, monterey:       "6010cadf93231ec03033a5248ad53ff57b099915ec8a72aa847a9a80a401257f"
+    sha256 cellar: :any_skip_relocation, big_sur:        "7018264b838135807ab0a5e062a6315cf20b8de88b8dcff3f71afa03251eb8a2"
+    sha256 cellar: :any_skip_relocation, catalina:       "58d4ab28a477688fb01b4db124c5d7deda3d7c2076e94e4c303ea1e8ab9a65c8"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "073d9b3b0eb9ff852a6f3f12aba6e3e2547d84e0d1257382b423a176df567299"
   end
 
   depends_on "graphviz"

@@ -1,27 +1,27 @@
 class Whatmp3 < Formula
+  include Language::Python::Shebang
+
   desc "Small script to create mp3 torrents out of FLACs"
   homepage "https://github.com/RecursiveForest/whatmp3"
   url "https://github.com/RecursiveForest/whatmp3/archive/v3.8.tar.gz"
   sha256 "0d8ba70a1c72835663a3fde9ba8df0ff7007268ec0a2efac76c896dea4fcf489"
-  revision 2
-  head "https://github.com/RecursiveForest/whatmp3.git"
+  license "MIT"
+  revision 5
+  head "https://github.com/RecursiveForest/whatmp3.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    rebuild 1
-    sha256 "6b36c6382c121ba067270c41d336af706df2f2a531e02703f629557aaa8206d7" => :mojave
-    sha256 "976769c7868f672a9a5bd625b1c6d4e557dbbaf74f9d4274ebac0a1b0afe920a" => :high_sierra
-    sha256 "976769c7868f672a9a5bd625b1c6d4e557dbbaf74f9d4274ebac0a1b0afe920a" => :sierra
-    sha256 "976769c7868f672a9a5bd625b1c6d4e557dbbaf74f9d4274ebac0a1b0afe920a" => :el_capitan
+    sha256 cellar: :any_skip_relocation, all: "e2d016997747d101763e515bb9a223090672b2914340c05bd4fb71618af491cc"
   end
 
   depends_on "flac"
   depends_on "lame"
   depends_on "mktorrent"
-  depends_on "python"
+  depends_on "python@3.10"
 
   def install
     system "make", "PREFIX=#{prefix}", "install"
+
+    rewrite_shebang detected_python_shebang, bin/"whatmp3"
   end
 
   test do

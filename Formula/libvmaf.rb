@@ -1,28 +1,46 @@
 class Libvmaf < Formula
   desc "Perceptual video quality assessment based on multi-method fusion"
   homepage "https://github.com/Netflix/vmaf"
-  url "https://github.com/Netflix/vmaf/archive/v1.3.14.tar.gz"
-  sha256 "e405b9716ea194b851b7d341f670e417ec6a319daec74d3e7bf591b71cbbac1c"
+  url "https://github.com/Netflix/vmaf/archive/v2.3.1.tar.gz"
+  sha256 "8d60b1ddab043ada25ff11ced821da6e0c37fd7730dd81c24f1fc12be7293ef2"
+  license "BSD-2-Clause-Patent"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "bc89bbb7fcb608885a7aae6578e54fa728f8cba9ca85d921f58234e9b9b66d61" => :mojave
-    sha256 "72d6656003d3b9c2965ef4873b849a104d5d475c8ca38194e0dd86aef5103c04" => :high_sierra
-    sha256 "afe11e0c4f0235cdf8151f36cf26a7ec15f188323a70d6184f0a89bd5af08686" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "780fe80d3941971968a0dfe1f8384fc5fc240e9994b09da41175a7d5fc56b513"
+    sha256 cellar: :any,                 arm64_big_sur:  "76b4b46c07bde41001d5dd6660de656c369b1cf9653638538348e97ffaeec55f"
+    sha256 cellar: :any,                 monterey:       "a30aaf6bd5878809c3dec5f47d643e4adbda5811a13f5a20d21a3472d5151e2a"
+    sha256 cellar: :any,                 big_sur:        "60fb7784b39ae2aff9a836f08190637e9c7f2ac32755ed24ec3f5ddbac916c64"
+    sha256 cellar: :any,                 catalina:       "99db9a406ddacb8ca0c157dbea53eb12a29ced66091f2af820ae8bf9bc9802cd"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "6697226f2c628ce462531ad546f8152b264f29151710cdb064659ac321cb92a4"
   end
 
+  depends_on "meson" => :build
+  depends_on "nasm" => :build
+  depends_on "ninja" => :build
+
   def install
-    system "make"
-    system "make", "install", "INSTALL_PREFIX=#{prefix}"
-    system "make", "testlib", "INSTALL_PREFIX=#{prefix}"
-    pkgshare.install "wrapper/testlib"
-    pkgshare.install "python/test/resource/yuv/src01_hrc00_576x324.yuv"
+    Dir.chdir("libvmaf") do
+      system "meson", *std_meson_args, "build"
+      system "ninja", "-vC", "build"
+      system "ninja", "-vC", "build", "install"
+    end
+    pkgshare.install "model"
   end
 
   test do
-    yuv = "#{pkgshare}/src01_hrc00_576x324.yuv"
-    pkl = "#{share}/model/vmaf_v0.6.1.pkl"
-    output = shell_output("#{pkgshare}/testlib yuv420p 576 324 #{yuv} #{yuv} #{pkl}")
-    assert_match "VMAF score = ", output
+    (testpath/"test.c").write <<~EOS
+      #include <libvmaf/libvmaf.h>
+      int main() {
+        return 0;
+      }
+    EOS
+
+    flags = [
+      "-I#{HOMEBREW_PREFIX}/include/libvmaf",
+      "-L#{lib}",
+    ]
+
+    system ENV.cc, "test.c", "-o", "test", *flags
+    system "./test"
   end
 end

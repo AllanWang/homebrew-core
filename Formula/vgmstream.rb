@@ -1,32 +1,49 @@
 class Vgmstream < Formula
   desc "Library for playing streamed audio formats from video games"
-  homepage "https://hcs64.com/vgmstream.html"
-  url "https://github.com/kode54/vgmstream/archive/r1040.tar.gz"
-  version "r1040"
-  sha256 "0ff6534a4049b27b01caf209811b87b1bfe445f94e141a5fe601f2dae9d03c89"
-  head "https://github.com/kode54/vgmstream.git"
+  homepage "https://vgmstream.org"
+  url "https://github.com/vgmstream/vgmstream.git",
+      tag:      "r1721",
+      revision: "f2f0b3f84a9a93fc2623736e738df16a6050901e"
+  version "r1721"
+  license "ISC"
+  version_scheme 1
+  head "https://github.com/vgmstream/vgmstream.git", branch: "master"
 
-  bottle do
-    cellar :any
-    rebuild 2
-    sha256 "dd7dae465bb50700fcf448c3a5fc0478600c6151eeade7196c88202aa19c2f4f" => :mojave
-    sha256 "970428e954d82c2aaef2da083320fabd21ae7ba866fd2055d5fdcdd21f2989b0" => :high_sierra
-    sha256 "b85d6942270fc9024de56e4fe08618f7ffce1499f4c9faf3f31b246310a17511" => :sierra
-    sha256 "980226be71f7ba16f71e7cd4ba53a4160c03cf9308036d014538b1feb8285d08" => :el_capitan
+  livecheck do
+    url :stable
+    regex(%r{href=["']?[^"' >]*?/tag/([^"' >]+)["' >]}i)
+    strategy :github_latest
   end
 
+  bottle do
+    sha256 cellar: :any,                 arm64_monterey: "0b8177e17308a4f8a185c3b1eba077dd03fd826dcc3cff9bb6354bd6e4b54329"
+    sha256 cellar: :any,                 arm64_big_sur:  "1d77b314ec191484a9a6c7c782191be9666bb7ed7fdfaa7c34cb195244457181"
+    sha256 cellar: :any,                 monterey:       "485b40895cf228ea7bf4eb9c6e96f5a115548e2b9a2249609797f409e7465d9a"
+    sha256 cellar: :any,                 big_sur:        "b808158bbf9ef50acd280853da0f5449bead4e740799449c76c2f7957d54bddd"
+    sha256 cellar: :any,                 catalina:       "b584b6efaadefba88b907ebd946cab0f5078f68c6c6e300a93cdc9c366c3b6de"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "b1061e3d73b5a30248dd565a1d6821a4f1956aaa9c061011ad25e0218926c349"
+  end
+
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
+  depends_on "cmake" => :build
+  depends_on "ffmpeg"
+  depends_on "jansson"
+  depends_on "libao"
   depends_on "libvorbis"
   depends_on "mpg123"
 
+  fails_with gcc: "5" # ffmpeg is compiled with GCC
+
   def install
-    cd "test" do
-      system "make"
-      bin.install "test" => "vgmstream"
-      lib.install "../src/libvgmstream.a"
-    end
+    ENV["LIBRARY_PATH"] = HOMEBREW_PREFIX/"lib"
+    system "cmake", "-S", ".", "-B", "build", "-DBUILD_AUDACIOUS:BOOL=OFF", *std_cmake_args
+    system "cmake", "--build", "build"
+    bin.install "build/cli/vgmstream-cli", "build/cli/vgmstream123"
+    lib.install "build/src/libvgmstream.a"
   end
 
   test do
-    assert_match "decode", shell_output("#{bin}/vgmstream 2>&1", 1)
+    assert_match "decode", shell_output("#{bin}/vgmstream-cli 2>&1", 1)
   end
 end

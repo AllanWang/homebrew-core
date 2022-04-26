@@ -1,15 +1,17 @@
 class Webp < Formula
   desc "Image format providing lossless and lossy compression for web images"
   homepage "https://developers.google.com/speed/webp/"
-  url "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.0.2.tar.gz"
-  sha256 "3d47b48c40ed6476e8047b2ddb81d93835e0ca1b8d3e8c679afbb3004dd564b1"
+  url "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.2.2.tar.gz"
+  sha256 "7656532f837af5f4cec3ff6bafe552c044dc39bf453587bd5b77450802f4aee6"
+  license "BSD-3-Clause"
 
   bottle do
-    cellar :any
-    rebuild 1
-    sha256 "38bdac64dbf41666310ae1589e6102b6bcd688540514f7af4334dd74996c4277" => :mojave
-    sha256 "b324a2a6eeb5c7c916a903f7249b6233334f99e7394b9927784319f086e21f8e" => :high_sierra
-    sha256 "32e6c391ab45b17b167d565ef1ac36eeb2267483425f4b0f710f5445fa75df61" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "44dfabbbc585237b1f52d517186ec33ea0f65398667559a5164d0013881ded77"
+    sha256 cellar: :any,                 arm64_big_sur:  "9b8ae542d86b3faa7cf531d1cb2d1a410a55ece8d635302b783d122702ba3246"
+    sha256 cellar: :any,                 monterey:       "58169ef7b31ed2980685c05a7fc1d874a67802f7be0def4c295135ee73796d11"
+    sha256 cellar: :any,                 big_sur:        "3f1bdbf8361bdcb55d722c0007e4056e7a535234b8e7fe0cff6016dc48e1c8a9"
+    sha256 cellar: :any,                 catalina:       "5cf57e838f218193d7543de1b50093185e72fa368b7334a3ee58ea4b2268e994"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "10c1f70224b629c8eb550469e51379c29f0996bd87690304f3c226a1fb930677"
   end
 
   head do
@@ -19,6 +21,7 @@ class Webp < Formula
     depends_on "libtool" => :build
   end
 
+  depends_on "giflib"
   depends_on "jpeg"
   depends_on "libpng"
   depends_on "libtiff"
@@ -27,7 +30,6 @@ class Webp < Formula
     system "./autogen.sh" if build.head?
     system "./configure", "--prefix=#{prefix}",
                           "--disable-dependency-tracking",
-                          "--disable-gif",
                           "--disable-gl",
                           "--enable-libwebpdecoder",
                           "--enable-libwebpdemux",

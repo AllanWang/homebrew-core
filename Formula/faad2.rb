@@ -1,21 +1,26 @@
 class Faad2 < Formula
   desc "ISO AAC audio decoder"
-  homepage "https://www.audiocoding.com/faad2.html"
-  url "https://downloads.sourceforge.net/project/faac/faad2-src/faad2-2.8.0/faad2-2.8.8.tar.gz"
-  sha256 "985c3fadb9789d2815e50f4ff714511c79c2710ac27a4aaaf5c0c2662141426d"
+  homepage "https://sourceforge.net/projects/faac/"
+  url "https://github.com/knik0/faad2/archive/refs/tags/2_10_0.tar.gz"
+  sha256 "0c6d9636c96f95c7d736f097d418829ced8ec6dbd899cc6cc82b728480a84bfb"
+  license "GPL-2.0-or-later"
 
   bottle do
-    cellar :any
-    sha256 "a896f898d36455dbb65b19efcc1f574be76c22dca981e3361be08ef234fd6e5d" => :mojave
-    sha256 "e8872363a2fda9a3c9872ef697e517c638e54e2af5238d9e94b30e34ecdc505e" => :high_sierra
-    sha256 "f05989cbd9630fc37c962fc28ff29ec48a5fa7b71fe4ff9e520db6add1d0f09e" => :sierra
-    sha256 "94205432c0187c2ccef411b05934b8db57512bd80b53c8f9c00f3792ee478684" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "7d3ed82ad0bc48a71b7341db0d578545bc9fcdd4ea084b4e651d99319c1e7b63"
+    sha256 cellar: :any,                 arm64_big_sur:  "8032f53b871aa9c01950efd796f73f66f3cbd514e5078a0a81cf7f36e42723a8"
+    sha256 cellar: :any,                 monterey:       "fbb0d45e57a091f43f049152b505525a060f4a15c65f455769f88adfafc4e46e"
+    sha256 cellar: :any,                 big_sur:        "3b213d8ff392515c908a505c0ec902f195fcbd7a8ae470896a0a4ed0080a5445"
+    sha256 cellar: :any,                 catalina:       "efc7c8b92b7411b12fb4f63ef641f92d2278b212f49614b7322449dcd24971fb"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "720a60fc65bf50a3645009ab1e4046f897ebadfc06be17e84e00eec0dfd49a56"
   end
 
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
+  depends_on "libtool" => :build
+
   def install
-    system "./configure", "--disable-dependency-tracking",
-                          "--disable-silent-rules",
-                          "--prefix=#{prefix}"
+    system "./bootstrap"
+    system "./configure", *std_configure_args
     system "make", "install"
   end
 

@@ -1,24 +1,31 @@
 class Rename < Formula
   desc "Perl-powered file rename script with many helpful built-ins"
   homepage "http://plasmasturm.org/code/rename"
-  url "https://github.com/ap/rename/archive/v1.600.tar.gz"
-  sha256 "538fa908c9c2c4e7a08899edb6ddb47f7cbeb9b1a1d04e003d3c19b56fcc7f88"
-  revision 1
-
-  head "https://github.com/ap/rename.git"
+  url "https://github.com/ap/rename/archive/v1.601.tar.gz"
+  sha256 "e8fd67b662b9deddfb6a19853652306f8694d7959dfac15538a9b67339c87af4"
+  head "https://github.com/ap/rename.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "5955aab33b5eb7ac76fb48870451f110caf8057cf76550bebf095f10fff38080" => :mojave
-    sha256 "b40d758f416765733e0071705fae180c62c63058b350c379b9f36da9da98fad1" => :high_sierra
-    sha256 "b40d758f416765733e0071705fae180c62c63058b350c379b9f36da9da98fad1" => :sierra
-    sha256 "b40d758f416765733e0071705fae180c62c63058b350c379b9f36da9da98fad1" => :el_capitan
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "1d7f81a8f319841108fb8082ea6cd5cf591224964e6f34bb0135cf851b7f951f"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "308b9f76cf8386eb9c5835204233f0869cc566d9995b383a5215649e8b1c7a48"
+    sha256 cellar: :any_skip_relocation, monterey:       "1d7f81a8f319841108fb8082ea6cd5cf591224964e6f34bb0135cf851b7f951f"
+    sha256 cellar: :any_skip_relocation, big_sur:        "308b9f76cf8386eb9c5835204233f0869cc566d9995b383a5215649e8b1c7a48"
+    sha256 cellar: :any_skip_relocation, catalina:       "2f1c70cacb289e2286bc6ec1e47319d197c2f0d74f8474b303aa2cb9aad8bb0e"
+    sha256 cellar: :any_skip_relocation, mojave:         "2f1c70cacb289e2286bc6ec1e47319d197c2f0d74f8474b303aa2cb9aad8bb0e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "a88a0c2cd57632633f5ab3e9078f22903b3c12f0520276c3e408570ff10dee14"
   end
 
-  conflicts_with "util-linux", :because => "both install `rename` binaries"
+  depends_on "pod2man" => :build
+
+  uses_from_macos "perl"
+
+  on_linux do
+    conflicts_with "util-linux", because: "both install `rename` binaries"
+  end
 
   def install
-    system "pod2man", "rename", "rename.1"
+    system "#{Formula["pod2man"].opt_bin}/pod2man", "rename", "rename.1"
     bin.install "rename"
     man1.install "rename.1"
   end

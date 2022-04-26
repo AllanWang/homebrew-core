@@ -1,31 +1,32 @@
 class Ipmiutil < Formula
   desc "IPMI server management utility"
   homepage "https://ipmiutil.sourceforge.io/"
-  url "https://downloads.sourceforge.net/project/ipmiutil/ipmiutil-2.9.5.tar.gz"
-  sha256 "eb00f0582ee75e1f8d371e398d546ddd7639595b9a0a1f27a84cc6ecb038dbe6"
+  url "https://downloads.sourceforge.net/project/ipmiutil/ipmiutil-3.1.8.tar.gz"
+  sha256 "b14357b9723e38a19c24df2771cff63d5f15f8682cd8a5b47235044b767b1888"
+  license all_of: ["BSD-2-Clause", "BSD-3-Clause", "GPL-2.0-or-later"]
 
   bottle do
-    cellar :any
-    sha256 "5ccb298e95d2a6f8303bc8c5d3a6b4631022f9fab3497c758c852f014301dbf1" => :mojave
-    sha256 "50cce938979cf77f307cb2e17e08fe6a1402b1f785561a578360d75308138288" => :high_sierra
-    sha256 "896eea4929dcd86ede955f0657424d1bb40e9a08e1aeb4d42658f4a8c00a9095" => :sierra
-    sha256 "25f46961b538e12edffb311b07cd90af6ad7e4dc323431b6e512375f243e9f21" => :el_capitan
-    sha256 "9fe09553dea21a6ea088bf0d571400da32b9826ab07263e6f9f618c34c2980b4" => :yosemite
-    sha256 "b1372295d77f7d211372bb496c856778369397fea35db58aba7262ad157e191e" => :mavericks
+    sha256 cellar: :any_skip_relocation, arm64_big_sur: "7fcbfd7ad87af3180be0a707028d053d40ac5015e56492215b31ecdeb12594d1"
+    sha256 cellar: :any_skip_relocation, monterey:      "2ccf8da9a193781f4afc3df39aed16631347dc6c9dc54e2ff18e900ea2f8bd30"
+    sha256 cellar: :any_skip_relocation, big_sur:       "89d488a24b1d2e48cb4b59f97a6728f40bb6f5537ad216990d1a8cb7cf126935"
+    sha256 cellar: :any_skip_relocation, catalina:      "22cbdf5b31cbbe32d43972f8f65b9e7cd1ab4b502fc853bb5ec4ba8c881da217"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:  "97654675eb07ff4c52dfc12434302e4c57a50be29e18839d063e9f2acf4955b1"
   end
 
-  depends_on "openssl"
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
+  depends_on "libtool" => :build
+  depends_on "openssl@1.1"
 
-  conflicts_with "renameutils", :because => "both install `icmd` binaries"
-
-  # Ensure ipmiutil does not try to link against (disabled) OpenSSL's MD2
-  # support. Patch submitted upstream in
-  # https://sourceforge.net/p/ipmiutil/mailman/message/33373858/
-  patch :DATA
+  conflicts_with "renameutils", because: "both install `icmd` binaries"
 
   def install
-    system "./configure", "--disable-debug", "--disable-dependency-tracking",
-                          "--prefix=#{prefix}",
+    # Darwin does not exist only on PowerPC
+    inreplace "configure.ac", "test \"$archp\" = \"powerpc\"", "true"
+    system "autoreconf", "-fiv"
+
+    system "./configure", *std_configure_args,
+                          "--disable-lanplus",
                           "--enable-sha256",
                           "--enable-gpl"
 
@@ -43,26 +44,3 @@ class Ipmiutil < Formula
     system "#{bin}/ipmiutil", "delloem", "help"
   end
 end
-
-__END__
-diff -u ./configure.bak ./configure
---- ./configure.bak       2015-02-04 22:15:07.000000000 +0100
-+++ ./configure   2015-02-04 22:16:18.000000000 +0100
-@@ -20739,7 +20739,7 @@
-            echo "Detected HP-UX"
-            os=hpux
-            MD2_CFLAGS="-DSKIP_MD2"
--           OS_CFLAGS="-DHPUX"
-+           OS_CFLAGS="-DHPUX $MD2_CFLAGS"
-            OS_LFLAGS=""
-            OS_DRIVERS="ipmimv.c"
-            drivers="open"
-@@ -20748,7 +20748,7 @@
-            echo "Detected MacOSX"
-            os=macos
-            MD2_CFLAGS="-DSKIP_MD2"
--           OS_CFLAGS="-DMACOS"
-+           OS_CFLAGS="-DMACOS $MD2_CFLAGS"
-            OS_LFLAGS=""
-           OS_DRIVERS="ipmimv.c ipmidir.c"
-           drivers="open direct"

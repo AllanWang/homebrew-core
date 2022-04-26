@@ -1,41 +1,47 @@
 class Fcl < Formula
   desc "Flexible Collision Library"
   homepage "https://flexible-collision-library.github.io/"
-  url "https://github.com/flexible-collision-library/fcl/archive/0.5.0.tar.gz"
-  sha256 "8e6c19720e77024c1fbff5a912d81e8f28004208864607447bc90a31f18fb41a"
-  revision 1
+  url "https://github.com/flexible-collision-library/fcl/archive/0.7.0.tar.gz"
+  sha256 "90409e940b24045987506a6b239424a4222e2daf648c86dd146cbcb692ebdcbc"
+  license "BSD-3-Clause"
+  head "https://github.com/flexible-collision-library/fcl.git", branch: "master"
 
   bottle do
-    sha256 "392131d9e9aea1fdd2e727161a7c4909dbe5efad7742e88ccc1afbc9090725bd" => :mojave
-    sha256 "72a5ca040739722599576b579a6f864ca3307bf01ad8403765d739813a3e1fd0" => :high_sierra
-    sha256 "8fd76b19ab4408397f161947d7da47f619ec710ddcdc2c012579440a6885f192" => :sierra
-    sha256 "a2bc2115c9cc18a7f155583e6209ade38e73b80a10704e4d26e44ed177bcf5a5" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "15b9e1b7c5166ad222c94e848259726896f59187b4a31c90671f4bdd00547591"
+    sha256 cellar: :any,                 arm64_big_sur:  "d2054fa4adf473a736ee945e0a1817772a77b423c1fbd314f7ced016ad616760"
+    sha256 cellar: :any,                 monterey:       "b79ff81383e9aa9de0a692f11d287365751a9610395e99b0acaff1eae9a8f4c8"
+    sha256 cellar: :any,                 big_sur:        "211e57fdf880e25e2441be78170dd1433d746aee1bb9a98990479abc2037a546"
+    sha256 cellar: :any,                 catalina:       "2bac88b84304ad8de56bbf604f7466ee147c31e04484df02ff45ef4aa9c966cc"
+    sha256 cellar: :any,                 mojave:         "095c6887a9007ec034751d8326fa7f5052180b78605d5df92223e081a17cad3c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "7b0a2f8116b46c0f78f86c850ca6a808282bbc8dc6a7768d716faef891ce64bf"
   end
 
   depends_on "cmake" => :build
   depends_on "pkg-config" => :build
   depends_on "boost"
+  depends_on "eigen"
   depends_on "libccd"
   depends_on "octomap"
 
   def install
     ENV.cxx11
-    system "cmake", ".", *std_cmake_args
+    system "cmake", ".", "-DBUILD_TESTING=OFF", *std_cmake_args
     system "make", "install"
   end
 
   test do
     (testpath/"test.cpp").write <<~EOS
-      #include <fcl/shape/geometric_shapes.h>
+      #include <fcl/geometry/shape/box.h>
       #include <cassert>
 
       int main() {
-        assert(fcl::Box(1, 1, 1).computeVolume() == 1);
+        assert(fcl::Boxd(1, 1, 1).computeVolume() == 1);
       }
     EOS
 
-    system ENV.cxx, "test.cpp", "-std=c++11", "-I#{include}", "-L#{lib}",
-                    "-lfcl", "-o", "test"
+    system ENV.cxx, "test.cpp", "-std=c++11", "-I#{include}",
+                    "-I#{Formula["eigen"].include}/eigen3",
+                    "-L#{lib}", "-lfcl", "-o", "test"
     system "./test"
   end
 end

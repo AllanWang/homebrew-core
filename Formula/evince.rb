@@ -1,19 +1,23 @@
 class Evince < Formula
   desc "GNOME document viewer"
   homepage "https://wiki.gnome.org/Apps/Evince"
-  url "https://download.gnome.org/sources/evince/3.32/evince-3.32.0.tar.xz"
-  sha256 "f0d977216466ed2f5a6de64476ef7113dc7c7c9832336f1ff07f3c03c5324c40"
+  url "https://download.gnome.org/sources/evince/42/evince-42.2.tar.xz"
+  sha256 "ff7f81f308cf8d4956ed97fb724a7e49448c214beeab998812ef9efbb38df8ae"
+  license "GPL-2.0-or-later"
 
   bottle do
-    sha256 "8d1fb23658da65d47d29adb98a07332168d5b5ec8be5d29069c43f88e1e55c64" => :mojave
-    sha256 "152c9214046e061a7d38ad88abe6dfde92b9e297993a459eed5ae5851be47381" => :high_sierra
-    sha256 "d46efcdeb3c0988bd477e83bcd67466c7f3000cb538e4d9fc9661bd8e3c0626d" => :sierra
+    sha256 arm64_monterey: "e606b4c6e7c3eba7b8e986ece1e4dc275118c161693e8409bdfdf4bf90a7bf03"
+    sha256 arm64_big_sur:  "3e6e5f201c55c97e434fada5c6f1199b8115e8a7e6b2f815389d049175565b6b"
+    sha256 monterey:       "8b7f8d8679817712431d56e5c3ea23715aaf043e6954914cf71fa49ccd9fb163"
+    sha256 big_sur:        "8f5c1fa77e8a4109cc5be4cb5ec13c56bb89ca2b92cbf497c3eab162e4e00cb8"
+    sha256 catalina:       "890ca50140c3cc168d236faf9685f75a1e4dfc5149b26a7396a8001854407cd9"
+    sha256 x86_64_linux:   "1f146a9c0d7574449c1d4edc8c047e85a4983151b5b4904df7248768e5fd477f"
   end
 
-  depends_on "appstream-glib" => :build
   depends_on "gobject-introspection" => :build
-  depends_on "intltool" => :build
   depends_on "itstool" => :build
+  depends_on "meson" => :build
+  depends_on "ninja" => :build
   depends_on "pkg-config" => :build
   depends_on "adwaita-icon-theme"
   depends_on "djvulibre"
@@ -21,45 +25,35 @@ class Evince < Formula
   depends_on "gtk+3"
   depends_on "hicolor-icon-theme"
   depends_on "libarchive"
+  depends_on "libgxps"
+  depends_on "libhandy"
   depends_on "libsecret"
   depends_on "libspectre"
-  depends_on "libxml2"
   depends_on "poppler"
-  depends_on "python"
-
-  # patch submitted upstream at https://gitlab.gnome.org/GNOME/evince/merge_requests/154
-  patch :DATA
+  depends_on "python@3.9"
 
   def install
-    ENV["GETTEXTDATADIR"] = "#{Formula["appstream-glib"].opt_share}/gettext"
+    ENV["DESTDIR"] = "/"
 
-    # Fix build failure "ar: illegal option -- D"
-    # Reported 15 Sep 2017 https://bugzilla.gnome.org/show_bug.cgi?id=787709
-    inreplace "configure", "AR_FLAGS=crD", "AR_FLAGS=r"
+    args = %w[
+      -Dnautilus=false
+      -Dcomics=enabled
+      -Ddjvu=enabled
+      -Dpdf=enabled
+      -Dps=enabled
+      -Dtiff=enabled
+      -Dxps=enabled
+      -Dgtk_doc=false
+      -Dintrospection=true
+      -Ddbus=false
+      -Dgspell=enabled
+    ]
 
-    # Add MacOS mime-types to the list of supported comic book archive mime-types
-    # Submitted upstream at https://gitlab.gnome.org/GNOME/evince/merge_requests/157
-    inreplace "configure", "COMICS_MIME_TYPES=\"",
-      "COMICS_MIME_TYPES=\"application/x-rar;application/zip;application/x-cb7;application/x-7z-comperssed;application/x-tar;"
-
-    # forces use of gtk3-update-icon-cache instead of gtk-update-icon-cache. No bugreport should
-    # be filed for this since it only occurs because Homebrew renames gtk+3's gtk-update-icon-cache
-    # to gtk3-update-icon-cache in order to avoid a collision between gtk+ and gtk+3.
-    inreplace "data/Makefile.in", "gtk-update-icon-cache", "gtk3-update-icon-cache"
-
-    xy = Language::Python.major_minor_version "python3"
-    ENV.append_path "PYTHONPATH", "#{Formula["libxml2"].opt_lib}/python#{xy}/site-packages"
-
-    system "./configure", "--disable-debug",
-                          "--disable-dependency-tracking",
-                          "--disable-silent-rules",
-                          "--prefix=#{prefix}",
-                          "--disable-nautilus",
-                          "--disable-schemas-compile",
-                          "--enable-introspection",
-                          "--enable-djvu",
-                          "--disable-browser-plugin"
-    system "make", "install"
+    mkdir "build" do
+      system "meson", *std_meson_args, *args, ".."
+      system "ninja", "-v"
+      system "ninja", "install", "-v"
+    end
   end
 
   def post_install
@@ -71,22 +65,3 @@ class Evince < Formula
     assert_match version.to_s, shell_output("#{bin}/evince --version")
   end
 end
-
-__END__
-diff --git a/libdocument/ev-document-factory.c b/libdocument/ev-document-factory.c
-index ca1aeeb..4f7f40b 100644
---- a/libdocument/ev-document-factory.c
-+++ b/libdocument/ev-document-factory.c
-@@ -58,8 +58,12 @@ get_backend_info_for_mime_type (const gchar *mime_type)
-                 guint i;
-
-                 for (i = 0; mime_types[i] != NULL; ++i) {
--                        if (g_content_type_is_mime_type (mime_type, mime_types[i]))
-+                        gchar *content_type = g_content_type_from_mime_type(mime_type);
-+                        if (g_content_type_is_mime_type (content_type, mime_types[i])) {
-+                                g_free(content_type);
-                                 return info;
-+                        }
-+                        g_free(content_type);
-                 }
-         }

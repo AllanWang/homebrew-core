@@ -1,39 +1,42 @@
 class LibvirtGlib < Formula
   desc "Libvirt API for glib-based programs"
   homepage "https://libvirt.org/"
-  url "https://libvirt.org/sources/glib/libvirt-glib-2.0.0.tar.gz"
-  sha256 "94e8c410c67501303d3b32ca8ce2c36edf898511ec4de9b7f29cd35d274b3d6a"
-  revision 1
+  url "https://libvirt.org/sources/glib/libvirt-glib-4.0.0.tar.xz"
+  sha256 "8423f7069daa476307321d1c11e2ecc285340cd32ca9fc05207762843edeacbd"
+  license "LGPL-2.1-or-later"
+
+  livecheck do
+    url "https://libvirt.org/sources/glib/"
+    regex(/href=.*?libvirt-glib[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    sha256 "7b6665ce900145b71afcc3e77821b8292072de84662a8e0588ff9c416adce946" => :mojave
-    sha256 "49573b3aa06fbc8ccf8ef3ebf40ffc6550b74d3592b58e336d11e3dc0d654a60" => :high_sierra
-    sha256 "c98664ee49b401f61b05984f7bc5a992cb91aeecd744beae3bf5f38857b42af8" => :sierra
+    sha256 arm64_monterey: "e8bfac0fafee87488e06debd73ebcc991f1d628afa2106b32161da94a41faa22"
+    sha256 arm64_big_sur:  "4d4918afe72309394ab15e98a5b15cf5c77e8027b20bc7bc7c1f0fb7524dbf78"
+    sha256 monterey:       "7c4c421cc28957cbb15e3e4335908cda7f92f720dee6b749d8a224b141633f48"
+    sha256 big_sur:        "9695bd9cca917eabee5eeaa038470e0a42c13767c420357ece93519958aa7653"
+    sha256 catalina:       "101d1a4bf6b4c45b49261fc97ddfb73d34a30511f6a24fc8f31c48caff8e14f4"
+    sha256 mojave:         "9a3967ba636f27cd1c923603e1df533b5edc7a7d5c90b089bf0154cd7b408b7f"
+    sha256 x86_64_linux:   "dca22d86f5c9e75e1abd763a252c0468da812032f80fae12514f57bb33023ffb"
   end
 
   depends_on "gobject-introspection" => :build
   depends_on "intltool" => :build
+  depends_on "meson" => :build
+  depends_on "ninja" => :build
   depends_on "pkg-config" => :build
-
   depends_on "gettext"
   depends_on "glib"
   depends_on "libvirt"
 
-  def install
-    # macOS ld does not support linker option: --version-script
-    # https://bugzilla.redhat.com/show_bug.cgi?id=1304981
-    inreplace "libvirt-gconfig/Makefile.in", /^.*-Wl,--version-script=.*$\n/, ""
-    inreplace "libvirt-glib/Makefile.in",    /^.*-Wl,--version-script=.*$\n/, ""
-    inreplace "libvirt-gobject/Makefile.in", /^.*-Wl,--version-script=.*$\n/, ""
+  uses_from_macos "libxml2"
 
-    args = %W[
-      --disable-dependency-tracking
-      --disable-silent-rules
-      --enable-introspection
-      --prefix=#{prefix}
-    ]
-    system "./configure", *args
-    system "make", "install"
+  def install
+    system "meson", "setup", "builddir", *std_meson_args, "-Dintrospection=enabled"
+    cd "builddir" do
+      system "meson", "compile"
+      system "meson", "install"
+    end
   end
 
   test do
@@ -48,8 +51,13 @@ class LibvirtGlib < Formula
         return 0;
       }
     EOS
+    libxml2 = if OS.mac?
+      "#{MacOS.sdk_path}/usr/include/libxml2"
+    else
+      Formula["libxml2"].opt_include/"libxml2"
+    end
     system ENV.cc, "test.cpp",
-                   "-I#{MacOS.sdk_path}/usr/include/libxml2",
+                   "-I#{libxml2}",
                    "-I#{Formula["glib"].include}/glib-2.0",
                    "-I#{Formula["glib"].lib}/glib-2.0/include",
                    "-I#{include}/libvirt-gconfig-1.0",

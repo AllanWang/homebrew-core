@@ -3,15 +3,18 @@ require "language/node"
 class ContentfulCli < Formula
   desc "Contentful command-line tools"
   homepage "https://github.com/contentful/contentful-cli"
-  url "https://registry.npmjs.org/contentful-cli/-/contentful-cli-0.29.0.tgz"
-  sha256 "3b82b10771a789db4f7748de2d5a5cc454f6ea50d0d5381015957663be564407"
-  head "https://github.com/contentful/contentful-cli.git"
+  url "https://registry.npmjs.org/contentful-cli/-/contentful-cli-1.12.20.tgz"
+  sha256 "3e8389024c8758fb03bd23506f2820748cffa4d9a6645c6d1bb50d0ee14b8245"
+  license "MIT"
+  head "https://github.com/contentful/contentful-cli.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "6c39fe2a592157a84181bf124f6f8255db243ffdbf13866c649ca7f7731b5d19" => :mojave
-    sha256 "abb221a2c8c86811dc8de0406b3634db818131a8358962224e3618b967a1c3ed" => :high_sierra
-    sha256 "bf8d87a2289199eb3c4736a2ec0e7ef47620de9e14cc2542a2bdd69105243bb1" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "39607e24f174697feecd3425aa0850471974e482c30f723c33bc400209f5efb8"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "39607e24f174697feecd3425aa0850471974e482c30f723c33bc400209f5efb8"
+    sha256 cellar: :any_skip_relocation, monterey:       "78be78e4de31dfc8c8c69760811697a9d1d1768ceb6bf36738ea0507f414e426"
+    sha256 cellar: :any_skip_relocation, big_sur:        "78be78e4de31dfc8c8c69760811697a9d1d1768ceb6bf36738ea0507f414e426"
+    sha256 cellar: :any_skip_relocation, catalina:       "78be78e4de31dfc8c8c69760811697a9d1d1768ceb6bf36738ea0507f414e426"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "39607e24f174697feecd3425aa0850471974e482c30f723c33bc400209f5efb8"
   end
 
   depends_on "node"
@@ -25,6 +28,6 @@ class ContentfulCli < Formula
     output = shell_output("#{bin}/contentful space list 2>&1", 1)
     assert_match "🚨  Error: You have to be logged in to do this.", output
     assert_match "You can log in via contentful login", output
-    assert_match "Or provide a managementToken via --management-Token argument", output
+    assert_match "Or provide a management token via --management-token argument", output
   end
 end

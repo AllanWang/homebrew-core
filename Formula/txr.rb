@@ -1,20 +1,30 @@
 class Txr < Formula
   desc "Original, new programming language for convenient data munging"
   homepage "https://www.nongnu.org/txr/"
-  url "http://www.kylheku.com/cgit/txr/snapshot/txr-215.tar.bz2"
-  sha256 "5a01135e0315879abca0fcfe74bdc4949d8284e9c31b1e8ea4ddbf9e63a9985a"
-  head "http://www.kylheku.com/git/txr", :using => :git
+  url "http://www.kylheku.com/cgit/txr/snapshot/txr-274.tar.bz2"
+  sha256 "6d6833d2498f2cdd15d2b9054620aac6406384df0557d7cbf95bbc192c3d25ae"
+  license "BSD-2-Clause"
 
-  bottle do
-    cellar :any_skip_relocation
-    sha256 "d9879aab4e7ce800b09978690a8cf6e820ac874f3ffbd471716b7e3ce7926c30" => :mojave
-    sha256 "c0b16efd0c98e3557a5c1b4c0ebd5bfbfe448a4462265a10e6b875c256e3a6eb" => :high_sierra
-    sha256 "a194b3a1758154eb6fac28ce71bd54624a748cae8d9ea3683cd727241924377b" => :sierra
+  livecheck do
+    url "http://www.kylheku.com/cgit/txr"
+    regex(/href=.*?txr[._-]v?(\d+(?:\.\d+)*)\.t/i)
   end
 
+  bottle do
+    sha256 cellar: :any, arm64_monterey: "7b93bba38aed8c8d12efc1419fddda466a11cbf29f961778d85e713cb8751d42"
+    sha256 cellar: :any, arm64_big_sur:  "be6af755e745f2f3d239e89a14e2ae7237783ff7b42e3d02a120f625925a4027"
+    sha256 cellar: :any, monterey:       "6fb5423b9cff5be581d05d58f8f68dd8ce632c7740146e51d8ab29d013f21be8"
+    sha256 cellar: :any, big_sur:        "3343e75170881a43edfadfff821ba93f6ad63dfb7eaeb8fb8731f5183baf1b62"
+    sha256 cellar: :any, catalina:       "6cafa17c4ed4892449eb4fb1345e99477468295895926a2e61af8ce14c240d4d"
+  end
+
+  depends_on "libffi"
+
+  uses_from_macos "bison" => :build
+  uses_from_macos "flex" => :build
+
   def install
-    ENV.deparallelize
-    system "./configure", "--prefix=#{prefix}"
+    system "./configure", "--prefix=#{prefix}", "--inline=static inline"
     system "make"
     system "make", "install"
   end

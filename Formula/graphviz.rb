@@ -1,64 +1,63 @@
 class Graphviz < Formula
   desc "Graph visualization software from AT&T and Bell Labs"
   homepage "https://www.graphviz.org/"
-  # versioned URLs are missing upstream as of 16 Dec 2017
-  url "https://www.mirrorservice.org/sites/distfiles.macports.org/graphviz/graphviz-2.40.1.tar.gz"
-  mirror "https://fossies.org/linux/misc/graphviz-2.40.1.tar.gz"
-  sha256 "ca5218fade0204d59947126c38439f432853543b0818d9d728c589dfe7f3a421"
-  revision 1
+  url "https://gitlab.com/graphviz/graphviz.git",
+      tag:      "3.0.0",
+      revision: "24cf7232bb8728823466e0ef536862013893e567"
+  license "EPL-1.0"
   version_scheme 1
+  head "https://gitlab.com/graphviz/graphviz.git", branch: "main"
 
   bottle do
-    sha256 "c3e2b2f06d1a2190405ccb16cde3cbddb8bf0be080fb84448a0c43f473eef39f" => :mojave
-    sha256 "2972d06c626e9a7d39c06d0376b1b425cae55d0e5d5a56d6f1440783d7e76890" => :high_sierra
-    sha256 "3336446bf3ad335583744a88549b19a0bae2fd427270863476c2590a575ff021" => :sierra
+    sha256 arm64_monterey: "c3735f9c7a06e03d883a330fc7bf0cb997c2041d86a358f793fe2f0fcd967ade"
+    sha256 arm64_big_sur:  "f43ff5e042bb74b1e5a5f005d2ecb7ed731886884d5c897b9a3f89881d68e511"
+    sha256 monterey:       "1111378fa7618775b3263c211789f4995f07f02252a4464ed2ceb3c01708213c"
+    sha256 big_sur:        "59ab5de4deaad4b07149471b7013500e7595c9f6bdff0074e2339d3087aa78ed"
+    sha256 catalina:       "8bfb00c8e472b66a72f1c69ddc21abb8ba4891388d3c94b23000a3c0744704a0"
+    sha256 x86_64_linux:   "293374d97d2af3bfb5a2d6cc6d21438b356943980f791bf0391c5d1db84bfb20"
   end
 
-  head do
-    url "https://gitlab.com/graphviz/graphviz.git"
-
-    depends_on "autoconf" => :build
-    depends_on "automake" => :build
-    depends_on "libtool" => :build
-  end
-
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
+  depends_on "bison" => :build
   depends_on "pkg-config" => :build
   depends_on "gd"
   depends_on "gts"
   depends_on "libpng"
+  depends_on "librsvg"
   depends_on "libtool"
+  depends_on "pango"
+
+  uses_from_macos "flex" => :build
+
+  on_linux do
+    depends_on "byacc" => :build
+    depends_on "ghostscript" => :build
+  end
 
   def install
-    # Only needed when using superenv, which causes qfrexp and qldexp to be
-    # falsely detected as available. The problem is triggered by
-    #   args << "-#{ENV["HOMEBREW_OPTIMIZATION_LEVEL"]}"
-    # during argument refurbishment of cflags.
-    # https://github.com/Homebrew/brew/blob/ab060c9/Library/Homebrew/shims/super/cc#L241
-    # https://github.com/Homebrew/legacy-homebrew/issues/14566
-    # Alternative fixes include using stdenv or using "xcrun make"
-    inreplace "lib/sfio/features/sfio", "lib qfrexp\nlib qldexp\n", "" unless build.head?
-
     args = %W[
       --disable-debug
       --disable-dependency-tracking
       --prefix=#{prefix}
       --disable-php
       --disable-swig
+      --disable-tcl
       --with-quartz
       --without-freetype2
+      --without-gdk
+      --without-gdk-pixbuf
+      --without-gtk
+      --without-poppler
       --without-qt
       --without-x
       --with-gts
     ]
 
-    if build.head?
-      system "./autogen.sh", *args
-    else
-      system "./configure", *args
-    end
+    system "./autogen.sh"
+    system "./configure", *args
+    system "make"
     system "make", "install"
-
-    (bin/"gvmap.sh").unlink
   end
 
   test do

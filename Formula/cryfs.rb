@@ -3,23 +3,32 @@ class Cryfs < Formula
   homepage "https://www.cryfs.org"
   url "https://github.com/cryfs/cryfs/releases/download/0.10.2/cryfs-0.10.2.tar.xz"
   sha256 "5531351b67ea23f849b71a1bc44474015c5718d1acce039cf101d321b27f03d5"
+  license "LGPL-3.0"
 
   bottle do
-    cellar :any
-    sha256 "acff4a7b949564ac16af311b5083043a59913b943d71644921274c9a6045fa82" => :mojave
-    sha256 "8883d9b7280e3571a55b71742e2c74f20f8fab76199b672aec593f873be8f78c" => :high_sierra
-    sha256 "d137fb4584254f3e8be128c50aeb9cb7e2b4912a2227517334485460d2ec5340" => :sierra
+    rebuild 1
+    sha256 cellar: :any, catalina:    "3a5986dc3775877188cbf4442bd72c6f20ffe1d384fefebac8041c0d8f9ff09b"
+    sha256 cellar: :any, mojave:      "cc94e5ba2d13205b0199e59779cecd7dd094965ee22c4ebf92d53ecaa65f8be7"
+    sha256 cellar: :any, high_sierra: "daa6d8961ef98fc509e806614c4daf6f589ee7d76bbb483066962b6bd700a2fe"
+    sha256 cellar: :any, sierra:      "252aa90f3281ccff1b9d0c6292856df1a08be17ada7aacd320f05d2d2508565f"
   end
 
   head do
-    url "https://github.com/cryfs/cryfs.git", :branch => "develop", :shallow => false
+    url "https://github.com/cryfs/cryfs.git", branch: "develop"
   end
 
   depends_on "cmake" => :build
   depends_on "boost"
   depends_on "libomp"
-  depends_on "openssl"
-  depends_on :osxfuse
+  depends_on "openssl@1.1"
+
+  on_macos do
+    disable! date: "2021-04-08", because: "requires closed-source macFUSE"
+  end
+
+  on_linux do
+    depends_on "libfuse"
+  end
 
   def install
     configure_args = [
@@ -39,6 +48,18 @@ class Cryfs < Formula
 
     system "cmake", ".", *configure_args, *std_cmake_args
     system "make", "install"
+  end
+
+  def caveats
+    on_macos do
+      <<~EOS
+        The reasons for disabling this formula can be found here:
+          https://github.com/Homebrew/homebrew-core/pull/64491
+
+        An external tap may provide a replacement formula. See:
+          https://docs.brew.sh/Interesting-Taps-and-Forks
+      EOS
+    end
   end
 
   test do

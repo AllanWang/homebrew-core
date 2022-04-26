@@ -1,23 +1,31 @@
 class Halibut < Formula
   desc "Yet another free document preparation system"
   homepage "https://www.chiark.greenend.org.uk/~sgtatham/halibut/"
-  url "https://www.chiark.greenend.org.uk/~sgtatham/halibut/halibut-1.2/halibut-1.2.tar.gz"
-  sha256 "1aedfb6240f27190c36a390fcac9ce732edbdbaa31c85ee675b994e2b083163f"
-  head "https://git.tartarus.org/simon/halibut.git"
+  url "https://www.chiark.greenend.org.uk/~sgtatham/halibut/halibut-1.3/halibut-1.3.tar.gz"
+  sha256 "aaa0f7696f17f74f42d97d0880aa088f5d68ed3079f3ed15d13b6e74909d3132"
+  license all_of: ["MIT", :cannot_represent]
+  head "https://git.tartarus.org/simon/halibut.git", branch: "main"
 
-  bottle do
-    cellar :any_skip_relocation
-    sha256 "d0c6d4b0a0bb643fdba227567efccf639163dccb08b3fdc65cb8c4cf4530f419" => :mojave
-    sha256 "34dd7c9fb1fe023d33b61be5bc56c0497a1854b9bbf68cc80facf61ecee68190" => :high_sierra
-    sha256 "68325d87dfa9989331273f70ab5edb19c9ca825316df64cc860edaa43a5d9ce5" => :sierra
-    sha256 "7f10669422a452000a9150206e8e675dc5b0b180d0cc95d02436dd566a6974f1" => :el_capitan
-    sha256 "6aad05089e904d5695aac53b6eac97e08b0e28b0e1b5d0dc70ea91864543558f" => :yosemite
+  livecheck do
+    url :homepage
+    regex(/href=.*?halibut[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
+  bottle do
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "15128f8454d3cbfbe26c615f8a49daeeb3f7a6566be8f390370bf1b789ec3aa1"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "8b45d0f3af3aba76ea7e2b5e0c447f0ae7674db57330c2d03c6a6dc8e5ef9a53"
+    sha256 cellar: :any_skip_relocation, monterey:       "edef3d404fd16343e22399f1f559d6b937585e4e6dbd6f2ff2a3a954f2147cba"
+    sha256 cellar: :any_skip_relocation, big_sur:        "4e224f4d6f3757b28c0620022e925ea494c8d416db51c9306c87aba7619f7c45"
+    sha256 cellar: :any_skip_relocation, catalina:       "df8f9c9f491fe0ac2cb55271a2f578260833733dfc7ce3d9f88ee3c9c865c5ce"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "8b074c7854ab9c65b56a04c63512c77e8bae8958a2beb2f0eff3b791264fc354"
+  end
+
+  depends_on "cmake" => :build
+
   def install
-    system "make", "prefix=#{prefix}", "mandir=#{man}", "all"
-    system "make", "-C", "doc", "prefix=#{prefix}", "mandir=#{man}"
-    system "make", "prefix=#{prefix}", "mandir=#{man}", "install"
+    system "cmake", "-S", ".", "-B", "build", *std_cmake_args
+    system "cmake", "--build", "build"
+    system "cmake", "--install", "build"
   end
 
   test do

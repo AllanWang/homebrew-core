@@ -1,14 +1,19 @@
 class OcamlNum < Formula
   desc "OCaml legacy Num library for arbitrary-precision arithmetic"
   homepage "https://github.com/ocaml/num"
-  url "https://github.com/ocaml/num/archive/v1.2.tar.gz"
-  sha256 "c5023104925ff4a79746509d4d85294d8aafa98da6733e768ae53da0355453de"
+  url "https://github.com/ocaml/num/archive/v1.4.tar.gz"
+  sha256 "015088b68e717b04c07997920e33c53219711dfaf36d1196d02313f48ea00f24"
+  license "LGPL-2.1"
+  revision 2
 
   bottle do
-    cellar :any
-    sha256 "2317af1d75ad805c6b2726c513ef4530a4ad271ff2157e880c8b67a346e49b7f" => :mojave
-    sha256 "6d49be0f58ef3b784c4871268c96c50504c8f9639b5fe3df780f3f25dfeae17c" => :high_sierra
-    sha256 "d4039e61c189ff9752476b85529fc285d1ed01210290ed1282e0958b411650dd" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "8a5d1c3625dc2fb163fed6576507e859f4d117b9612a69c8569d6047de63f9dd"
+    sha256 cellar: :any,                 arm64_big_sur:  "f1f22afab148209110159c9fcbe9cdfd7f27ca6a25b55ddd11358c130da033fb"
+    sha256 cellar: :any,                 monterey:       "b8812394abf008510cf45d72e0d136203a1fe5c93ed7dd2be50e251ad34d249c"
+    sha256 cellar: :any,                 big_sur:        "4563053ebf720e623e0afeb935f803ab1aedc3c15d6d99d6bc2818301eeb4ecb"
+    sha256 cellar: :any,                 catalina:       "26b165d15abd314baafa8c8a055236684eb26ae86740d85edca087321c5c311c"
+    sha256 cellar: :any,                 mojave:         "c14f476a964f149d3dc3145cb219286fea6585962351ada79aa1ed4606d9f781"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "a73e9edb89bf0770888357b1d3020a704bbb068cf3cede057db573ed0f4f7be2"
   end
 
   depends_on "ocaml-findlib" => :build
@@ -21,8 +26,9 @@ class OcamlNum < Formula
     cp Formula["ocaml"].opt_lib/"ocaml/Makefile.config", lib/"ocaml"
 
     # install in #{lib}/ocaml not #{HOMEBREW_PREFIX}/lib/ocaml
-    inreplace lib/"ocaml/Makefile.config", /^PREFIX=#{HOMEBREW_PREFIX}$/,
-                                           "PREFIX=#{prefix}"
+    inreplace lib/"ocaml/Makefile.config" do |s|
+      s.change_make_var! "prefix", prefix
+    end
 
     system "make"
     (lib/"ocaml/stublibs").mkpath # `make install` assumes this directory exists

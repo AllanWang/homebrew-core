@@ -1,50 +1,54 @@
 class OperatorSdk < Formula
   desc "SDK for building Kubernetes applications"
   homepage "https://coreos.com/operators/"
-  url "https://github.com/operator-framework/operator-sdk.git", :tag => "v0.8.1"
-  head "https://github.com/operator-framework/operator-sdk.git"
+  url "https://github.com/operator-framework/operator-sdk.git",
+      tag:      "v1.19.1",
+      revision: "079d8852ce5b42aa5306a1e33f7ca725ec48d0e3"
+  license "Apache-2.0"
+  head "https://github.com/operator-framework/operator-sdk.git", branch: "master"
 
-  bottle do
-    cellar :any_skip_relocation
-    sha256 "9f11a93f335489bd5ed27b3e296ea947e772efebfc434fa96af9fc567603277f" => :mojave
-    sha256 "11f706a313d0af27e25e816abd89e94fabc022f00f88f36c420d4d35829c3ecb" => :high_sierra
-    sha256 "13d461d6b758400847271eeeb681a61417dce9ac5734ac9fc90db41647c567f8" => :sierra
+  livecheck do
+    url :stable
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
   end
 
-  depends_on "dep"
+  bottle do
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "37a225cca2d7a611824d2544d440eb982b313aa9d3f1547407f2316fd672aa65"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "ccbd7d917a37b63e36baca9e1c0b1c106eed2376f676a07706180b1ad19f3fa0"
+    sha256 cellar: :any_skip_relocation, monterey:       "98f5f30c34136b59128d7d785a5ff32a2c07803e07f3851bed94889d9612f115"
+    sha256 cellar: :any_skip_relocation, big_sur:        "90c0de4ecb1c1728d26b9907c060a12d201f9cd29659db4c2084cf8846fc227d"
+    sha256 cellar: :any_skip_relocation, catalina:       "dd750c81004c11f88af6d05550eda0811d9566fa5d7dfd36bf48baac16539860"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "b951111c79c494c2e3a4ea06562306d698959a6807b002132c578cca64ad75eb"
+  end
+
   depends_on "go"
 
   def install
-    ENV["GOPATH"] = buildpath
-    dir = buildpath/"src/github.com/operator-framework/operator-sdk"
-    dir.install buildpath.children - [buildpath/".brew_home"]
+    ENV["GOBIN"] = bin
+    system "make", "install"
 
-    cd dir do
-      # Make binary
-      system "make", "install"
-      bin.install buildpath/"bin/operator-sdk"
+    # Install bash completion
+    output = Utils.safe_popen_read(bin/"operator-sdk", "completion", "bash")
+    (bash_completion/"operator-sdk").write output
 
-      # Install bash completion
-      output = Utils.popen_read("#{bin}/operator-sdk completion bash")
-      (bash_completion/"operator-sdk").write output
+    # Install zsh completion
+    output = Utils.safe_popen_read(bin/"operator-sdk", "completion", "zsh")
+    (zsh_completion/"_operator-sdk").write output
 
-      # Install zsh completion
-      output = Utils.popen_read("#{bin}/operator-sdk completion zsh")
-      (zsh_completion/"_operator-sdk").write output
-
-      prefix.install_metafiles
-    end
+    # Install fish completion
+    output = Utils.safe_popen_read(bin/"operator-sdk", "completion", "fish")
+    (fish_completion/"operator-sdk.fish").write output
   end
 
   test do
-    ENV["GOPATH"] = testpath
-    ENV["GO111MODULE"] = "on"
-    dir = testpath/"src/example.com/test-operator"
-    dir.mkpath
-
-    cd dir do
-      # Create a new, blank operator framework
-      system "#{bin}/operator-sdk", "new", "test"
+    if build.stable?
+      version_output = shell_output("#{bin}/operator-sdk version")
+      assert_match "version: \"v#{version}\"", version_output
+      commit_regex = /[a-f0-9]{40}/
+      assert_match commit_regex, version_output
     end
+
+    output = shell_output("#{bin}/operator-sdk init --domain=example.com --license apache2 --owner BrewTest 2>&1", 1)
+    assert_match "failed to initialize project", output
   end
 end

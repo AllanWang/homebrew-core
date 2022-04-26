@@ -1,15 +1,19 @@
 class LibjsonRpcCpp < Formula
   desc "C++ framework for json-rpc"
   homepage "https://github.com/cinemast/libjson-rpc-cpp"
-  url "https://github.com/cinemast/libjson-rpc-cpp/archive/v1.2.0.tar.gz"
-  sha256 "485556bd27bd546c025d9f9a2f53e89b4460bf820fd5de847ede2539f7440091"
-  head "https://github.com/cinemast/libjson-rpc-cpp.git"
+  url "https://github.com/cinemast/libjson-rpc-cpp/archive/v1.4.1.tar.gz"
+  sha256 "7a057e50d6203e4ea0a10ba5e4dbf344c48b177e5a3bf82e850eb3a783c11eb5"
+  license "MIT"
+  revision 1
+  head "https://github.com/cinemast/libjson-rpc-cpp.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "c6efeb76438b2951e0dc8225e97a87a699662da1b6f0965957cd850e90dc8421" => :mojave
-    sha256 "e444d5b2fcc34189562fd4e01f2bcd20707acbd5588753f35a93dd1e0892b3ae" => :high_sierra
-    sha256 "af4c5fd9f026676f7e89cf1ef94af01f685347cc1e928b72c681b84849156c0d" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "d17c63abe49e756cbcfa88f2d97f5d8f30064ad225171e8dfaf8e51e9a719fdf"
+    sha256 cellar: :any,                 arm64_big_sur:  "8018663da536a07ff3864df3d53efbca3c3e7283691062dde2765aa4988725ae"
+    sha256 cellar: :any,                 monterey:       "93d8287c0897ea594a31c04f6400e5ae39cd5339c536b814b914a3446cfef10f"
+    sha256 cellar: :any,                 big_sur:        "b025cc55d821bae9cdcc40714a2333f6919b2e6de461906f5bce5f1442d10ce4"
+    sha256 cellar: :any,                 catalina:       "d14d40ccb7de9443d39658cac84e2287ef78602b443f94887165e780046a0cfd"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "6ae9cf1ca4f9aeecb69ac5f4e2cba3b36a9ef8c7cf22c03dad78338dd39b22ec"
   end
 
   depends_on "cmake" => :build
@@ -18,8 +22,10 @@ class LibjsonRpcCpp < Formula
   depends_on "jsoncpp"
   depends_on "libmicrohttpd"
 
+  uses_from_macos "curl"
+
   def install
-    system "cmake", ".", *std_cmake_args
+    system "cmake", ".", *std_cmake_args, "-DCOMPILE_EXAMPLES=OFF", "-DCOMPILE_TESTS=OFF"
     system "make"
     system "make", "install"
   end

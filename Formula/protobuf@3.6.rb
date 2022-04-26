@@ -3,22 +3,26 @@ class ProtobufAT36 < Formula
   homepage "https://github.com/protocolbuffers/protobuf/"
   url "https://github.com/protocolbuffers/protobuf/archive/v3.6.1.3.tar.gz"
   sha256 "73fdad358857e120fd0fa19e071a96e15c0f23bb25f85d3f7009abfd4f264a2a"
+  license "BSD-3-Clause"
+  revision 4
 
   bottle do
-    cellar :any
-    sha256 "110cb92b662880877a8304713fc137353cd464971a97198dc398789405ded66c" => :mojave
-    sha256 "2c85fa9006e7bd119e32616aee287ea598189aa031a8b39aeae10380b68ab3ae" => :high_sierra
-    sha256 "1d93421add439a0a67a8ff161270de1ea0c7a0e62fb18ababce16bbf267fab0d" => :sierra
+    sha256 cellar: :any, arm64_monterey: "d11ab752acbd8e1159b2f108ad40d16561823f437e6abe959120500be5513c58"
+    sha256 cellar: :any, arm64_big_sur:  "1d9c4d6468e946de5f244b4abe034366e0764f3281d7624db491434e5390a19c"
+    sha256 cellar: :any, monterey:       "ee5925f1f3a9dad2c0255e48ac51da352d57145188902c4f285221418bf7a648"
+    sha256 cellar: :any, big_sur:        "589ae9de9ebaa86aa06361f03d69389ca86a98d04426b839b5269fa2849861b5"
+    sha256 cellar: :any, catalina:       "f05eb7347a6f3912890524a093284a023d0a97a5c283940e8f39e03e5bb60dc5"
   end
 
   keg_only :versioned_formula
+
+  deprecate! date: "2021-02-19", because: :versioned_formula
 
   depends_on "autoconf" => :build
   depends_on "automake" => :build
   depends_on "cmake" => :build
   depends_on "libtool" => :build
-  depends_on "python"
-  depends_on "python@2"
+  depends_on "python@3.10"
 
   resource "six" do
     url "https://files.pythonhosted.org/packages/dd/bf/4138e7bfb757de47d1f4b6994648ec67a51efe58fa907c1e11e350cddfca/six-1.12.0.tar.gz"
@@ -33,7 +37,7 @@ class ProtobufAT36 < Formula
   def install
     (buildpath/"gtest").install resource "gtest"
     (buildpath/"gtest/googletest").cd do
-      system "cmake", "."
+      system "cmake", ".", *std_cmake_args
       system "make"
     end
     ENV["CXXFLAGS"] = "-I../gtest/googletest/include"
@@ -51,25 +55,24 @@ class ProtobufAT36 < Formula
     system "make", "install"
 
     # Install editor support and examples
-    doc.install "editors", "examples"
+    pkgshare.install "editors/proto.vim", "examples"
+    elisp.install "editors/protobuf-mode.el"
 
     ENV.append_to_cflags "-I#{include}"
     ENV.append_to_cflags "-L#{lib}"
 
-    ["python2", "python3"].each do |python|
-      resource("six").stage do
-        system python, *Language::Python.setup_install_args(libexec)
-      end
-      chdir "python" do
-        system python, *Language::Python.setup_install_args(libexec),
-                       "--cpp_implementation"
-      end
-
-      version = Language::Python.major_minor_version python
-      site_packages = "lib/python#{version}/site-packages"
-      pth_contents = "import site; site.addsitedir('#{libexec/site_packages}')\n"
-      (prefix/site_packages/"homebrew-protobuf.pth").write pth_contents
+    resource("six").stage do
+      system Formula["python@3.10"].opt_bin/"python3", *Language::Python.setup_install_args(libexec)
     end
+    chdir "python" do
+      system Formula["python@3.10"].opt_bin/"python3", *Language::Python.setup_install_args(libexec),
+                                                      "--cpp_implementation"
+    end
+
+    version = Language::Python.major_minor_version Formula["python@3.10"].opt_bin/"python3"
+    site_packages = "lib/python#{version}/site-packages"
+    pth_contents = "import site; site.addsitedir('#{libexec/site_packages}')\n"
+    (prefix/site_packages/"homebrew-protobuf.pth").write pth_contents
   end
 
   test do

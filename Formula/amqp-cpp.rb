@@ -1,19 +1,27 @@
 class AmqpCpp < Formula
   desc "C++ library for communicating with a RabbitMQ message broker"
   homepage "https://github.com/CopernicaMarketingSoftware/AMQP-CPP"
-  url "https://github.com/CopernicaMarketingSoftware/AMQP-CPP/archive/v4.1.5.tar.gz"
-  sha256 "9840c7fb17bb0c0b601d269e528b7f9cac5ec008dcf8d66bef22434423b468aa"
-  head "https://github.com/CopernicaMarketingSoftware/AMQP-CPP.git"
+  url "https://github.com/CopernicaMarketingSoftware/AMQP-CPP/archive/v4.3.16.tar.gz"
+  sha256 "66c96e0db1efec9e7ddcf7240ff59a073d68c09752bd3e94b8bc4c506441fbf7"
+  license "Apache-2.0"
+  head "https://github.com/CopernicaMarketingSoftware/AMQP-CPP.git", branch: "master"
+
+  livecheck do
+    url :stable
+    strategy :github_latest
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "c9d93feb5299d503a2efc1fa6198e48e41f277f3ac6fbfe3af320cacab40fcd6" => :mojave
-    sha256 "afb26fb7f804bae1f69bee3503a0aab8c309a3890390edcf8dfb937a93f0e7dd" => :high_sierra
-    sha256 "82f558d90a65e85d50ae4dd835cbdf77571558fd45e4fe31bb694f34db6124bc" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "5ec00a2b6a9636a99b3e164284a9d65ebdcf2293fda167647ade88fe0fcb3c61"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "9b5227ad442f8abe8932c375d21a71047f10c585fd28e57305771cfff4cb0d22"
+    sha256 cellar: :any_skip_relocation, monterey:       "2f8f8868acd5abcaa1174a6114d4d8616e18efa54efaefb11fa356ebc94d2f6c"
+    sha256 cellar: :any_skip_relocation, big_sur:        "c86f56420a57c32a03e7541ac3db1fde7c1eb60bec33100375107fd41b5b0aeb"
+    sha256 cellar: :any_skip_relocation, catalina:       "8b17778d04251e140bd89b61002e11d48f18570cad294aadd19bbd24c406c49c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "71d9aa8520cddc67a852be9cc96315daa0ebb064300acff45ea63f271fe07a27"
   end
 
   depends_on "cmake" => :build
-  depends_on "openssl"
+  depends_on "openssl@1.1"
 
   def install
     ENV.cxx11
@@ -35,7 +43,7 @@ class AmqpCpp < Formula
       }
     EOS
     system ENV.cxx, "test.cpp", "-std=c++11", "-L#{lib}", "-o",
-                    "test", "-lc++", "-lamqpcpp"
+                    "test", "-lamqpcpp"
     system "./test"
   end
 end

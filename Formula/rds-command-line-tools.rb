@@ -3,13 +3,16 @@ class RdsCommandLineTools < Formula
   homepage "https://aws.amazon.com/developertools/2928"
   url "https://rds-downloads.s3.amazonaws.com/RDSCli-1.19.004.zip"
   sha256 "298c15ccd04bd91f1be457645d233455364992e7dd27e09c48230fbc20b5950c"
+  revision 1
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "d7d88e5f02da3ee3df182d04c09442a8374230655cccd26582900a7eaf93e263"
+  end
 
-  depends_on :java
+  depends_on "openjdk"
 
   def install
-    env = Language::Java.java_home_env.merge(:AWS_RDS_HOME => libexec)
+    env = { JAVA_HOME: Formula["openjdk"].opt_prefix, AWS_RDS_HOME: libexec }
     rm Dir["bin/*.cmd"] # Remove Windows versions
     etc.install "credential-file-path.template"
     libexec.install Dir["*"]

@@ -1,18 +1,27 @@
 class Glfw < Formula
   desc "Multi-platform library for OpenGL applications"
   homepage "https://www.glfw.org/"
-  url "https://github.com/glfw/glfw/archive/3.3.tar.gz"
-  sha256 "81bf5fde487676a8af55cb317830703086bb534c53968d71936e7b48ee5a0f3e"
-  head "https://github.com/glfw/glfw.git"
+  url "https://github.com/glfw/glfw/archive/3.3.7.tar.gz"
+  sha256 "fd21a5f65bcc0fc3c76e0f8865776e852de09ef6fbc3620e09ce96d2b2807e04"
+  license "Zlib"
+  head "https://github.com/glfw/glfw.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "5f7f80b2113be000ab11c52357d2b1dc684b82a61455c562c2d84968fab2b2c7" => :mojave
-    sha256 "d064f1a5ed0ac3d2cc2979472f47116c4aa4dcabe5a2b8f6684411e157bf0ef6" => :high_sierra
-    sha256 "bf7f440724924b206abe7be4407df6277cf7c145c25eb9429d20d2d4ccd0994e" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "8ee8f78d6379db633345f9d51bdd9924c0392521b09647e5a0db19231222431b"
+    sha256 cellar: :any,                 arm64_big_sur:  "05b75b5525eb543cd01deb20ff1fda5e606b62bc15d45e7a5d25c47eb7c7835a"
+    sha256 cellar: :any,                 monterey:       "76fa6ed8a21701f59d2d9fc3085f2e4fbd6dab4bf4cf12171ec2e9480fbe3b32"
+    sha256 cellar: :any,                 big_sur:        "2c7bf990e4a3c50884748cf8076f5cf7798a62797523f4100f7a8016e47d42d8"
+    sha256 cellar: :any,                 catalina:       "6732f2291ca4a5438818dda21411f18f37f14649fa13139f8e26988dbe14076e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d667993dc9496b0beebe0c52e8d9b878a76942e47836ff667bc5111b9abafc1d"
   end
 
   depends_on "cmake" => :build
+
+  on_linux do
+    depends_on "freeglut"
+    depends_on "libxcursor"
+    depends_on "mesa"
+  end
 
   def install
     args = std_cmake_args + %w[
@@ -41,6 +50,9 @@ class Glfw < Formula
 
     system ENV.cc, "test.c", "-o", "test",
                    "-I#{include}", "-L#{lib}", "-lglfw"
+
+    return if OS.linux? && ENV["HOMEBREW_GITHUB_ACTIONS"]
+
     system "./test"
   end
 end

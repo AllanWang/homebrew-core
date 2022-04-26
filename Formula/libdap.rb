@@ -1,13 +1,30 @@
 class Libdap < Formula
   desc "Framework for scientific data networking"
   homepage "https://www.opendap.org/"
-  url "https://www.opendap.org/pub/source/libdap-3.20.3.tar.gz"
-  sha256 "29961922b53f62e9d4eb34d1d50ddc23a24100664f97b71f42561fa5588ccc58"
+  license "LGPL-2.1-or-later"
+
+  stable do
+    url "https://www.opendap.org/pub/source/libdap-3.20.9.tar.gz"
+    sha256 "77fc93159d2c71d6ace5709babd9dec598285186aecfba358cb623be29a8e5b9"
+
+    patch do
+      url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+      sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+    end
+  end
+
+  livecheck do
+    url "https://www.opendap.org/pub/source/"
+    regex(/href=.*?libdap[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    sha256 "d2f5c13913633acafe8c090b9ff94ad3f9eae5d7699be4707da57f15524fc530" => :mojave
-    sha256 "15bf626100714d66c1691db44574295b5f257b1f0e3df025ac3f7c12c2526697" => :high_sierra
-    sha256 "ccb2d18958ed0115c1e1294e1c13d1c4afed8090a88efd0a6c6ff023bb697093" => :sierra
+    sha256 arm64_monterey: "b2e68f254825703c580a7ec38276b1591cf74899e4f2fe598f2f76133ac29343"
+    sha256 arm64_big_sur:  "9c645675eb8c23e98ab5521bdbedabe07fb031a6b968e1d8d56df491f89fc960"
+    sha256 monterey:       "761ab9914f8199a6eb67e2f8a4f8cab5a2ec4973da6ad84990cf13ec6feb72d7"
+    sha256 big_sur:        "2bcff3fc4250d9d0c877216dce34528b558a93f82b007ce75a42498b04dc6174"
+    sha256 catalina:       "90f3be6adc9ca1ca7385043f7a3e7099aed471f855dbdd38718e32e529ccfc22"
+    sha256 x86_64_linux:   "9fb1bec5ecba77807cb843178b2dba742bbf58d61714040ca1da9fbdb45d09f6"
   end
 
   head do
@@ -21,7 +38,14 @@ class Libdap < Formula
   depends_on "bison" => :build
   depends_on "pkg-config" => :build
   depends_on "libxml2"
-  depends_on "openssl"
+  depends_on "openssl@1.1"
+
+  uses_from_macos "flex" => :build
+  uses_from_macos "curl"
+
+  on_linux do
+    depends_on "util-linux"
+  end
 
   def install
     args = %W[

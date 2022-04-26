@@ -1,36 +1,34 @@
 class Ponyc < Formula
   desc "Object-oriented, actor-model, capabilities-secure programming language"
   homepage "https://www.ponylang.org/"
-  url "https://github.com/ponylang/ponyc/archive/0.28.1.tar.gz"
-  sha256 "d397a21007a42cba46376a5c5c5440c82ef1576f459b61df96e2c42542e18120"
-  head "https://github.com/ponylang/ponyc.git"
+  url "https://github.com/ponylang/ponyc.git",
+      tag:      "0.49.1",
+      revision: "c09be039cb46fd05623d83e365b4eaf164171dab"
+  license "BSD-2-Clause"
 
   bottle do
-    cellar :any
-    sha256 "69c130ff292dbbd024ec5190161335d764ba59ad420c56f2fdbce19d7a7e7547" => :mojave
-    sha256 "394688213f88f6f571148af03198a9ca6b6cfd75c15a5e1bc8bc352333575c68" => :high_sierra
-    sha256 "6c4ddb7447560b2ab82ff0f0d1f680485a64923b3a47d37e6070037b3e795d4c" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "21f8357dedfd3841b4dbcbfd7db17df64948077da69839220fead20a4759a729"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "20eae00574927269ea290d70e02deaa21a66408e5a29f3ab1116f120280b06ea"
+    sha256 cellar: :any_skip_relocation, monterey:       "2688e94981915245b3c5fb87cf58601a6df4f77a4c862f712085fedc18b72789"
+    sha256 cellar: :any_skip_relocation, big_sur:        "011c65a48f70a1f0774a3a41b28d5357b648e0b401c7159c776fe8bd3934ad25"
+    sha256 cellar: :any_skip_relocation, catalina:       "e614f1f04cac6cca049dee40005d2b42c96b65af1a7672701c5b21338049244e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "80c492a82d1384bde8395b7c1fb8794cb5262b2f962ded7f25a90a199778e077"
   end
 
-  # https://github.com/ponylang/ponyc/issues/1274
-  # https://github.com/Homebrew/homebrew-core/issues/5346
-  pour_bottle? do
-    reason <<~EOS
-      The bottle requires Xcode/CLT 8.0 or later to work properly.
-    EOS
-    satisfy { DevelopmentTools.clang_build_version >= 800 }
-  end
+  depends_on "cmake" => :build
 
-  depends_on "libressl"
-  depends_on "llvm@7"
-  depends_on :macos => :yosemite
-  depends_on "pcre2"
+  uses_from_macos "zlib"
 
   def install
     ENV.cxx11
-    ENV["LLVM_CONFIG"] = "#{Formula["llvm@7"].opt_bin}/llvm-config"
-    system "make", "install", "verbose=1", "config=release",
-           "ponydir=#{prefix}", "prefix="
+
+    inreplace "CMakeLists.txt", "PONY_COMPILER=\"${CMAKE_C_COMPILER}\"", "PONY_COMPILER=\"#{ENV.cc}\"" if OS.linux?
+
+    ENV["MAKEFLAGS"] = "build_flags=-j#{ENV.make_jobs}"
+    system "make", "libs"
+    system "make", "configure"
+    system "make", "build"
+    system "make", "install", "DESTDIR=#{prefix}"
   end
 
   test do

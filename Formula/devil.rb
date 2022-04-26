@@ -1,8 +1,9 @@
 class Devil < Formula
   desc "Cross-platform image library"
   homepage "https://sourceforge.net/projects/openil/"
-  revision 1
-  head "https://github.com/DentonW/DevIL.git"
+  license "LGPL-2.1-only"
+  revision 3
+  head "https://github.com/DentonW/DevIL.git", branch: "master"
 
   stable do
     url "https://downloads.sourceforge.net/project/openil/DevIL/1.8.0/DevIL-1.8.0.tar.gz"
@@ -23,15 +24,21 @@ class Devil < Formula
       url "https://github.com/DentonW/DevIL/commit/4a2d7822.patch?full_index=1"
       sha256 "7e74a4366ef485beea1c4285f2b371b6bfa0e2513b83d4d45e4e120690c93f1d"
     end
+
+    # allow compiling against jasper >= 2.0.17
+    patch do
+      url "https://github.com/DentonW/DevIL/commit/42a62648.patch?full_index=1"
+      sha256 "b3a99c34cd7f9a5681f43dc0886fe360ba7d1df2dd1eddd7fcdcae7898f7a68e"
+    end
   end
 
   bottle do
-    cellar :any
-    sha256 "222751818b34131dcc58e7832cd652e9684c2b957cd1430a87ce19d0dd33e449" => :mojave
-    sha256 "7cb8354e26e1d30503c5f232f70c45fad049be1b1a341fa5cc99cb57741c4e61" => :high_sierra
-    sha256 "25bd964db15fdfa4085b73bd1014044f36b877285db451089b4fa7928b02d555" => :sierra
-    sha256 "d3821710ef1409df56d15f6e277e3863abfbf568517f57a83eeafccd02afac2b" => :el_capitan
-    sha256 "5812c01a10936b7f7083d82f2a39d509fe630e41b78e2164f0482ab558026c69" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "0c24bc009c3b7ceaa165052fdf2c92c6834dce0ab8a41f13afbfb6e7b575147a"
+    sha256 cellar: :any,                 arm64_big_sur:  "6048bc8450daae15bd94e4325f8d1e4216da7739c633768a8a6c6400e945d590"
+    sha256 cellar: :any,                 monterey:       "62c65036108abad87da5dbe90d669019080a3e84d8a89f3e8bfd8843942bd43b"
+    sha256 cellar: :any,                 big_sur:        "525f3d0004335ef40af377766aa4ced40ac51f2133dcffc34b2d1c8bdb621e55"
+    sha256 cellar: :any,                 catalina:       "3abd93570cc1ca1026bb064a2f4f5f80540450335b2a01f3c821f11f69afabd6"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "046eac1633f75b672b1ad04f3c63b6511aa8b35c466f3b3a92561542b0bedc49"
   end
 
   depends_on "cmake" => :build
@@ -40,6 +47,9 @@ class Devil < Formula
   depends_on "libpng"
   depends_on "libtiff"
   depends_on "little-cms2"
+
+  # allow compiling against jasper >= 3.0.0
+  patch :DATA
 
   def install
     cd "DevIL" do
@@ -61,3 +71,31 @@ class Devil < Formula
     system "./test"
   end
 end
+
+__END__
+diff --git a/DevIL/src-IL/src/il_jp2.cpp b/DevIL/src-IL/src/il_jp2.cpp
+index 89075a52..f46028a9 100644
+--- a/DevIL/src-IL/src/il_jp2.cpp
++++ b/DevIL/src-IL/src/il_jp2.cpp
+@@ -323,7 +323,9 @@ ILboolean iLoadJp2Internal(jas_stream_t	*Stream, ILimage *Image)
+ //
+ // see: https://github.com/OSGeo/gdal/commit/9ef8e16e27c5fc4c491debe50bf2b7f3e94ed334
+ //      https://github.com/DentonW/DevIL/issues/90
+-#if defined(PRIjas_seqent)
++#if JAS_VERSION_MAJOR >= 3
++static ssize_t iJp2_file_read(jas_stream_obj_t *obj, char *buf, size_t cnt)
++#elif defined(PRIjas_seqent)
+ static int iJp2_file_read(jas_stream_obj_t *obj, char *buf, unsigned cnt)
+ #else
+ static int iJp2_file_read(jas_stream_obj_t *obj, char *buf, int cnt)
+@@ -333,7 +335,9 @@ static int iJp2_file_read(jas_stream_obj_t *obj, char *buf, int cnt)
+ 	return iread(buf, 1, cnt);
+ }
+
+-#if defined(JAS_INCLUDE_JP2_CODEC)
++#if JAS_VERSION_MAJOR >= 3
++static ssize_t iJp2_file_write(jas_stream_obj_t *obj, const char *buf, size_t cnt)
++#elif defined(JAS_INCLUDE_JP2_CODEC)
+ static int iJp2_file_write(jas_stream_obj_t *obj, const char *buf, unsigned cnt)
+ #elif defined(PRIjas_seqent)
+ static int iJp2_file_write(jas_stream_obj_t *obj, char *buf, unsigned cnt)

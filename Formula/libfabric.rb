@@ -1,20 +1,27 @@
 class Libfabric < Formula
   desc "OpenFabrics libfabric"
   homepage "https://ofiwg.github.io/libfabric/"
-  url "https://github.com/ofiwg/libfabric/releases/download/v1.8.0/libfabric-1.8.0.tar.bz2"
-  sha256 "c4763383a96af4af52cd81b3b094227f5cf8e91662f861670965994539b7ee37"
-  head "https://github.com/ofiwg/libfabric.git"
+  url "https://github.com/ofiwg/libfabric/releases/download/v1.14.1/libfabric-1.14.1.tar.bz2"
+  sha256 "6cfabb94bca8e419d9015212506f5a367d077c5b11e94b9f57997ec6ca3d8aed"
+  license any_of: ["BSD-2-Clause", "GPL-2.0-only"]
+  head "https://github.com/ofiwg/libfabric.git", branch: "main"
 
   bottle do
-    cellar :any
-    sha256 "e1387fedf67bc4a6c96e19d6e355943081d941850126c71eb07f0e93a64855b9" => :mojave
-    sha256 "fb44b381c8d784f74834b8e7a275dfdf97b1440d0bb8adf2cfd3202a8e65f3d9" => :high_sierra
-    sha256 "c3340b70702839124d3ec7b75b868592806cc39ee36fb6b1c0121c6d597ec94b" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "67e1890e5424205e4d47db665aef0c9f197e5e1648b7d3371d1f5902ce72241c"
+    sha256 cellar: :any,                 arm64_big_sur:  "2dfe3c2fad7e8a913c2919989627bc8401ac84994ec3381e4261ad110263e636"
+    sha256 cellar: :any,                 monterey:       "213f99b7bf3755739201a7d19c2871381a92ec60bdd174990c8308cfb57a4ec5"
+    sha256 cellar: :any,                 big_sur:        "5753837b80e8fa3494ba685738d51b5e6193b8258ee1f4951a1f44637ff36b15"
+    sha256 cellar: :any,                 catalina:       "683db1d11a19802de82992e96b212ae749e6a82627819f45f20d02f2d6723420"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "61554857ee7be51161c443afa9859ec41dce2acd6de8a2ea263a884e71ee95b4"
   end
 
   depends_on "autoconf" => :build
   depends_on "automake" => :build
   depends_on "libtool"  => :build
+
+  on_macos do
+    conflicts_with "mpich", because: "both install `fabric.h`"
+  end
 
   def install
     system "autoreconf", "-fiv"
@@ -25,6 +32,6 @@ class Libfabric < Formula
   end
 
   test do
-    system "#(bin}/fi_info"
+    assert_match "provider: sockets", shell_output("#{bin}/fi_info")
   end
 end

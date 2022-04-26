@@ -1,14 +1,23 @@
 class Mapserver < Formula
   desc "Publish spatial data and interactive mapping apps to the web"
   homepage "https://mapserver.org/"
-  url "https://download.osgeo.org/mapserver/mapserver-7.2.2.tar.gz"
-  sha256 "287f8dfe10961bc685bb87e118b7aa81382df907b2b3961d6559169b527ba95c"
+  url "https://download.osgeo.org/mapserver/mapserver-7.6.4.tar.gz"
+  sha256 "b46c884bc42bd49873806a05325872e4418fc34e97824d4e13d398e86ea474ac"
+  license "MIT"
+  revision 2
+
+  livecheck do
+    url "https://mapserver.org/download.html"
+    regex(/href=.*?mapserver[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "3b24b6e3017545591672754741556ad53d2af3f7d9a22e4d5a884787013383ff" => :mojave
-    sha256 "5e845a5488957540ac077276509abfcb9da88b780245049fb1d78c20f011ecfa" => :high_sierra
-    sha256 "dc60f67df38a0c8fdc14f607ca1fd559fa47f1a84c672742e98612b49c909bdb" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "24c6f499e70f85db71413d14883f2f3494b9371dacd9fb6300893833fde7b6e6"
+    sha256 cellar: :any,                 arm64_big_sur:  "0902251c20025ed6af54cfa71f08c4fb06aead399c3878134a4c4146b0ba6de0"
+    sha256 cellar: :any,                 monterey:       "d1d48ca104ef81e5120a41ccbf8f8cfebc0d85e821d09f2d68977f43787b36e6"
+    sha256 cellar: :any,                 big_sur:        "e0e1baf2b111c00a5f9de0c9e053baea19eb49c89e7312696d2034544a58fa95"
+    sha256 cellar: :any,                 catalina:       "a781bd8ccfceda8d3f701f0d714e47862536912b917c28c64fad083a49db2419"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "e52b838eb14c028e2b0162d4b66fa92e56498350c4cbb96e729d74326dd765dd"
   end
 
   depends_on "cmake" => :build
@@ -25,13 +34,20 @@ class Mapserver < Formula
   depends_on "postgresql"
   depends_on "proj"
   depends_on "protobuf-c"
+  depends_on "python@3.9"
+
+  uses_from_macos "curl"
+
+  on_linux do
+    depends_on "gcc"
+  end
+
+  fails_with gcc: "5"
 
   def install
-    # Harfbuzz support requires fribidi and fribidi support requires
-    # harfbuzz but fribidi currently fails to build with:
-    # fribidi-common.h:61:12: fatal error: 'glib.h' file not found
-    args = std_cmake_args + %w[
-      -DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python
+    ENV.cxx11
+
+    args = %W[
       -DWITH_CLIENT_WFS=ON
       -DWITH_CLIENT_WMS=ON
       -DWITH_CURL=ON
@@ -43,37 +59,30 @@ class Mapserver < Formula
       -DWITH_KML=ON
       -DWITH_OGR=ON
       -DWITH_POSTGIS=ON
-      -DWITH_PROJ=ON
       -DWITH_PYTHON=ON
       -DWITH_SOS=ON
       -DWITH_WFS=ON
-      -WITH_CAIRO=ON
+      -DPYTHON_EXECUTABLE=#{Formula["python@3.9"].opt_bin/"python3"}
+      -DPHP_EXTENSION_DIR=#{lib}/php/extensions
+      -DCMAKE_INSTALL_RPATH=#{rpath}
     ]
 
     # Install within our sandbox
     inreplace "mapscript/python/CMakeLists.txt" do |s|
-      s.gsub! "${PYTHON_SITE_PACKAGES}", lib/"python2.7/site-packages"
       s.gsub! "${PYTHON_LIBRARIES}", "-Wl,-undefined,dynamic_lookup"
     end
-    inreplace "mapscript/php/CMakeLists.txt", "${PHP5_EXTENSION_DIR}", lib/"php/extensions"
 
-    # Using rpath on python module seems to cause problems if you attempt to
-    # import it with an interpreter it wasn't built against.
-    # 2): Library not loaded: @rpath/libmapserver.1.dylib
-    args << "-DCMAKE_SKIP_RPATH=ON"
+    system "cmake", "-S", ".", "-B", "build", *args, *std_cmake_args
+    system "cmake", "--build", "build"
+    system "cmake", "--install", "build"
 
-    # Use Proj 6.0.0 compatibility headers
-    # https://github.com/mapserver/mapserver/issues/5766
-    ENV.append_to_cflags "-DACCEPT_USE_OF_DEPRECATED_PROJ_API_H"
-
-    mkdir "build" do
-      system "cmake", "..", *args
-      system "make", "install"
+    cd "build/mapscript/python" do
+      system Formula["python@3.9"].opt_bin/"python3", *Language::Python.setup_install_args(prefix)
     end
   end
 
   test do
     assert_match version.to_s, shell_output("#{bin}/mapserv -v")
-    system "python2.7", "-c", "import mapscript"
+    system Formula["python@3.9"].opt_bin/"python3", "-c", "import mapscript"
   end
 end

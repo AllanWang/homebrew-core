@@ -3,19 +3,27 @@ class Qjson < Formula
   homepage "https://qjson.sourceforge.io"
   url "https://github.com/flavio/qjson/archive/0.9.0.tar.gz"
   sha256 "e812617477f3c2bb990561767a4cd8b1d3803a52018d4878da302529552610d4"
-  revision 1
+  license "LGPL-2.1"
+  revision 2
 
   bottle do
-    cellar :any
-    sha256 "02abebab98b79dd60197c0e2d5f7a468e96cb738e5c2065a3664db0bf59cf59e" => :mojave
-    sha256 "1bd2a1a0fcabf72acedd8a7c9d68bae090d31cc6a673515461ce487f15b88772" => :high_sierra
-    sha256 "bd50e784f99285df8e70448f041c67fe1f8c79f5d6b17f130a2e3a11bc19227d" => :sierra
-    sha256 "befe6eeb2426c2f698dd54999398fa569d91246d239aef3e877680902a20f945" => :el_capitan
-    sha256 "f17d608977669101c13d3f57136d8d8121a0f87e26a0d7a55ee5a21659294355" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "50e66e18c82d7808bc50db9a48d9c45bf1fe44cc1089c518d72ac07f41c1e37d"
+    sha256 cellar: :any,                 arm64_big_sur:  "4f0e62ecfb61f24dcc04fac054e6c1c2caf56fe674f4f548bcaa16d5dd1c3d3f"
+    sha256 cellar: :any,                 monterey:       "8117225aa84d5a3cb87d50728bec05abc0585efdf88de5c04012263fe2b91ebf"
+    sha256 cellar: :any,                 big_sur:        "37704aff31b79e0ebe73592149836706f579a2a3dd5231aa4e992647eff07ad5"
+    sha256 cellar: :any,                 catalina:       "b262d77517e48cdd798e237e787c2058d4fad0acf71457c82c17113635898fed"
+    sha256 cellar: :any,                 mojave:         "c7b92230e40e860996163997a092575b6317c631221db79cd1031aec61c13b2c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "7012cc503b1b95936f84000cd16a38d5c7cde462a0541a416cca4fa3d5d25066"
   end
 
   depends_on "cmake" => :build
-  depends_on "qt"
+  depends_on "qt@5"
+
+  on_linux do
+    depends_on "gcc"
+  end
+
+  fails_with gcc: "5"
 
   def install
     system "cmake", ".", *std_cmake_args
@@ -30,10 +38,21 @@ class Qjson < Formula
         return 0;
       }
     EOS
+    flags = ["-I#{Formula["qt@5"].opt_include}"]
+    flags += if OS.mac?
+      [
+        "-F#{Formula["qt@5"].opt_lib}",
+        "-framework", "QtCore"
+      ]
+    else
+      [
+        "-fPIC",
+        "-L#{Formula["qt@5"].opt_lib}", "-lQt5Core",
+        "-Wl,-rpath,#{Formula["qt@5"].opt_lib}"
+      ]
+    end
     system ENV.cxx, "test.cpp", "-o", "test", "-std=c++11", "-I#{include}",
-                    "-L#{lib}", "-lqjson-qt5",
-                    "-I#{Formula["qt"].opt_include}",
-                    "-F#{Formula["qt"].opt_lib}", "-framework", "QtCore"
+                    "-L#{lib}", "-lqjson-qt5", *flags
     system "./test"
   end
 end

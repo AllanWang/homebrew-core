@@ -1,26 +1,43 @@
 class Kcov < Formula
   desc "Code coverage tester for compiled programs, Python, and shell scripts"
   homepage "https://simonkagstrom.github.io/kcov/"
-  url "https://github.com/SimonKagstrom/kcov/archive/v36.tar.gz"
-  sha256 "29ccdde3bd44f14e0d7c88d709e1e5ff9b448e735538ae45ee08b73c19a2ea0b"
-  head "https://github.com/SimonKagstrom/kcov.git"
+  url "https://github.com/SimonKagstrom/kcov/archive/v40.tar.gz"
+  sha256 "6b1c11b066d57426d61375a31c3816f1fcd2610b447050c86d9920e22d5200b3"
+  license "GPL-3.0-or-later"
+  head "https://github.com/SimonKagstrom/kcov.git", branch: "master"
+
+  # We check the Git tags because, as of writing, the "latest" release on GitHub
+  # is a prerelease version (`pre-v40`), so we can't rely on it being correct.
+  livecheck do
+    url :stable
+    regex(/^v?(\d+(?:\.\d+)*)$/i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "eb5bc53867f7dc0ebb53216daf6b1ec62ee45036fa36d60ccfa03722644176ed" => :mojave
-    sha256 "e5c56807425593829fa59be83f58ba473cdde545216c06fdda54e7e59996f413" => :high_sierra
-    sha256 "75e27a93b88782772c9d54db0afcb079f5f1b3d89a6ab1e457306e269c2951a3" => :sierra
+    sha256 arm64_monterey: "ac1c2c3b59a021af7822ed720ef499aee7dfd3650374c2b87afad5f03c7e7e20"
+    sha256 arm64_big_sur:  "bdb4c013e4153a73e3f18b3c5dce933719946491ab23642c0f30ed63400e051d"
+    sha256 monterey:       "994883172334f1c2279dc51a1d5a57aef8e6774d1a9a78beb907caa6d8e2798c"
+    sha256 big_sur:        "b0f468c3f75bb9c5fe67735e40d362916885b47ac678162b7a283a91813f8c25"
+    sha256 catalina:       "d219d3bf36180ce31b3d7cf0352803a079ee058cecbba3aff6062ba793b01b1b"
+    sha256 x86_64_linux:   "a94c3256cb943cb1638ae0c39e93c3bd5ac6106ebf148c1135325d1c95c3104f"
   end
 
   depends_on "cmake" => :build
   depends_on "pkg-config" => :build
+  depends_on "python@3.10" => :build
+  depends_on "openssl@3"
+
+  uses_from_macos "curl"
+  uses_from_macos "zlib"
+
+  on_linux do
+    depends_on "elfutils"
+  end
 
   def install
-    mkdir "build" do
-      system "cmake", "-DSPECIFY_RPATH=ON", *std_cmake_args, ".."
-      system "make"
-      system "make", "install"
-    end
+    system "cmake", "-S", ".", "-B", "build", *std_cmake_args, "-DSPECIFY_RPATH=ON"
+    system "cmake", "--build", "build"
+    system "cmake", "--install", "build"
   end
 
   test do

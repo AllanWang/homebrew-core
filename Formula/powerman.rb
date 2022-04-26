@@ -1,13 +1,26 @@
 class Powerman < Formula
   desc "Control (remotely and in parallel) switched power distribution units"
   homepage "https://code.google.com/p/powerman/"
-  url "https://github.com/chaos/powerman/releases/download/2.3.25/powerman-2.3.25.tar.gz"
-  sha256 "36e98a5a6b1395d8243b5bcaa8a6af42b4ab9411a63d7aa0768b4014ee0f207d"
+  license "GPL-2.0"
+
+  stable do
+    url "https://github.com/chaos/powerman/releases/download/v2.3.27/powerman-2.3.27.tar.gz"
+    sha256 "1575f0c2cc49ba14482582b9bbba19e95496434f95d52de6ad2412e66200d2d8"
+
+    # Fix -flat_namespace being used on Big Sur and later.
+    patch do
+      url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+      sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+    end
+  end
 
   bottle do
-    sha256 "1a36b88991905a9f768f789b9d4381d5ad26992259440325fc997bc3bcd074bd" => :mojave
-    sha256 "397248285300786311331cfa9b67d74e0f3b1dfb9d93bc9d0887b7caa253bf3e" => :high_sierra
-    sha256 "8eb522e26039405245bb5159c34eb8e329683569c0b0f6654aeed183d0f13dba" => :sierra
+    sha256 arm64_monterey: "bf7397842c0e10d990a848340dfb2287596ed94591840997a946886edfb307d9"
+    sha256 arm64_big_sur:  "9742622a1433440ff96eb624c08a9b28c30fa12d4d120bc3d73072acc371a968"
+    sha256 monterey:       "518f201a1163ea0c947a9322360f7020f45f5d115752b06497baadbe0cc3f987"
+    sha256 big_sur:        "a493a8832e7af6dce239bdea4db718455d5d919c39ff3fc027a5b7192f0416f4"
+    sha256 catalina:       "a453e51a5217c9bb4846590f195710c693aa38382ea78b14750437a3fba53784"
+    sha256 x86_64_linux:   "15e926da608bdb3d7aa8ddd394f85608cd7effaa775df653059a5ed6c4809f32"
   end
 
   head do

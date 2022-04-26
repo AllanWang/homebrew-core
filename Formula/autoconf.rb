@@ -1,28 +1,36 @@
 class Autoconf < Formula
   desc "Automatic configure script builder"
   homepage "https://www.gnu.org/software/autoconf"
-  url "https://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz"
-  mirror "https://ftpmirror.gnu.org/autoconf/autoconf-2.69.tar.gz"
-  sha256 "954bd69b391edc12d6a4a51a2dd1476543da5c6bbf05a95b59dc0dd6fd4c2969"
+  url "https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz"
+  mirror "https://ftpmirror.gnu.org/autoconf/autoconf-2.71.tar.gz"
+  sha256 "431075ad0bf529ef13cb41e9042c542381103e80015686222b8a9d4abef42a1c"
+  license all_of: [
+    "GPL-3.0-or-later",
+    "GPL-3.0-or-later" => { with: "Autoconf-exception-3.0" },
+  ]
 
   bottle do
-    cellar :any_skip_relocation
-    rebuild 4
-    sha256 "9724736d34773b6e41e2434ffa28fe79feccccf7b7786e54671441ca75115cdb" => :mojave
-    sha256 "63957a3952b7af5496012b3819c9956822fd7d895d63339c23fdc65c502e1a40" => :high_sierra
-    sha256 "a76fca79a00f733c1c9f75600b906de4755dd3fbb595b1b55ded1347ac141607" => :sierra
-    sha256 "ded69c7dac4bc8747e52dca37d6d561e55e3162649d3805572db0dc2f940a4b8" => :el_capitan
-    sha256 "daf70656aa9ff8b2fb612324222aa6b5e900e2705c9f555198bcd8cd798d7dd0" => :yosemite
-    sha256 "d153b3318754731ff5e91b45b2518c75880993fa9d1f312a03696e2c1de0c9d5" => :mavericks
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "a3d366c98b0da7a0a4f352eef49af9d612ac7aea4ffe420d49ff12bd90007415"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "6279cc6294da77a87b2e08783f39a97e8678bde9b3e2899685879cabee6d2945"
+    sha256 cellar: :any_skip_relocation, monterey:       "de8f4aa4123d307ad8bb11b1c685538224dc39939085fd00af928c5099c4202d"
+    sha256 cellar: :any_skip_relocation, big_sur:        "0aa64f171bac19ce6ac0c0ca697f30658db78cf175550dfde3dbda907b7f2500"
+    sha256 cellar: :any_skip_relocation, catalina:       "258a94bef23057c52818adf64d682af20bc6e09b46eac135047e2b87fc8206c7"
+    sha256 cellar: :any_skip_relocation, mojave:         "e94578bf4b4832baef1c9bbb40cb4da5fdbd9c66be5ed8d070f78be5f0cca618"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "9f9a73292e64f19ec504459ee7f8b7f11f1e472d18252499705a9fc289c43f85"
   end
 
-  def install
-    ENV["PERL"] = "/usr/bin/perl"
+  depends_on "m4"
+  uses_from_macos "perl"
 
-    # force autoreconf to look for and use our glibtoolize
-    inreplace "bin/autoreconf.in", "libtoolize", "glibtoolize"
-    # also touch the man page so that it isn't rebuilt
-    inreplace "man/autoreconf.1", "libtoolize", "glibtoolize"
+  def install
+    if OS.mac?
+      ENV["PERL"] = "/usr/bin/perl"
+
+      # force autoreconf to look for and use our glibtoolize
+      inreplace "bin/autoreconf.in", "libtoolize", "glibtoolize"
+      # also touch the man page so that it isn't rebuilt
+      inreplace "man/autoreconf.1", "libtoolize", "glibtoolize"
+    end
 
     system "./configure", "--prefix=#{prefix}", "--with-lispdir=#{elisp}"
     system "make", "install"
@@ -33,5 +41,18 @@ class Autoconf < Formula
   test do
     cp pkgshare/"autotest/autotest.m4", "autotest.m4"
     system bin/"autoconf", "autotest.m4"
+
+    (testpath/"configure.ac").write <<~EOS
+      AC_INIT([hello], [1.0])
+      AC_CONFIG_SRCDIR([hello.c])
+      AC_PROG_CC
+      AC_OUTPUT
+    EOS
+    (testpath/"hello.c").write "int foo(void) { return 42; }"
+
+    system bin/"autoconf"
+    system "./configure"
+    assert_predicate testpath/"config.status", :exist?
+    assert_match(/\nCC=.*#{ENV.cc}/, (testpath/"config.log").read)
   end
 end

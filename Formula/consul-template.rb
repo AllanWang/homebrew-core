@@ -2,35 +2,31 @@ class ConsulTemplate < Formula
   desc "Generic template rendering and notifications with Consul"
   homepage "https://github.com/hashicorp/consul-template"
   url "https://github.com/hashicorp/consul-template.git",
-      :tag      => "v0.20.0",
-      :revision => "9a0f301b69d841c32f36b78008afb2dee8a9c40b"
-  head "https://github.com/hashicorp/consul-template.git"
+      tag:      "v0.29.0",
+      revision: "34ada7ac2a590a2cd39882ec10dde38d744afd72"
+  license "MPL-2.0"
+  head "https://github.com/hashicorp/consul-template.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "7559cba6cb21be7511ef392022525f592a357598093f1169b90a6e5305b14ba9" => :mojave
-    sha256 "06faa71caea243c485c42cc7e5401b973462ae191bb3a5fd89527a6dcaa0beec" => :high_sierra
-    sha256 "f5d28452d05955eb0a95206be5d2252f6e4c25438c6a57d7d854f7a1d8242a3d" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "e752401b98adb034e14425fce7ff3306682b2e68a7279c8cb402f5e2a2c36606"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "9bdfd03ace532166bfc04c34fd089983f73f4ef009ad8a8b5860f169a012eeb2"
+    sha256 cellar: :any_skip_relocation, monterey:       "9757f195051d2537237cc1d76401416ce5e6a41a3b3f9b717a072358d075a3e5"
+    sha256 cellar: :any_skip_relocation, big_sur:        "88a96a541571092d687948adb75b868f170023ad2a185d5ee9c6a6c352340398"
+    sha256 cellar: :any_skip_relocation, catalina:       "3ce15138a3a5783f9e26b177882a500db26563db8c2d518b32c77c085bf49588"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "ffb3f6d8ee479e5257d5c32ec7941d57d7e3feb9cb40eb8b375f75b8924dd2a4"
   end
 
   depends_on "go" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-    ENV["XC_OS"] = "darwin"
-    ENV["XC_ARCH"] = "amd64"
-    dir = buildpath/"src/github.com/hashicorp/consul-template"
-    dir.install buildpath.children - [buildpath/".brew_home"]
-
-    cd dir do
-      project = "github.com/hashicorp/consul-template"
-      commit = Utils.popen_read("git rev-parse --short HEAD").chomp
-      ldflags = ["-X #{project}/version.Name=consul-template",
-                 "-X #{project}/version.GitCommit=#{commit}"]
-      system "go", "build", "-o", bin/"consul-template", "-ldflags",
-             ldflags.join(" ")
-      prefix.install_metafiles
-    end
+    project = "github.com/hashicorp/consul-template"
+    ldflags = %W[
+      -s -w
+      -X #{project}/version.Name=consul-template
+      -X #{project}/version.GitCommit=#{Utils.git_short_head}
+    ]
+    system "go", "build", *std_go_args(ldflags: ldflags)
+    prefix.install_metafiles
   end
 
   test do

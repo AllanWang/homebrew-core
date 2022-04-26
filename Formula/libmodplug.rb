@@ -1,16 +1,22 @@
 class Libmodplug < Formula
   desc "Library from the Modplug-XMMS project"
   homepage "https://modplug-xmms.sourceforge.io/"
-  url "https://downloads.sourceforge.net/modplug-xmms/libmodplug/0.8.9.0/libmodplug-0.8.9.0.tar.gz"
+  url "https://downloads.sourceforge.net/project/modplug-xmms/libmodplug/0.8.9.0/libmodplug-0.8.9.0.tar.gz"
   sha256 "457ca5a6c179656d66c01505c0d95fafaead4329b9dbaa0f997d00a3508ad9de"
 
+  livecheck do
+    url :stable
+    regex(%r{url=.*?/libmodplug[._-]v?(\d+(?:\.\d+)+)\.t}i)
+  end
+
   bottle do
-    cellar :any
-    rebuild 1
-    sha256 "67ea2db6931cc6f60ed71f09cfab02cb22d2781d2e5bbb96ff0ef6a22ebb1c83" => :mojave
-    sha256 "3f46eca3704d441ba8133d71bd283e8d24cff61e8b903fff720b78932185f9bf" => :high_sierra
-    sha256 "fc88a11e82b19a1a0aa4ada0ed3468147464d3414c3e9dffda9cea139b195c9d" => :sierra
-    sha256 "968a0bdc082725f136ab94f3a7eaf5a6a376eb94ec03b45f49ab275bd9193318" => :el_capitan
+    rebuild 2
+    sha256 cellar: :any,                 arm64_monterey: "44f9536bdd1d88445e94cfef5c13a40ee07a965db04804824c438746f3d3db00"
+    sha256 cellar: :any,                 arm64_big_sur:  "8f59c19b920e04fd0b2b71cab151e62358e1c8ff00bea83b3e40081f941c13d3"
+    sha256 cellar: :any,                 monterey:       "f773d6e23b5a2b84304c91c740b050c7364e3102714d4b1ccc3985e64f97d98e"
+    sha256 cellar: :any,                 big_sur:        "2411526634753034b19df000bf941383eac622926cc50c31ff80dc5a484c7abe"
+    sha256 cellar: :any,                 catalina:       "cd9af3b0e9c72274ac8a63934d0af44edb08cfbcfecc30772b862be74f68de9d"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d166a7f4a737de154ada685c9af4f82d22238a1b6cb323ce49a4496a3e9b2911"
   end
 
   resource "testmod" do
@@ -20,10 +26,17 @@ class Libmodplug < Formula
     sha256 "f80735b77123cc7e02c4dad6ce8197bfefcb8748b164a66ffecd206cc4b63d97"
   end
 
+  # Fix -flat_namespace being used on Big Sur and later.
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+    sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+  end
+
   def install
     system "./configure", "--disable-debug",
                           "--disable-dependency-tracking",
                           "--disable-silent-rules",
+                          "--enable-static",
                           "--prefix=#{prefix}"
 
     system "make", "install"
@@ -56,7 +69,7 @@ class Libmodplug < Formula
       #include <sstream>
 
       int main() {
-        std::ifstream in("downloads.php");
+        std::ifstream in("2ND_PM.S3M");
         std::stringstream buffer;
         buffer << in.rdbuf();
         int length = buffer.tellp();
@@ -69,7 +82,7 @@ class Libmodplug < Formula
         }
       }
     EOS
-    system ENV.cc, "test_mod.cpp", "-L#{lib}", "-lmodplug", "-lstdc++", "-o", "test_mod"
+    system ENV.cxx, "test_mod.cpp", "-L#{lib}", "-lmodplug", "-o", "test_mod"
     system "./test_mod"
   end
 end

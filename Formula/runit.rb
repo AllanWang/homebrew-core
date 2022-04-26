@@ -4,12 +4,19 @@ class Runit < Formula
   url "http://smarden.org/runit/runit-2.1.2.tar.gz"
   sha256 "6fd0160cb0cf1207de4e66754b6d39750cff14bb0aa66ab49490992c0c47ba18"
 
+  livecheck do
+    url "http://smarden.org/runit/install.html"
+    regex(/href=.*?runit[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
+
   bottle do
-    sha256 "e70c75527e992d70255d13631b56e7f1629cb1dc3583881967c6f4468fd296ef" => :mojave
-    sha256 "6f5e25b4f9d7d9128726aa72f97fda3b480cd36a5002041210e11303811f2369" => :high_sierra
-    sha256 "4eefe737db7b327dd6c595f57f34a8b564e170427ffc24ab35c4cd5ee79a6ec1" => :sierra
-    sha256 "3dbc4f1ba3d86e5f3d6900a19ff90b32d2aff91ffb68914be8740d916f3622da" => :el_capitan
-    sha256 "c268f70014699ba6be9a198686547ddd150f0b779aa0a1e623df60068d8cd4be" => :yosemite
+    rebuild 2
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "8f052bec9af60ed628dec6fd235468b4cbb88d5b02c2570d1e1cddd0596e64be"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "39e047730d34a1981348cee841295648336b6ff705a200ef5f99130dc0cfde3c"
+    sha256 cellar: :any_skip_relocation, monterey:       "80de201022723bb21ff78b50bd6dd1501ea8fb8a4d062e4974ad219d0971d1f4"
+    sha256 cellar: :any_skip_relocation, big_sur:        "a619f4f93c0a243b27e229916a5c7fc0371c7f38db7a608e5232d27eca9e9987"
+    sha256 cellar: :any_skip_relocation, catalina:       "d0e17adfaaf02589b498e362596486515b37a0fda917ee8f0e51ac8e2409afd6"
+    sha256 cellar: :any_skip_relocation, mojave:         "ec6f4b2f1b323aba830a5f26daed8615395b0f774de82e074ee699627b1c106a"
   end
 
   def install
@@ -36,55 +43,26 @@ class Runit < Formula
     end
   end
 
-  def caveats; <<~EOS
-    This formula does not install runit as a replacement for init.
-    The service directory is #{var}/service instead of /service.
+  def caveats
+    <<~EOS
+      This formula does not install runit as a replacement for init.
+      The service directory is #{var}/service instead of /service.
 
-    A system service that runs runsvdir with the default service directory is
-    provided. Alternatively you can run runsvdir manually:
+      A system service that runs runsvdir with the default service directory is
+      provided. Alternatively you can run runsvdir manually:
 
-         runsvdir -P #{var}/service
+           runsvdir -P #{var}/service
 
-    Depending on the services managed by runit, this may need to start as root.
-  EOS
+      Depending on the services managed by runit, this may need to start as root.
+    EOS
   end
 
-  plist_options :manual => "runit"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>ProgramArguments</key>
-        <array>
-          <string>#{opt_bin}/runsvdir</string>
-          <string>-P</string>
-          <string>#{var}/service</string>
-        </array>
-        <key>EnvironmentVariables</key>
-        <dict>
-          <key>PATH</key>
-          <string>/usr/bin:/bin:/usr/sbin:/sbin:#{opt_bin}</string>
-        </dict>
-        <key>KeepAlive</key>
-        <dict>
-          <key>Crashed</key>
-          <true/>
-          <key>SuccessfulExit</key>
-          <false/>
-        </dict>
-        <key>ProcessType</key>
-        <string>Background</string>
-       <key>StandardErrorPath</key>
-        <string>#{var}/log/runit.log</string>
-        <key>StandardOutPath</key>
-        <string>#{var}/log/runit.log</string>
-      </dict>
-    </plist>
-  EOS
+  service do
+    run [opt_bin/"runsvdir", "-P", var/"service"]
+    keep_alive true
+    log_path var/"log/runit.log"
+    error_log_path var/"log/runit.log"
+    environment_variables PATH: "/usr/bin:/bin:/usr/sbin:/sbin:#{opt_bin}"
   end
 
   test do

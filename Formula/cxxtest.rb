@@ -1,29 +1,29 @@
 class Cxxtest < Formula
-  desc "xUnit-style unit testing framework for C++"
+  include Language::Python::Virtualenv
+
+  desc "C++ unit testing framework similar to JUnit, CppUnit and xUnit"
   homepage "https://cxxtest.com/"
   url "https://github.com/CxxTest/cxxtest/releases/download/4.4/cxxtest-4.4.tar.gz"
   mirror "https://deb.debian.org/debian/pool/main/c/cxxtest/cxxtest_4.4.orig.tar.gz"
   sha256 "1c154fef91c65dbf1cd4519af7ade70a61d85a923b6e0c0b007dc7f4895cf7d8"
+  license "LGPL-3.0"
+  revision 3
 
   bottle do
-    cellar :any_skip_relocation
-    rebuild 1
-    sha256 "0c97b74f6bc2cee5e0683fcec6bd07da544b5f3e9cd25b9631b6291b86490392" => :mojave
-    sha256 "4ef0fbb78839714da6108883475dce9536df2e59dd9dc7bf42677a86d00f4356" => :high_sierra
-    sha256 "4ef0fbb78839714da6108883475dce9536df2e59dd9dc7bf42677a86d00f4356" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "290c7e2e1fe99e75a0f7b45d2808d971db1e39fb915acb11ec2d75ef15b18b0c"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "290c7e2e1fe99e75a0f7b45d2808d971db1e39fb915acb11ec2d75ef15b18b0c"
+    sha256 cellar: :any_skip_relocation, monterey:       "e1bcaf3c8fbddf83977c8cbbde084f64d3915a22bbf023cb044423b7215c26ee"
+    sha256 cellar: :any_skip_relocation, big_sur:        "e1bcaf3c8fbddf83977c8cbbde084f64d3915a22bbf023cb044423b7215c26ee"
+    sha256 cellar: :any_skip_relocation, catalina:       "e1bcaf3c8fbddf83977c8cbbde084f64d3915a22bbf023cb044423b7215c26ee"
+    sha256 cellar: :any_skip_relocation, mojave:         "e1bcaf3c8fbddf83977c8cbbde084f64d3915a22bbf023cb044423b7215c26ee"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "5b808acbab8d4cc6aa173baafc1e35786e8253cc5a4f16e5bf8a35853aeed490"
   end
 
-  depends_on "python"
+  depends_on "python@3.10"
 
   def install
-    xy = Language::Python.major_minor_version "python3"
-    ENV.prepend_create_path "PYTHONPATH", lib/"python#{xy}/site-packages"
-
-    cd "./python" do
-      system "python3", *Language::Python.setup_install_args(prefix)
-    end
-
-    bin.env_script_all_files(libexec/"bin", :PYTHONPATH => ENV["PYTHONPATH"])
+    venv = virtualenv_create(libexec, Formula["python@3.10"].opt_bin/"python3")
+    venv.pip_install_and_link buildpath/"python"
 
     include.install "cxxtest"
     doc.install Dir["doc/*"]

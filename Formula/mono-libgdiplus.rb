@@ -1,20 +1,24 @@
 class MonoLibgdiplus < Formula
   desc "GDI+-compatible API on non-Windows operating systems"
   homepage "https://www.mono-project.com/docs/gui/libgdiplus/"
-  url "https://github.com/mono/libgdiplus/archive/5.6.1.tar.gz"
-  sha256 "deff863023950b1d1de7e47e44fc31c8ba39cfc06334737261965f697b2ad312"
-  revision 1
+  url "https://download.mono-project.com/sources/libgdiplus/libgdiplus-6.1.tar.gz"
+  sha256 "97d5a83d6d6d8f96c27fb7626f4ae11d3b38bc88a1726b4466aeb91451f3255b"
+  license "MIT"
 
-  bottle do
-    cellar :any
-    sha256 "3bf2cb84c29f3adc952220837cfb160b65ab3950c90abec406bc2534c346a7a2" => :mojave
-    sha256 "50821931ec368541e13b4dd04da11f17f4a77b2feebdbf6f424f3d518fbacad7" => :high_sierra
-    sha256 "331ea1c86eb7873af94626b4d90f6b3aa4ca9ad1627b066643be19c46981a4c8" => :sierra
+  livecheck do
+    url "https://download.mono-project.com/sources/libgdiplus/"
+    regex(/href=.*?libgdiplus[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
-  depends_on "autoconf" => :build
-  depends_on "automake" => :build
-  depends_on "libtool" => :build
+  bottle do
+    sha256 cellar: :any,                 arm64_monterey: "3a30135d330f2b768291589843b24cde7344f54518160c264536c9cd23250f08"
+    sha256 cellar: :any,                 arm64_big_sur:  "5fe649e5e343da32be7676e8790029d54baac8d774bbcd495c7967429e92e9a5"
+    sha256 cellar: :any,                 monterey:       "046892c0f224f24e10a5778fd2b7de125f4bce367bfe05ce87129adac666f13f"
+    sha256 cellar: :any,                 big_sur:        "5945a30d86c27fce4226a1147d63c062f94e802bedb60fef5f7667d30d002d50"
+    sha256 cellar: :any,                 catalina:       "327f8abb39efba8d47c231eb679b70375a6a6b3ab6b0f53f9dc21c72a04a3ea9"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "2f136449315a9e66724ef8a8b056151ec0579e7adf0433d50fadb3bac44634dc"
+  end
+
   depends_on "pkg-config" => :build
   depends_on "cairo"
   depends_on "fontconfig"
@@ -26,10 +30,15 @@ class MonoLibgdiplus < Formula
   depends_on "libexif"
   depends_on "libpng"
   depends_on "libtiff"
-  depends_on "pixman"
+  depends_on "pango"
+
+  # Fix -flat_namespace being used on Big Sur and later.
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+    sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+  end
 
   def install
-    system "autoreconf", "-fiv"
     system "./configure", "--disable-debug",
                           "--disable-dependency-tracking",
                           "--disable-silent-rules",

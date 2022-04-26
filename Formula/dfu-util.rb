@@ -1,21 +1,23 @@
 class DfuUtil < Formula
   desc "USB programmer"
   homepage "https://dfu-util.sourceforge.io/"
-  url "https://downloads.sourceforge.net/project/dfu-util/dfu-util-0.9.tar.gz"
-  sha256 "36428c6a6cb3088cad5a3592933385253da5f29f2effa61518ee5991ea38f833"
+  url "https://downloads.sourceforge.net/project/dfu-util/dfu-util-0.11.tar.gz"
+  sha256 "b4b53ba21a82ef7e3d4c47df2952adf5fa494f499b6b0b57c58c5d04ae8ff19e"
+  license "GPL-2.0-or-later"
 
   bottle do
-    cellar :any
-    sha256 "811d4e5d574bf5d3cb8783374927c6861c083e05711f538925a819490c5a49c7" => :mojave
-    sha256 "c1e5f33cee759c8273ed5b9088262c442773342378939cecd374c99889126f8b" => :high_sierra
-    sha256 "3b9f9f6cf990becc1f2979fbec2cf2833d6f0ee2ab1ba3db4979203f1d591ee2" => :sierra
-    sha256 "49975a34b6bacad4549871097effce90e376d3cd26ed24b2d7dfd925a199f0f8" => :el_capitan
-    sha256 "776c3ed14def87511f9280201a95490145a9d469e2c1e29873c335e2c39ed279" => :yosemite
-    sha256 "75c7ffa4e2d5067618c41f999f3d0c8a9aac1080e9eb8cd1f9bec8dd154aa1c1" => :mavericks
+    sha256 cellar: :any,                 arm64_monterey: "7d09c40c797df76fdea2862b205111fa9c14d44b09c27a0b00e083fcc827bee9"
+    sha256 cellar: :any,                 arm64_big_sur:  "c7dd53f422003b99c57f565aad8371e8cef1aa3de825f36cd927cd61ed64249d"
+    sha256 cellar: :any,                 monterey:       "5daf11ce553e067f293fc615889d22c74abb9ea9da21f57699c81d65ee9fa089"
+    sha256 cellar: :any,                 big_sur:        "b970a649e90f3e080af2143e8479e0616959e35650defea16b96288c4af011dc"
+    sha256 cellar: :any,                 catalina:       "5a5d86794a00b9559ffc819715c297da4f477296d20a92c804aefc426795d0b0"
+    sha256 cellar: :any,                 mojave:         "1ded847895f4d2a86a4a7754fa711014d09c334044ccc03aa97d89059ae58604"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "13c26d1ebc67dd60446845d51e3ff92bcded0ae223852dc104e897c8c3423f71"
   end
 
   head do
-    url "https://git.code.sf.net/p/dfu-util/dfu-util.git"
+    url "https://git.code.sf.net/p/dfu-util/dfu-util.git", branch: "master"
+
     depends_on "autoconf" => :build
     depends_on "automake" => :build
     depends_on "libtool" => :build

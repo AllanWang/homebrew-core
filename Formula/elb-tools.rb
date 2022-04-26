@@ -4,14 +4,19 @@ class ElbTools < Formula
   url "https://ec2-downloads.s3.amazonaws.com/ElasticLoadBalancing.zip"
   version "1.0.35.0"
   sha256 "31d9aa0ca579c270f8e3579f967b6048bc070802b7b41a30a9fa090fbffba62b"
+  revision 1
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "8dd3007e8367fe8e0c4b4b85889a68d7196a954a27add9cb163c5965daa51da1"
+  end
+
+  deprecate! date: "2022-04-03", because: :deprecated_upstream
 
   depends_on "ec2-api-tools"
-  depends_on :java
+  depends_on "openjdk"
 
   def install
-    env = Language::Java.java_home_env.merge(:AWS_ELB_HOME => libexec)
+    env = { JAVA_HOME: Formula["openjdk"].opt_prefix, AWS_ELB_HOME: libexec }
     rm Dir["bin/*.cmd"] # Remove Windows versions
     libexec.install Dir["*"]
     Pathname.glob("#{libexec}/bin/*") do |file|

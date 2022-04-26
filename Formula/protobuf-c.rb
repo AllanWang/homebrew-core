@@ -1,14 +1,18 @@
 class ProtobufC < Formula
   desc "Protocol buffers library"
   homepage "https://github.com/protobuf-c/protobuf-c"
-  url "https://github.com/protobuf-c/protobuf-c/releases/download/v1.3.2/protobuf-c-1.3.2.tar.gz"
-  sha256 "53f251f14c597bdb087aecf0b63630f434d73f5a10fc1ac545073597535b9e74"
+  url "https://github.com/protobuf-c/protobuf-c/releases/download/v1.4.0/protobuf-c-1.4.0.tar.gz"
+  sha256 "26d98ee9bf18a6eba0d3f855ddec31dbe857667d269bc0b6017335572f85bbcb"
+  license "BSD-2-Clause"
+  revision 1
 
   bottle do
-    cellar :any
-    sha256 "b8f11ddea9ef19b5deccf1d7135f2bc3bcfb317ef1d585d134a353b22549c4f1" => :mojave
-    sha256 "5c4a17bdd6fd302f88a08683ab0406fd621b6d819e6ac2ea385e40867acaae0d" => :high_sierra
-    sha256 "805e3df27ba54bfdd1e76b0d6603f47622e73726e1483f080f8e8ff5238cbe16" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "4a3986d128583d41b29e369bfddeff1e369267441797b71776b8567b4eac5702"
+    sha256 cellar: :any,                 arm64_big_sur:  "8e855e301d3e6f20acb9b79f8e86ed46cba43790d03a2a82b2de7024abb721ec"
+    sha256 cellar: :any,                 monterey:       "1d380b543cfaed179de2a482212975c9bc7219da96aa939148f9c6a6a30e170c"
+    sha256 cellar: :any,                 big_sur:        "c89d06a0c0b555379f137f448cd8d25dd0a476d417ab277c572fd07c6faf0275"
+    sha256 cellar: :any,                 catalina:       "55732600c0f049e6b40bee2751dfacaadd79d62a72f6f843897e25d129cbd47f"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "a52bfbd47abd15484c307ae0e9d11d93bf9c98606dabaa893b75952e9db80a28"
   end
 
   depends_on "pkg-config" => :build

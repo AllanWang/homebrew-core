@@ -1,37 +1,38 @@
 class Deheader < Formula
-  desc "Analyze C/C++ files for unnecessary headers"
-  homepage "http://www.catb.org/~esr/deheader"
-  url "http://www.catb.org/~esr/deheader/deheader-1.6.tar.gz",
-      :using => :nounzip
-  sha256 "3b99665c4f0dfda31d200bf2528540d6898cb846499ee91effa2e8f72aff3a60"
-  head "https://gitlab.com/esr/deheader.git"
+  include Language::Python::Shebang
 
-  bottle do
-    cellar :any_skip_relocation
-    sha256 "cef55345cf5a32b30aa7d9a320b3143eb05b5f8329a8abbfad2a247622ab233f" => :mojave
-    sha256 "cf2689471e033bb6e55cd948679eef30c9abecb17f022fc6cb914fbe0ca85c6d" => :high_sierra
-    sha256 "2b70a9eb18042a3e93ab8fc1bf018c417d8b41f9b8efe6d818d45aed6922cf52" => :sierra
-    sha256 "2b70a9eb18042a3e93ab8fc1bf018c417d8b41f9b8efe6d818d45aed6922cf52" => :el_capitan
-    sha256 "2b70a9eb18042a3e93ab8fc1bf018c417d8b41f9b8efe6d818d45aed6922cf52" => :yosemite
+  desc "Analyze C/C++ files for unnecessary headers"
+  homepage "http://www.catb.org/~esr/deheader/"
+  url "http://www.catb.org/~esr/deheader/deheader-1.8.tar.gz"
+  sha256 "ebf144b441cc12ff5003e3e36c16e772382a153968c44334d5d6a892b44cab06"
+  license "BSD-2-Clause"
+
+  livecheck do
+    url :homepage
+    regex(/href=.*?deheader[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
-  depends_on "xmlto" => :build
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "35fcae1dfb59ef0c9fce339453c212eabfc380c70b1820ca4b69275606cc2678"
+  end
+
+  head do
+    url "https://gitlab.com/esr/deheader.git", branch: "master"
+    depends_on "xmlto" => :build
+  end
+
+  depends_on "python@3.10"
 
   def install
-    ENV["XML_CATALOG_FILES"] = "#{etc}/xml/catalog"
-
-    # Remove for > 1.6
-    # Fix "deheader-1.6/deheader.1: Can't create 'deheader-1.6/deheader.1'"
-    # See https://gitlab.com/esr/deheader/commit/ea5d8d4
-    system "/usr/bin/tar", "-xvqf", "deheader-1.6.tar.gz",
-                           "deheader-1.6/deheader.1"
-    system "/usr/bin/tar", "-xvf", "deheader-1.6.tar.gz", "--exclude",
-                           "deheader-1.6/deheader.1"
-    cd "deheader-1.6" do
+    if build.head?
+      ENV["XML_CATALOG_FILES"] = etc/"xml/catalog"
       system "make"
-      bin.install "deheader"
-      man1.install "deheader.1"
     end
+
+    bin.install "deheader"
+    man1.install "deheader.1"
+
+    rewrite_shebang detected_python_shebang, bin/"deheader"
   end
 
   test do

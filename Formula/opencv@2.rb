@@ -3,15 +3,22 @@ class OpencvAT2 < Formula
   homepage "https://opencv.org/"
   url "https://github.com/opencv/opencv/archive/2.4.13.7.tar.gz"
   sha256 "192d903588ae2cdceab3d7dc5a5636b023132c8369f184ca89ccec0312ae33d0"
-  revision 3
+  license "BSD-3-Clause"
+  revision 12
 
   bottle do
-    sha256 "58275354d07bd2721862f309460ba35dc40ae254398cbb547a9433d73f39c568" => :mojave
-    sha256 "b3535abd6e68488da494dcfd012a0fafbd8efd11d6f7da079bc94cede0fe4780" => :high_sierra
-    sha256 "0bf66ae256ba6541ab7c6387e1a07490785cd5bcb6b488b4b2a3aeacb61fc7df" => :sierra
+    sha256 cellar: :any, arm64_monterey: "83c5326c95de73c14aa11909ade85f8f78684f5386d6f134201976eafb63e497"
+    sha256               arm64_big_sur:  "80480cb6ead5fdcdb15ff6a15ce76ab6650da02b1d41f29e719afaf311e9cc4c"
+    sha256 cellar: :any, monterey:       "1a2972e1851f1c02e5259820b798688345525bd906f0840cf6761ec0f4882015"
+    sha256               big_sur:        "ccca6d5ab6c409984409b978bb1f44d753cb973e0d11dd8721fdda7dffa9713c"
+    sha256               catalina:       "f3d3e73afb743e429cbcfe84c44ef461eedb85fe040a3e2da15979ee3ddabfd3"
+    sha256               mojave:         "04149e97504dff8e9d76258126f403e24dabe31245620091dbc452af6722dc2a"
   end
 
   keg_only :versioned_formula
+
+  # https://www.slideshare.net/EugeneKhvedchenya/opencv-30-latest-news-and-the-roadmap
+  deprecate! date: "2015-02-01", because: :unsupported
 
   depends_on "cmake" => :build
   depends_on "pkg-config" => :build
@@ -20,11 +27,12 @@ class OpencvAT2 < Formula
   depends_on "jpeg"
   depends_on "libpng"
   depends_on "libtiff"
-  depends_on "numpy"
+  depends_on :macos # Due to Python 2
+  depends_on "numpy@1.16"
   depends_on "openexr"
-  depends_on "python@2" # does not support Python 3
 
   def install
+    ENV.cxx11
     jpeg = Formula["jpeg"]
 
     args = std_cmake_args + %W[
@@ -61,12 +69,12 @@ class OpencvAT2 < Formula
     # https://github.com/Homebrew/homebrew-science/issues/2302
     args << "-DCMAKE_PREFIX_PATH=#{py_prefix}"
 
-    if MacOS.version.requires_sse42?
-      args << "-DENABLE_SSE41=ON" << "-DENABLE_SSE42=ON"
-    end
+    args << "-DENABLE_SSE41=ON" << "-DENABLE_SSE42=ON" \
+      if Hardware::CPU.intel? && MacOS.version.requires_sse42?
 
     mkdir "build" do
       system "cmake", "..", *args
+      inreplace "modules/core/version_string.inc", Superenv.shims_path, ""
       system "make"
       system "make", "install"
     end

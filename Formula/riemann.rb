@@ -1,67 +1,40 @@
 class Riemann < Formula
   desc "Event stream processor"
   homepage "https://riemann.io/"
-  url "https://github.com/riemann/riemann/releases/download/0.3.3/riemann-0.3.3.tar.bz2"
-  sha256 "38b6bb68e5a7efe53157fca71f909bc613547deafc0b0259c91b9d596eadac87"
+  url "https://github.com/riemann/riemann/releases/download/0.3.8/riemann-0.3.8.tar.bz2"
+  sha256 "7490c8808c235ca6ba3d96459296dc922840a0a381f02496a4a370ef668a65ef"
+  license "EPL-1.0"
 
-  bottle :unneeded
-
-  def shim_script
-    <<~EOS
-      #!/bin/bash
-      if [ -z "$1" ]
-      then
-        config="#{etc}/riemann.config"
-      else
-        config=$@
-      fi
-      exec "#{libexec}/bin/riemann" $config
-    EOS
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "87534de2e2bc2e74014a9728daa350b84e538cbd915c5d2e3da8ddaec0ed9dc7"
   end
 
+  depends_on "openjdk"
+
   def install
+    inreplace "bin/riemann", "$top/etc", etc
     etc.install "etc/riemann.config" => "riemann.config.guide"
 
     # Install jars in libexec to avoid conflicts
     libexec.install Dir["*"]
 
-    (bin+"riemann").write shim_script
+    (bin/"riemann").write_env_script libexec/"bin/riemann", Language::Java.overridable_java_home_env
   end
 
-  def caveats; <<~EOS
-    You may also wish to install these Ruby gems:
-      riemann-client
-      riemann-tools
-      riemann-dash
-  EOS
+  def caveats
+    <<~EOS
+      You may also wish to install these Ruby gems:
+        riemann-client
+        riemann-tools
+        riemann-dash
+    EOS
   end
 
-  plist_options :manual => "riemann"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>KeepAlive</key>
-        <true/>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>ProgramArguments</key>
-        <array>
-          <string>#{opt_bin}/riemann</string>
-          <string>#{etc}/riemann.config</string>
-        </array>
-        <key>RunAtLoad</key>
-        <true/>
-        <key>StandardErrorPath</key>
-        <string>#{var}/log/riemann.log</string>
-        <key>StandardOutPath</key>
-        <string>#{var}/log/riemann.log</string>
-      </dict>
-    </plist>
-  EOS
+  service do
+    run [opt_bin/"riemann", etc/"riemann.config"]
+    keep_alive true
+    log_path var/"log/riemann.log"
+    error_log_path var/"log/riemann.log"
   end
 
   test do

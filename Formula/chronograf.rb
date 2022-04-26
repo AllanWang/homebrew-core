@@ -3,85 +3,55 @@ require "language/node"
 class Chronograf < Formula
   desc "Open source monitoring and visualization UI for the TICK stack"
   homepage "https://docs.influxdata.com/chronograf/latest/"
-  url "https://github.com/influxdata/chronograf/archive/1.7.11.tar.gz"
-  sha256 "576e24ab31f3134edaf72651fa288eb4e6f1461662730a57af63096a088d0664"
-  head "https://github.com/influxdata/chronograf.git"
+  url "https://github.com/influxdata/chronograf/archive/1.9.4.tar.gz"
+  sha256 "ff294f25a9de57140024b9953992c1a4d79ec88167ad28435645d888a0096c27"
+  license "AGPL-3.0-or-later"
+  head "https://github.com/influxdata/chronograf.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "3482c2d6ba13a49c943cc17a4334ca61730bdacdf658b1345870d30c7e8e855f" => :mojave
-    sha256 "b3e32c0c49a56455d1b2208bdc9978f85b999d39ac11b5de3cfc4d8e9f839a2e" => :high_sierra
-    sha256 "f52ec78ab92ab591df495dfd28dc7339a2b57915c397fc0cd25da3e7cb763210" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "3ac8da143b92111d61c6911950351cea601a47a31966f68b374c208e3bf64314"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "49f3702369d67cb88f10c0f8929eeec8395e08aecf72c5b34fd3b6a3a7895e5e"
+    sha256 cellar: :any_skip_relocation, monterey:       "f7458350c65b537d1fbac3216f0b10c02b8fc79ca584907c375a8346ad78b955"
+    sha256 cellar: :any_skip_relocation, big_sur:        "ce89af5bfe0791d75fbdd44d9bf89f69a812848426c3163fa64e7dee331b6257"
+    sha256 cellar: :any_skip_relocation, catalina:       "b2f8e625b097c6e78f52d70ab34f1c9c3c30cbaa5ad2e714d58378a13aa1d438"
   end
 
   depends_on "go" => :build
-  depends_on "node" => :build
+  depends_on "go-bindata" => :build
+  # Switch to `node` when chronograf updates dependency node-sass>=6.0.0
+  depends_on "node@14" => :build
   depends_on "yarn" => :build
   depends_on "influxdb"
   depends_on "kapacitor"
 
   def install
-    ENV["GOPATH"] = buildpath
-    ENV.prepend_create_path "PATH", buildpath/"bin"
     Language::Node.setup_npm_environment
-    chronograf_path = buildpath/"src/github.com/influxdata/chronograf"
-    chronograf_path.install buildpath.children
 
-    # fixes yarn + upath@1.0.4 incompatibility, remove once upath is upgraded to 1.0.5+
-    Pathname.new("#{ENV["HOME"]}/.yarnrc").write("ignore-engines true\n")
-
-    cd chronograf_path do
-      system "make", "dep"
-      system "make", ".jssrc"
-      system "make", "chronograf"
-      bin.install "chronograf"
-      prefix.install_metafiles
-    end
+    system "make", "dep"
+    system "make", ".jssrc"
+    system "make", "chronograf"
+    bin.install "chronograf"
   end
 
-  plist_options :manual => "chronograf"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>KeepAlive</key>
-        <dict>
-          <key>SuccessfulExit</key>
-          <false/>
-        </dict>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>ProgramArguments</key>
-        <array>
-          <string>#{opt_bin}/chronograf</string>
-        </array>
-        <key>RunAtLoad</key>
-        <true/>
-        <key>WorkingDirectory</key>
-        <string>#{var}</string>
-        <key>StandardErrorPath</key>
-        <string>#{var}/log/chronograf.log</string>
-        <key>StandardOutPath</key>
-        <string>#{var}/log/chronograf.log</string>
-      </dict>
-    </plist>
-  EOS
+  service do
+    run opt_bin/"chronograf"
+    keep_alive true
+    error_log_path var/"log/chronograf.log"
+    log_path var/"log/chronograf.log"
+    working_dir var
   end
 
   test do
-    begin
-      pid = fork do
-        exec "#{bin}/chronograf"
-      end
-      sleep 1
-      output = shell_output("curl -s 0.0.0.0:8888/chronograf/v1/")
-      sleep 1
-      assert_match %r{/chronograf/v1/layouts}, output
-    ensure
-      Process.kill("SIGINT", pid)
-      Process.wait(pid)
+    port = free_port
+    pid = fork do
+      exec "#{bin}/chronograf --port=#{port}"
     end
+    sleep 10
+    output = shell_output("curl -s 0.0.0.0:#{port}/chronograf/v1/")
+    sleep 1
+    assert_match %r{/chronograf/v1/layouts}, output
+  ensure
+    Process.kill("SIGTERM", pid)
+    Process.wait(pid)
   end
 end

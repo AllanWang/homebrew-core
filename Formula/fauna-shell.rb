@@ -3,14 +3,17 @@ require "language/node"
 class FaunaShell < Formula
   desc "Interactive shell for FaunaDB"
   homepage "https://fauna.com/"
-  url "https://registry.npmjs.org/fauna-shell/-/fauna-shell-0.9.2.tgz"
-  sha256 "3fa3e83fab7bc1625b38616b8254a313216b41815bcdaeaabb21b485d8144f0d"
+  url "https://registry.npmjs.org/fauna-shell/-/fauna-shell-0.15.0.tgz"
+  sha256 "ac7339ae28b4815958e19079221c18af0704825243b6cbdd23c5e1120df955c6"
+  license "MPL-2.0"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "da81642eacc2034c72996f88008dbbab1c3ecea1face54455d12437b2cfe2d53" => :mojave
-    sha256 "774f313d8c73b5b45c0c2133c0ea73180de28c5ca0b72a5d7f52b765ca0b83d2" => :high_sierra
-    sha256 "ee14539b477d19413e96057548e500f3c4409cd4d8bfc8316e72432a70a47ae9" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "d33aaad33a615822bba12c72a579c4864e07e6445909495c2e80221440055b7e"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "d33aaad33a615822bba12c72a579c4864e07e6445909495c2e80221440055b7e"
+    sha256 cellar: :any_skip_relocation, monterey:       "21eb180f13feb537c213825d3882642e0ede1ab87b3940fc278fc693569adf2e"
+    sha256 cellar: :any_skip_relocation, big_sur:        "21eb180f13feb537c213825d3882642e0ede1ab87b3940fc278fc693569adf2e"
+    sha256 cellar: :any_skip_relocation, catalina:       "21eb180f13feb537c213825d3882642e0ede1ab87b3940fc278fc693569adf2e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d33aaad33a615822bba12c72a579c4864e07e6445909495c2e80221440055b7e"
   end
 
   depends_on "node"
@@ -24,9 +27,13 @@ class FaunaShell < Formula
     output = shell_output("#{bin}/fauna list-endpoints 2>&1", 1)
     assert_match "No endpoints defined", output
 
-    pipe_output("#{bin}/fauna add-endpoint https://endpoint1:8443", "secret\nendpoint1\n")
+    # FIXME: This test seems to stall indefinitely on Linux.
+    # https://github.com/jdxcode/password-prompt/issues/12
+    return if OS.linux? && ENV["HOMEBREW_GITHUB_ACTIONS"].present?
+
+    pipe_output("#{bin}/fauna add-endpoint https://db.fauna.com:443", "your_fauna_secret\nfauna_endpoint\n")
 
     output = shell_output("#{bin}/fauna list-endpoints")
-    assert_equal "endpoint1 *\n", output
+    assert_match "fauna_endpoint *\n", output
   end
 end

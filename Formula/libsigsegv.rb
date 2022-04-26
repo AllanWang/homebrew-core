@@ -1,19 +1,30 @@
 class Libsigsegv < Formula
   desc "Library for handling page faults in user mode"
   homepage "https://www.gnu.org/software/libsigsegv/"
-  url "https://ftp.gnu.org/gnu/libsigsegv/libsigsegv-2.12.tar.gz"
-  mirror "https://ftpmirror.gnu.org/libsigsegv/libsigsegv-2.12.tar.gz"
-  sha256 "3ae1af359eebaa4ffc5896a1aee3568c052c99879316a1ab57f8fe1789c390b6"
+  url "https://ftp.gnu.org/gnu/libsigsegv/libsigsegv-2.14.tar.gz"
+  mirror "https://ftpmirror.gnu.org/libsigsegv/libsigsegv-2.14.tar.gz"
+  sha256 "cdac3941803364cf81a908499beb79c200ead60b6b5b40cad124fd1e06caa295"
+  license "GPL-2.0-or-later"
 
   bottle do
-    cellar :any
-    sha256 "3b92bc3dfb8000bfac2b9ebdef436acdf0047d1c98b3ed250f0a332d84ba869a" => :mojave
-    sha256 "5fea960fc3cc9f168749e36e37efbf53f3030d4a3fc2f2602f182d3dcafd5a17" => :high_sierra
-    sha256 "158f90f84a050e266c23299745b7553321c304649e9f88afcf34d73ef08f95a1" => :sierra
-    sha256 "b9808096e671482dffd3c4b7ea330d8fc58027bee92c6a774b953fefc1606eb1" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "e8cae8734eafabb8c3bcfeba2449b1d6e309cea6ca0647ca7bdf62aca7e331db"
+    sha256 cellar: :any,                 arm64_big_sur:  "f37ac4bf1b939f0703029b5143fca0dc8c77ff77f2b860800a5e0028e5fdfea8"
+    sha256 cellar: :any,                 monterey:       "3ceaebb4bf32ec972aa786360dd55fc115fb2890d16da6b2ddaa9ff199160e2c"
+    sha256 cellar: :any,                 big_sur:        "6cefa3529425fcbd306c53d975bc0a727b34d8a3c636c664a1785f67202b2377"
+    sha256 cellar: :any,                 catalina:       "585d16ba5f3b6b2136704ff16e58c620ee2aac3b1f7f9eb15b883efecb1ba6b4"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "a221904699cd8cefa4d70e72f59bab5282065bc0739428286278898a147b571d"
+  end
+
+  head do
+    url "https://git.savannah.gnu.org/git/libsigsegv.git"
+
+    depends_on "autoconf" => :build
+    depends_on "automake" => :build
   end
 
   def install
+    system "./gitsub.sh", "pull" if build.head?
+    system "./autogen.sh" if build.head?
     system "./configure", "--disable-dependency-tracking",
                           "--prefix=#{prefix}",
                           "--enable-shared"
@@ -64,6 +75,6 @@ class Libsigsegv < Formula
     EOS
 
     system ENV.cc, "test.c", "-L#{lib}", "-lsigsegv", "-o", "test"
-    assert_match /Test passed/, shell_output("./test")
+    assert_match "Test passed", shell_output("./test")
   end
 end

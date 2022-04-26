@@ -1,20 +1,21 @@
 class EasyTag < Formula
   desc "Application for viewing and editing audio file tags"
-  homepage "https://projects.gnome.org/easytag"
-  url "https://download.gnome.org//sources/easytag/2.4/easytag-2.4.3.tar.xz"
+  homepage "https://wiki.gnome.org/Apps/EasyTAG"
+  url "https://download.gnome.org/sources/easytag/2.4/easytag-2.4.3.tar.xz"
   sha256 "fc51ee92a705e3c5979dff1655f7496effb68b98f1ada0547e8cbbc033b67dd5"
-  revision 2
+  license "GPL-2.0-or-later"
+  revision 6
 
   bottle do
-    sha256 "52f2f77282dba441fac171c123788cb48de619308f4b1726e7e2c68e13b07ee2" => :mojave
-    sha256 "88f0ad1c24e8c4baba55dd760e540b2bc3905e3e6cfb35be23f358b7006cd1a8" => :high_sierra
-    sha256 "82ed5509af9fd9eb2847eecc75ec3c181ac159c8d8efccb9de356dd72d1b8151" => :sierra
+    sha256 arm64_big_sur: "8a1cef2c91b3216179ce0eb8ace40e845c2956bb08602747d9c4b433b8c138e2"
+    sha256 big_sur:       "f10db53f7c6852dc2d83920c64b5166612b7ebfcfd8b8789228bcc2917b183c4"
+    sha256 catalina:      "cf12b241113c19be8fb1b91871d0428f29c9d4e39066c5fd0c197bba1f12088a"
   end
 
   depends_on "intltool" => :build
   depends_on "itstool" => :build
   depends_on "pkg-config" => :build
-  depends_on "python" => :build
+  depends_on "python@3.9" => :build
   depends_on "adwaita-icon-theme"
   depends_on "flac"
   depends_on "gtk+3"
@@ -31,7 +32,7 @@ class EasyTag < Formula
   patch :DATA
 
   def install
-    xy = Language::Python.major_minor_version "python3"
+    xy = Language::Python.major_minor_version Formula["python@3.9"].opt_bin/"python3"
     ENV.append_path "PYTHONPATH", "#{Formula["libxml2"].opt_lib}/python#{xy}/site-packages"
 
     system "./configure", "--disable-dependency-tracking",

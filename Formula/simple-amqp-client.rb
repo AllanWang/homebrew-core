@@ -1,16 +1,19 @@
 class SimpleAmqpClient < Formula
   desc "C++ interface to rabbitmq-c"
   homepage "https://github.com/alanxz/SimpleAmqpClient"
-  url "https://github.com/alanxz/SimpleAmqpClient/archive/v2.4.0.tar.gz"
-  sha256 "5735ccccd638b2e2c275ca254f2f947bdfe34511247a32822985c3c25239e06e"
-  revision 2
-  head "https://github.com/alanxz/SimpleAmqpClient.git"
+  url "https://github.com/alanxz/SimpleAmqpClient/archive/v2.5.1.tar.gz"
+  sha256 "057c56b29390ec7659de1527f9ccbadb602e3e73048de79594521b3141ab586d"
+  license "MIT"
+  revision 1
+  head "https://github.com/alanxz/SimpleAmqpClient.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "3afc1f1345a391514200462825dcecf87bde3d25476d5f9bf87b787877c632c5" => :mojave
-    sha256 "fa561d92f855cf6613343e33741ac715d3fb42fce6ac2adf1fbc00fc641434df" => :high_sierra
-    sha256 "4f9fc0338fe628eaeb02c4cfb377a8f5e90da37896e6ec91968f30649069b129" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "71d3c197d1c706920397b27c0405fac954605d1d1dde1231c7766b87ecbc2f77"
+    sha256 cellar: :any,                 arm64_big_sur:  "c728b8e81b144f4dcf64b4b7396ebc4c8aa09cbf75d14d1f3f62bf47bf9267f8"
+    sha256 cellar: :any,                 monterey:       "dbca500e47b00874c551b7b634fab01282f5e851bd661603559db0d39a4823bf"
+    sha256 cellar: :any,                 big_sur:        "7506df75eb203cc4e9a9e63c7f930521e7a2f1cf7b9b8729c89cdeb0330b1d0d"
+    sha256 cellar: :any,                 catalina:       "7083f680325f0a3a5838655239e143e95538828566c2d2af40bfcd938f160e5f"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "c4a3fac0f3a0002b329e6e841c5528f19fad2aacbc67964ed8e3f8b28e0f9667"
   end
 
   depends_on "cmake" => :build
@@ -19,8 +22,10 @@ class SimpleAmqpClient < Formula
   depends_on "rabbitmq-c"
 
   def install
-    system "cmake", ".", *std_cmake_args
-    system "make", "install"
+    mkdir "build" do
+      system "cmake", "..", "-DCMAKE_INSTALL_LIBDIR=lib", *std_cmake_args
+      system "make", "install"
+    end
   end
 
   test do

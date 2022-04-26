@@ -1,33 +1,51 @@
 class Ispc < Formula
   desc "Compiler for SIMD programming on the CPU"
   homepage "https://ispc.github.io"
-  url "https://github.com/ispc/ispc/archive/v1.11.0.tar.gz"
-  sha256 "f48ef6e8a1fe5ad4fca691583bf7419f4dce1596e7ed850ff99cc017f8711b2f"
+  url "https://github.com/ispc/ispc/archive/v1.17.0.tar.gz"
+  sha256 "37fb1055d6c6b232e112d8d50145d726824ed4d8da93a7396315dceba6c76e62"
+  license "BSD-3-Clause"
 
   bottle do
-    cellar :any
-    sha256 "0211c32ec401106b7f5afb79b358c74b049526dc5308844b1a1327732daa54d5" => :mojave
-    sha256 "0fd371dc2dd0ab471fd25cbe2fca0ef3b4402b5cc2badd3e57694de9e16e4be7" => :high_sierra
-    sha256 "5d2ad9aea47988b7e49a72fcf3ad1766a3f5291a3613f665164ecf3726af861f" => :sierra
+    rebuild 1
+    sha256 cellar: :any,                 arm64_monterey: "b27e31b04bdf6f1aebe3d6696b9bb58cf443983750d0f8f4351669e7ac4181c6"
+    sha256 cellar: :any,                 arm64_big_sur:  "c5d80025cd446ee1662da3f4797ca77cfe3f84e6d5d28526a51f8e38b83a45d6"
+    sha256 cellar: :any,                 monterey:       "8181e437ca72955573dfef8d695252cbb1d2000a0a86a2453a186c903a97eb0c"
+    sha256 cellar: :any,                 big_sur:        "c189680f9709868a8ecec85b5289ce320e666d1bc05a67b380bbcef0fbb49954"
+    sha256 cellar: :any,                 catalina:       "0e5c8348e224cb4113e815e7027997ab9010416de92d5fbdddff68d1fbd7ff35"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "44a8c1b1e5a395d15c95c99577d23dfb66e4ca0acc45fd8cb87a2d948aba1fca"
   end
 
   depends_on "bison" => :build
   depends_on "cmake" => :build
   depends_on "flex" => :build
-  depends_on "llvm@4"
+  depends_on "python@3.10" => :build
+  depends_on "llvm@12"
+
+  on_linux do
+    depends_on "gcc"
+  end
+
+  fails_with gcc: "5"
+
+  def llvm
+    deps.map(&:to_formula).find { |f| f.name.match? "^llvm" }
+  end
 
   def install
-    # The standard include paths for clang supplied by the llvm@4 formula do not include
-    # C headers such as unistd.h. Add the path to those headers explicitly so that
-    # generation of the ispc builtins and standard library do not silently fail.
-    inreplace "cmake/GenerateBuiltins.cmake", "${CLANG_EXECUTABLE}",
-      "${CLANG_EXECUTABLE} -I#{MacOS.sdk_path}/usr/include"
+    # Force cmake to use our compiler shims instead of bypassing them.
+    inreplace "CMakeLists.txt", "set(CMAKE_C_COMPILER \"clang\")", "set(CMAKE_C_COMPILER \"#{ENV.cc}\")"
+    inreplace "CMakeLists.txt", "set(CMAKE_CXX_COMPILER \"clang++\")", "set(CMAKE_CXX_COMPILER \"#{ENV.cxx}\")"
+
+    # Disable building of i686 target on Linux, which we do not support.
+    inreplace "cmake/GenerateBuiltins.cmake", "set(target_arch \"i686\")", "return()" unless OS.mac?
 
     args = std_cmake_args + %W[
       -DISPC_INCLUDE_EXAMPLES=OFF
       -DISPC_INCLUDE_TESTS=OFF
       -DISPC_INCLUDE_UTILS=OFF
-      -DLLVM_TOOLS_BINARY_DIR='#{Formula["llvm@4"]}'
+      -DLLVM_TOOLS_BINARY_DIR='#{llvm.opt_bin}'
+      -DISPC_NO_DUMPS=ON
+      -DARM_ENABLED=#{Hardware::CPU.arm? ? "ON" : "OFF"}
     ]
 
     mkdir "build" do
@@ -50,7 +68,15 @@ class Ispc < Formula
         }
       }
     EOS
-    system bin/"ispc", "--arch=x86-64", "--target=sse2", testpath/"simple.ispc",
+
+    if Hardware::CPU.arm?
+      arch = "aarch64"
+      target = "neon"
+    else
+      arch = "x86-64"
+      target = "sse2"
+    end
+    system bin/"ispc", "--arch=#{arch}", "--target=#{target}", testpath/"simple.ispc",
       "-o", "simple_ispc.o", "-h", "simple_ispc.h"
 
     (testpath/"simple.cpp").write <<~EOS

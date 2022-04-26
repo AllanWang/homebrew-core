@@ -1,27 +1,52 @@
 class Cjdns < Formula
   desc "Advanced mesh routing system with cryptographic addressing"
   homepage "https://github.com/cjdelisle/cjdns/"
-  url "https://github.com/cjdelisle/cjdns/archive/cjdns-v20.2.tar.gz"
-  sha256 "b114f4e89c971d2c288e3d8265396248a37134895b0e0468bf55030de84b4d2a"
-  head "https://github.com/cjdelisle/cjdns.git"
+  url "https://github.com/cjdelisle/cjdns/archive/cjdns-v21.2.tar.gz"
+  sha256 "dec6ba261b423ea08e3a62a146ffd5db2b49a0b954a37fc37b24b35da2f7f773"
+  license all_of: ["GPL-3.0-or-later", "GPL-2.0-or-later", "BSD-3-Clause", "MIT"]
+  head "https://github.com/cjdelisle/cjdns.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "62b8418625dc9550f4eded4ee1c7062b8c5d85da97aacd6899fff13578d3a836" => :mojave
-    sha256 "5e516be5ce8d028803865ce5ea136ccc671250424f560efbd6ab1454976ff42d" => :high_sierra
-    sha256 "0bd392fc17fb41ad9004458c0098df2dc165accf5c9d676efe21373c22f857db" => :sierra
-    sha256 "095639122e0a992531834d8c1b77113386064fa6214eabf06a0716d3ee678291" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "4c48aa4df04535caab99cd5c645f4ba339a88d9c3bccecb5a63632fa74f75cf1"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "6eabaa1782af8d391877acc7c9448791458d05e78c78d7efe17a171153273a2f"
+    sha256 cellar: :any_skip_relocation, monterey:       "e6acfc82d7cd2878c581eea1e8b4b0b3b1ca6244a7ed8332fc94b8c63c9640bf"
+    sha256 cellar: :any_skip_relocation, big_sur:        "50872d7ab683ad6bcb899d3746793b3792c0a609736b8f1a3f9badaa9ab2b17b"
+    sha256 cellar: :any_skip_relocation, catalina:       "df4aff8124a740742b35a22b66fc4e266110ffe6987089e08ac453783a80f43e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "b20f0604ee2f09127ee8546a90fbed715123c19acc214d2fab06d88ef157985c"
   end
 
   depends_on "node" => :build
+  depends_on "rust" => :build
 
   def install
+    # Avoid using -march=native
+    inreplace "node_build/make.js",
+              "var NO_MARCH_FLAG = ['arm', 'ppc', 'ppc64'];",
+              "var NO_MARCH_FLAG = ['x64', 'arm', 'arm64', 'ppc', 'ppc64'];"
+
     system "./do"
-    bin.install "cjdroute"
-    (pkgshare/"test").install "build_darwin/test_testcjdroute_c" => "cjdroute_test"
+    bins = %w[cjdroute makekeys privatetopublic publictoip6 randombytes sybilsim]
+    bin.install(*bins)
+
+    # Avoid conflict with mkpasswd from `expect`
+    bin.install "mkpasswd" => "cjdmkpasswd"
+
+    man1.install "doc/man/cjdroute.1"
+    man5.install "doc/man/cjdroute.conf.5"
   end
 
   test do
-    system "#{pkgshare}/test/cjdroute_test", "all"
+    sample_conf = JSON.parse(shell_output("#{bin}/cjdroute --genconf"))
+    sample_private_key = sample_conf["privateKey"]
+    sample_public_key = sample_conf["publicKey"]
+    sample_ipv6 = IPAddr.new(sample_conf["ipv6"]).to_s
+
+    expected_output = <<~EOS
+      Input privkey: #{sample_private_key}
+      Matching pubkey: #{sample_public_key}
+      Resulting address: #{sample_ipv6}
+    EOS
+
+    assert_equal expected_output, pipe_output(bin/"privatetopublic", sample_private_key)
   end
 end

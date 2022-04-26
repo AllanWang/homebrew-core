@@ -1,88 +1,86 @@
 class Offlineimap < Formula
+  include Language::Python::Virtualenv
+
   desc "Synchronizes emails between two repositories"
-  homepage "https://www.offlineimap.org/"
-  url "https://github.com/OfflineIMAP/offlineimap/archive/v7.2.3.tar.gz"
-  sha256 "7dec9fa9ff98c09e2e371b1d721327ba23935de5ac8c8145d4e8caf715978350"
-  head "https://github.com/OfflineIMAP/offlineimap.git"
+  homepage "https://github.com/OfflineIMAP/offlineimap3"
+  url "https://github.com/OfflineIMAP/offlineimap3/archive/v8.0.0.tar.gz"
+  sha256 "5d40c163ca2fbf89658116e29f8fa75050d0c34c29619019eee1a84c90fcab32"
+  license "GPL-2.0-or-later"
+  revision 1
+  head "https://github.com/OfflineIMAP/offlineimap3.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "e2979be9c25a1e962e347f01f60baa90984e9ee6a9a8cbada3dfba520e867fa4" => :mojave
-    sha256 "e2979be9c25a1e962e347f01f60baa90984e9ee6a9a8cbada3dfba520e867fa4" => :high_sierra
-    sha256 "e31e637e9ee8a41854b8e1698d0b978405e5efa8e57121b4026a35aefc9cff60" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "ab3fae7e96d819b5a576dab660a43438c93ad4f8f0137e29dc07f93add6d76c3"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "35280d4036bda75925c508f8edcf53e7b9431165071a1391b5fc024fe527f374"
+    sha256 cellar: :any_skip_relocation, monterey:       "99a7aabd972badba906e4430609217c5f03f5267cc76d4eb349ca327487ba549"
+    sha256 cellar: :any_skip_relocation, big_sur:        "e53430590b20390cae4f5c291ed585fca5ecb23d06a6d47e27213bc66af76098"
+    sha256 cellar: :any_skip_relocation, catalina:       "c204ddc3b02a6f1bfd747610baa696d70ed02710e336f902f7d53a4610325632"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "ad8cd71fc09acdcf59cdcc3ddb58e500e032c33975e61b3c5296122a08b4f4d8"
   end
 
-  depends_on "asciidoc" => :build
-  depends_on "docbook-xsl" => :build
-  depends_on "sphinx-doc" => :build
-  depends_on "python@2" # does not support Python 3
+  depends_on "python@3.10"
 
-  resource "six" do
-    url "https://files.pythonhosted.org/packages/16/d8/bc6316cf98419719bd59c91742194c111b6f2e85abac88e496adefaf7afe/six-1.11.0.tar.gz"
-    sha256 "70e8a77beed4562e7f14fe23a786b54f6296e34344c23bc42f07b15018ff98e9"
+  uses_from_macos "krb5"
+
+  resource "certifi" do
+    url "https://files.pythonhosted.org/packages/6c/ae/d26450834f0acc9e3d1f74508da6df1551ceab6c2ce0766a593362d6d57f/certifi-2021.10.8.tar.gz"
+    sha256 "78884e7c1d4b00ce3cea67b44566851c4343c120abd683433ce934a68ea58872"
+  end
+
+  resource "decorator" do
+    url "https://files.pythonhosted.org/packages/92/3c/34f8448b61809968052882b830f7d8d9a8e1c07048f70deb039ae599f73c/decorator-5.1.0.tar.gz"
+    sha256 "e59913af105b9860aa2c8d3272d9de5a56a4e608db9a2f167a8480b323d529a7"
+  end
+
+  resource "distro" do
+    url "https://files.pythonhosted.org/packages/a5/26/256fa167fe1bf8b97130b4609464be20331af8a3af190fb636a8a7efd7a2/distro-1.6.0.tar.gz"
+    sha256 "83f5e5a09f9c5f68f60173de572930effbcc0287bb84fdc4426cb4168c088424"
+  end
+
+  resource "gssapi" do
+    url "https://files.pythonhosted.org/packages/e4/4d/03fcc6a2d052920336069df97866d7b506556ed9f3a5ee2ca1e0cbad45d4/gssapi-1.7.2.tar.gz"
+    sha256 "748efbcf7cfb31183cd75e5314493e79fe3521b3ec00d090a77e23f7c75fa59d"
+  end
+
+  resource "imaplib2" do
+    url "https://files.pythonhosted.org/packages/e4/1a/4ccb857f4832d2836a8c996f18fa7bcad19bfdf1a375dfa12e29dbe0e44a/imaplib2-3.6.tar.gz"
+    sha256 "96cb485b31868a242cb98d5c5dc67b39b22a6359f30316de536060488e581e5b"
+  end
+
+  resource "portalocker" do
+    url "https://files.pythonhosted.org/packages/38/2e/32172e8418f2ba284cee4fd67cb547d39a7debb3eed37d514da173786112/portalocker-2.3.2.tar.gz"
+    sha256 "75cfe02f702737f1726d83e04eedfa0bda2cc5b974b1ceafb8d6b42377efbd5f"
+  end
+
+  resource "rfc6555" do
+    url "https://files.pythonhosted.org/packages/f6/4b/24f953c3682c134e4d0f83c7be5ede44c6c653f7d2c0b06ebb3b117f005a/rfc6555-0.1.0.tar.gz"
+    sha256 "123905b8f68e2bec0c15f321998a262b27e2eaadea29a28bd270021ada411b67"
   end
 
   def install
-    ENV["XML_CATALOG_FILES"] = "#{etc}/xml/catalog"
-    system "make", "docs"
-    man1.install "docs/offlineimap.1"
-    man7.install "docs/offlineimapui.7"
+    virtualenv_install_with_resources
 
-    ENV.prepend_create_path "PYTHONPATH", libexec/"vendor/lib/python2.7/site-packages"
-    resource("six").stage do
-      system "python", *Language::Python.setup_install_args(libexec/"vendor")
-    end
     etc.install "offlineimap.conf", "offlineimap.conf.minimal"
-    libexec.install "bin/offlineimap" => "offlineimap.py"
-    libexec.install "offlineimap"
-    (bin/"offlineimap").write_env_script(libexec/"offlineimap.py",
-      :PYTHONPATH => ENV["PYTHONPATH"])
   end
 
-  def caveats; <<~EOS
-    To get started, copy one of these configurations to ~/.offlineimaprc:
-    * minimal configuration:
-        cp -n #{etc}/offlineimap.conf.minimal ~/.offlineimaprc
+  def caveats
+    <<~EOS
+      To get started, copy one of these configurations to ~/.offlineimaprc:
+      * minimal configuration:
+          cp -n #{etc}/offlineimap.conf.minimal ~/.offlineimaprc
 
-    * advanced configuration:
-        cp -n #{etc}/offlineimap.conf ~/.offlineimaprc
-  EOS
+      * advanced configuration:
+          cp -n #{etc}/offlineimap.conf ~/.offlineimaprc
+    EOS
   end
 
-  plist_options :manual => "offlineimap"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>EnvironmentVariables</key>
-        <dict>
-          <key>PATH</key>
-          <string>/usr/bin:/bin:/usr/sbin:/sbin:#{HOMEBREW_PREFIX}/bin</string>
-        </dict>
-        <key>KeepAlive</key>
-        <false/>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>ProgramArguments</key>
-        <array>
-          <string>#{opt_bin}/offlineimap</string>
-          <string>-q</string>
-          <string>-u</string>
-          <string>basic</string>
-        </array>
-        <key>StartInterval</key>
-        <integer>300</integer>
-        <key>RunAtLoad</key>
-        <true />
-        <key>StandardErrorPath</key>
-        <string>/dev/null</string>
-        <key>StandardOutPath</key>
-        <string>/dev/null</string>
-      </dict>
-    </plist>
-  EOS
+  service do
+    run [opt_bin/"offlineimap", "-q", "-u", "basic"]
+    run_type :interval
+    interval 300
+    environment_variables PATH: std_service_path_env
+    log_path "/dev/null"
+    error_log_path "/dev/null"
   end
 
   test do

@@ -1,14 +1,19 @@
 class Clutter < Formula
   desc "Generic high-level canvas library"
   homepage "https://wiki.gnome.org/Projects/Clutter"
-  url "https://download.gnome.org/sources/clutter/1.26/clutter-1.26.2.tar.xz"
-  sha256 "e7233314983055e9018f94f56882e29e7fc34d8d35de030789fdcd9b2d0e2e56"
-  revision 2
+  url "https://download.gnome.org/sources/clutter/1.26/clutter-1.26.4.tar.xz"
+  sha256 "8b48fac159843f556d0a6be3dbfc6b083fc6d9c58a20a49a6b4919ab4263c4e6"
+  license "LGPL-2.1"
 
   bottle do
-    sha256 "6ad87e98bc82cc5c96a92bb761e77ecf1c8c868fd1afa992e213b885b353bcc0" => :mojave
-    sha256 "ec50bd371aa38b9af9551ee0d6fc406add0046047cac4f35fffd0786b3b98cc9" => :high_sierra
-    sha256 "7342cda3cd82ebf6e1ec6f07c5d474ad12b98a05db5c12893ce08e7a63cb8f52" => :sierra
+    sha256 arm64_monterey: "462bd7556ec62d37cff950568506d5c6275bc1f36a8f5766b8a053885c06c0d3"
+    sha256 arm64_big_sur:  "050dd98a11765590759dc9bfa5e289b50af4374b9deb126959c348057fc81642"
+    sha256 monterey:       "e4c426ad39749772c2863e68c2e7d2891bf8d85446061a73aa473a80ebb0ade3"
+    sha256 big_sur:        "b6a60fc6c91f4e0a206e75c3fe5672215eb9460304202c4bfe1a4c7402ce9bd4"
+    sha256 catalina:       "ccec39ce9c941de753798e466b8cfc2a69612319d8b5a422f6e4bde49db305b1"
+    sha256 mojave:         "43da6f50107059a3c9b215e77d29724f9e71a17fd89f5e72a200cd021e32f471"
+    sha256 high_sierra:    "2a1f93e956dbfc9dc4f3c47dd8923b224ed155f3b8dbf32df74f365a65052bbb"
+    sha256 x86_64_linux:   "90f6ab166d1dba5dc5bfb9760dfc54ae8d20ac16948ea76783aedb16499487e5"
   end
 
   depends_on "gobject-introspection" => :build
@@ -21,6 +26,12 @@ class Clutter < Formula
   depends_on "json-glib"
   depends_on "pango"
 
+  # Fix -flat_namespace being used on Big Sur and later.
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+    sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+  end
+
   def install
     args = %W[
       --disable-dependency-tracking
@@ -32,9 +43,15 @@ class Clutter < Formula
       --disable-examples
       --disable-gtk-doc-html
       --enable-gdk-pixbuf=yes
-      --without-x --enable-x11-backend=no
-      --enable-quartz-backend=yes
     ]
+
+    if OS.mac?
+      args += %w[
+        --without-x
+        --enable-x11-backend=no
+        --enable-quartz-backend=yes
+      ]
+    end
 
     system "./configure", *args
     system "make", "install"
@@ -56,6 +73,7 @@ class Clutter < Formula
     freetype = Formula["freetype"]
     gettext = Formula["gettext"]
     glib = Formula["glib"]
+    harfbuzz = Formula["harfbuzz"]
     json_glib = Formula["json-glib"]
     libpng = Formula["libpng"]
     pango = Formula["pango"]
@@ -69,6 +87,7 @@ class Clutter < Formula
       -I#{gettext.opt_include}
       -I#{glib.opt_include}/glib-2.0
       -I#{glib.opt_lib}/glib-2.0/include
+      -I#{harfbuzz.opt_include}/harfbuzz
       -I#{include}/clutter-1.0
       -I#{json_glib.opt_include}/json-glib-1.0
       -I#{libpng.opt_include}/libpng16
@@ -94,11 +113,11 @@ class Clutter < Formula
       -lglib-2.0
       -lgmodule-2.0
       -lgobject-2.0
-      -lintl
       -ljson-glib-1.0
       -lpango-1.0
       -lpangocairo-1.0
     ]
+    flags << "-lintl" if OS.mac?
     system ENV.cc, "test.c", "-o", "test", *flags
     system "./test"
   end

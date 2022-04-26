@@ -1,18 +1,21 @@
 class Ocrad < Formula
   desc "Optical character recognition (OCR) program"
   homepage "https://www.gnu.org/software/ocrad/"
-  url "https://ftp.gnu.org/gnu/ocrad/ocrad-0.26.tar.lz"
-  mirror "https://ftpmirror.gnu.org/ocrad/ocrad-0.26.tar.lz"
-  sha256 "c383d37869baa0990d38d38836d4d567e9e2862aa0cd704868b62dafeac18e3c"
+  url "https://ftp.gnu.org/gnu/ocrad/ocrad-0.28.tar.lz"
+  mirror "https://ftpmirror.gnu.org/ocrad/ocrad-0.28.tar.lz"
+  sha256 "34ccea576dbdadaa5979e6202344c3ff68737d829ca7b66f71c8497d36bbbf2e"
+  license "GPL-2.0-or-later"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "ec28597359fb7399667a71919805981b06fed05571ecebcdd982a1b0de61b0cf" => :mojave
-    sha256 "9f6a1c40b39e78418342c54ca981648d0b2fe8db03c1fb81bf44aff3225e1dd9" => :high_sierra
-    sha256 "219b9bf172b5f7379c849a8e55b04dabd74f054564fdaec2fb40502f7e996967" => :sierra
-    sha256 "eb1f66d4cfb2c2c6768c89053fca5fc762c12b401b745cbbd1e6faad3ae25dcf" => :el_capitan
-    sha256 "fb3e7e6ab86d242c309a1bb2eaa83451b6fa7369a63222b8025de70a3dbb8615" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "443fa5aa2aba1104b638287c43df241736769328d32f234ec3af8da24bccc2ea"
+    sha256 cellar: :any,                 arm64_big_sur:  "ca07488430da95c3c7c59fc8658a8009942ddd05ce4ebb5986b3530d95551366"
+    sha256 cellar: :any,                 monterey:       "ec671c1d8ea4e8fb12bc40fc502e1c462e9f6ffb320fd8d9fedc1698267a92e5"
+    sha256 cellar: :any,                 big_sur:        "f942c1124e0e1061808f6981e0dd9ddbf2bed352e4f325a38a0514ffcd6f24d8"
+    sha256 cellar: :any,                 catalina:       "5abeb11db2bc2f220afbc610ddbc59ca04352dd2318b6dfd8ae289e357b2661e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "5d8d1bdfa4d338a02ba6293b7527b81d3093a07dbbc9943461c4fe7c3291a3a1"
   end
+
+  depends_on "libpng"
 
   def install
     system "./configure", "--prefix=#{prefix}"

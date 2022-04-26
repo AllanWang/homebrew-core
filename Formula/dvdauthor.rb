@@ -3,14 +3,21 @@ class Dvdauthor < Formula
   homepage "https://dvdauthor.sourceforge.io/"
   url "https://downloads.sourceforge.net/project/dvdauthor/dvdauthor-0.7.2.tar.gz"
   sha256 "3020a92de9f78eb36f48b6f22d5a001c47107826634a785a62dfcd080f612eb7"
+  revision 3
+
+  livecheck do
+    url :stable
+    regex(%r{url=.*?/dvdauthor[._-]v?(\d+(?:\.\d+)+)\.t}i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "e7f18d7e9e16892ad5dacf7d5dd094016da3331a19f4c5b81e9b16f134b88fd3" => :mojave
-    sha256 "c31cd13def25b19f42dc4472ebb7013069aea342d6da18de5b8aa4ce68ddecba" => :high_sierra
-    sha256 "021c04387000c15dfd64763c9cf4eb7dd23ee0bed9e79941c8ff00182bf4e3b2" => :sierra
-    sha256 "adeee0423ba54e77da2710f1877e0cbc43733f833abc73ad76465a7d34c829a7" => :el_capitan
-    sha256 "b4c79aab01e4ae32f39107af7ef863fd75f75cf7d9e32731be3f2e2e4d49d782" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "bc83c8e514066eca33c4ba473f833bbd9e39f37dd98f648d0ed826d7e2c0b2f1"
+    sha256 cellar: :any,                 arm64_big_sur:  "a0b0c601eb1ec9de60de448cab11217c63febd18afd7a9ee6207fdb1427593f5"
+    sha256 cellar: :any,                 monterey:       "1370f3dc33ba0f60e930b946e9eedb0a7eca35ccf87511c0c3dbe6a8f658b1eb"
+    sha256 cellar: :any,                 big_sur:        "c6405e471ac402f1b0ec1e2fbbb2ee3eb4be9dd82f0ef5b8991339928ff2fdb0"
+    sha256 cellar: :any,                 catalina:       "7ebcd748eb4eba1876bd1cb181fa6ec679773dbf753be805845904b69685ee11"
+    sha256 cellar: :any,                 mojave:         "5da2d90859c186ea0795b18210ef2722f96bfbb16f53d3a0cb0aa89084026ce0"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "c6c257894d2aa40c73cef22caac501ade1681f1b452d1d0f5f1fd23bd34b8df4"
   end
 
   # Dvdauthor will optionally detect ImageMagick or GraphicsMagick, too.

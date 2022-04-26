@@ -1,18 +1,25 @@
 class Gradio < Formula
   desc "GTK3 app for finding and listening to internet radio stations"
   homepage "https://github.com/haecker-felix/Gradio"
-  url "https://github.com/haecker-felix/Gradio/archive/v7.2.tar.gz"
-  sha256 "5a85d7d4afb1424e46c935114b268e4a65de2629d60f48eccd75d67ff4b113d2"
+  url "https://github.com/haecker-felix/Gradio/archive/v7.3.tar.gz"
+  sha256 "5c5afed83fceb9a9f8bc7414b8a200128b3317ccf1ed50a0e7321ca15cf19412"
+  license "GPL-3.0-or-later"
   revision 1
 
   bottle do
-    sha256 "fc72163c4714998d62ff4e51494e81fa6462677d99cb496a75f2b3c7fda0e5e3" => :mojave
-    sha256 "bc283cabff48ef33c8236e5bf308955fb06eae498f4c1633e6d50ac1ac29f029" => :high_sierra
-    sha256 "0681cb3d462521ea07ae53cc57ad83af345150916ea4302f0d9a2266ae93d746" => :sierra
+    rebuild 1
+    sha256 monterey:     "23007e95399ae41c47177de867ecc857cfe04a3573a2c78aaebb0fcd04a389aa"
+    sha256 big_sur:      "72f8e30b711bee61d93b6da03927edb44f7414b1be112e6259aba2ffe9f84fde"
+    sha256 catalina:     "0417071790ce31f0e7c80b800fabc91a0aef1b8faff27b892136defb02350067"
+    sha256 x86_64_linux: "88ba113096595acdaa8529ce24f0ce5735f1b595af740c8c1bd3b77a7c795d4e"
   end
 
+  deprecate! date: "2019-11-16", because: :repo_archived
+
+  depends_on "graphviz" => :build # for vala
   depends_on "meson" => :build
   depends_on "ninja" => :build
+  depends_on "pkg-config" => :build
   depends_on "adwaita-icon-theme"
   depends_on "cairo"
   depends_on "gettext"
@@ -23,14 +30,30 @@ class Gradio < Formula
   depends_on "gtk+3"
   depends_on "hicolor-icon-theme"
   depends_on "json-glib"
-  depends_on "libsoup"
-  depends_on "python"
+  depends_on "libsoup@2"
+  depends_on "python@3.7"
+
+  uses_from_macos "bison" => :build # for vala
+  uses_from_macos "flex" => :build # for vala
+
+  # Fails to build with vala >= 0.56
+  resource "vala" do
+    url "http://download.gnome.org/sources/vala/0.54/vala-0.54.8.tar.xz"
+    sha256 "edfb3e79486a4bf48cebaea9291e57fc77da9322b6961e9549df6d973d04bc80"
+  end
 
   def install
+    resource("vala").stage do
+      system "./configure", "--disable-debug", "--disable-dependency-tracking", "--prefix=#{buildpath}/vala"
+      system "make" # Fails to compile as a single step
+      system "make", "install"
+      ENV.prepend_path "PATH", buildpath/"vala/bin"
+    end
+
     # stop meson_post_install.py from doing what needs to be done in the post_install step
     ENV["DESTDIR"] = "/"
     mkdir "build" do
-      system "meson", "--prefix=#{prefix}", ".."
+      system "meson", *std_meson_args, ".."
       system "ninja"
       system "ninja", "install"
     end
@@ -42,6 +65,6 @@ class Gradio < Formula
   end
 
   test do
-    system "#{bin}/gradio", "-h"
+    system "#{bin}/gradio", "-h" if ENV["DISPLAY"]
   end
 end

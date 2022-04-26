@@ -1,18 +1,28 @@
 class Grap < Formula
   desc "Language for typesetting graphs"
   homepage "https://www.lunabase.org/~faber/Vault/software/grap/"
-  url "https://www.lunabase.org/~faber/Vault/software/grap/grap-1.45.tar.gz"
-  mirror "https://deb.debian.org/debian/pool/main/g/grap/grap_1.45.orig.tar.gz"
-  sha256 "906743cdccd029eee88a4a81718f9d0777149a3dc548672b3ef0ceaaf36a4ae0"
+  url "https://www.lunabase.org/~faber/Vault/software/grap/grap-1.46.tar.gz"
+  sha256 "7a8ecefdecfee96699913f2a412da68703911fa640bac3b964a413131f848bb4"
+  license "BSD-2-Clause"
+
+  livecheck do
+    url :homepage
+    regex(/href=.*?grap[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    sha256 "f37b04de6644a14268722c58ad626c7c3e6da8d7ca63c79cbc8d74b95016a51f" => :mojave
-    sha256 "e823c876e7269bfc37bc302ed10a2d93ae7a4631f0464b983daea564ff7d97bb" => :high_sierra
-    sha256 "4e4b22198d42beea1e531a6903f4085b67692e7da7bc1b7a3e51f42c235169d1" => :sierra
-    sha256 "b9491c4bf9baeb0e9edc3cb0256f0199256b26fcc2fb76ac15153fd6f74c48f9" => :el_capitan
-    sha256 "97c15c60c09da87b12c779fde541bff202f96327e76286a591d52a18b1c74d4e" => :yosemite
-    sha256 "036bb10da8e432b027a2a88714d91e60ba3e297c94b8fe27ab48040e3800760b" => :mavericks
+    sha256 arm64_monterey: "e1978deb80eeb33de6b6aef7be24a3dcf5f2710238ba2a8c86ff1eb577c58406"
+    sha256 arm64_big_sur:  "b881e8e5a9e9b93597d99ad6fc3ffa06e277855fa2b49ccb697c53d463ae597b"
+    sha256 monterey:       "ec648b01a035f781aa3ab6c027ee8095d85b6d49376f564cefe16fad11574fc3"
+    sha256 big_sur:        "a36a748595465d9a1a85db3613a4cbd6c1511e802e56b77408581f9af567326f"
+    sha256 catalina:       "8eb83388db58c42ae00a343e1382c52948c5b203ff754fed7b6582eeb989fa3c"
+    sha256 mojave:         "d7f05f3fc8eb5c0c3f3a5a66bf4d43262a84ae1edaf7ec92897122fd069e4a96"
+    sha256 high_sierra:    "b7394034b2898da9e7a61d578f9789f642f29d3191f84041b4fb9763bdfdcc73"
+    sha256 x86_64_linux:   "0908d98399141b1cf93340d87df9055ea0ae3da80d4a06e7d7b02e98027c5252"
   end
+
+  uses_from_macos "bison" => :build
+  uses_from_macos "flex" => :build
 
   def install
     system "./configure", "--disable-dependency-tracking",

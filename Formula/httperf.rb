@@ -3,19 +3,27 @@ class Httperf < Formula
   homepage "https://github.com/httperf/httperf"
   url "https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/httperf/httperf-0.9.0.tar.gz"
   sha256 "e1a0bf56bcb746c04674c47b6cfa531fad24e45e9c6de02aea0d1c5f85a2bf1c"
-  revision 1
+  license "GPL-2.0"
+  revision 2
 
-  bottle do
-    cellar :any
-    sha256 "e6a22b883ddd0194a6dacc13b0144437082cb9a16694db18f9dd03ca4e127d0a" => :mojave
-    sha256 "1ed6c221d700528fa7a74fa12160ef3f25b2ac4d2835f7a0dfc73eb4ac4e5a87" => :high_sierra
-    sha256 "3ecb1323c334cfee3a0e134750c24f07c0f808effcc271c86893ea7d13cdcef4" => :sierra
-    sha256 "42d9ecb49274565dd969ceb5c2c9135caf1011a2f1636f22401a30189298613a" => :el_capitan
-    sha256 "d23d569b210c93d798f319e01ddeb9cca1dd11e5c5330a0df0eef59497dbb12d" => :yosemite
-    sha256 "e6a03dce9f3679d23449b9fed857324d570b8fb6b94a3d31b5e172253eaa99dd" => :mavericks
+  # Until the upstream GitHub repository creates a new release (something after
+  # 0.9.0), we're unable to create a check that can identify new versions.
+  livecheck do
+    skip "No version information available to check"
   end
 
-  # Upstream actually recommend using head over stable now.
+  bottle do
+    sha256 cellar: :any,                 arm64_monterey: "1d154cd3cc694cb0a57056fd7a3348a681892e7e808fea2639402db0e9b8930e"
+    sha256 cellar: :any,                 arm64_big_sur:  "2628055d8209f52ee35bd325c155bb506c36b581fa697d013f6fe32ed6ab0b2f"
+    sha256 cellar: :any,                 monterey:       "2db16578e75d150f3abe98f416359a307c1632ee00dcea6cc8f904ba95754eb1"
+    sha256 cellar: :any,                 big_sur:        "5c8f3e33c44d4d705ea1e23663ac922cc61019299787defcf60df6161608a5de"
+    sha256 cellar: :any,                 catalina:       "80a2634adda8fe39ebda84ccdf6cbbb0357668da3615067b6f9714229801d085"
+    sha256 cellar: :any,                 mojave:         "390d46278c9e7bd0f58003ba49bc1a0ab110ab24864029d6ae9fd8d3f491b57c"
+    sha256 cellar: :any,                 high_sierra:    "5c049e4bfc272313e7c1051da7430bc09e712d5a70f1593c5ecf08ac94b3b238"
+    sha256 cellar: :any,                 sierra:         "015d2ce99b57fa808ae284f44904ca209e11603bf66085bf64a8270c45203490"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "a9f46b3ca870873ea6132895df6261af1ace9559f472d72d51187f15d354214c"
+  end
+
   head do
     url "https://github.com/httperf/httperf.git"
 
@@ -24,7 +32,14 @@ class Httperf < Formula
     depends_on "libtool" => :build
   end
 
-  depends_on "openssl"
+  depends_on "openssl@1.1"
+
+  # Upstream patch for OpenSSL 1.1 compatibility
+  # https://github.com/httperf/httperf/pull/48
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/85fa66a9/httperf/openssl-1.1.diff"
+    sha256 "69d5003f60f5e46d25813775bbf861366fb751da4e0e4d2fe7530d7bb3f3660a"
+  end
 
   def install
     system "autoreconf", "-fvi" if build.head?

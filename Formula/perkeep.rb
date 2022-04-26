@@ -1,54 +1,63 @@
 class Perkeep < Formula
   desc "Lets you permanently keep your stuff, for life"
   homepage "https://perkeep.org/"
-  url "https://github.com/perkeep/perkeep.git",
-      :tag      => "0.10",
-      :revision => "0cbe4d5e05a40a17efe7441d75ce0ffdf9d6b9f5"
-  head "https://github.com/perkeep/perkeep.git"
+  license "Apache-2.0"
+  revision 1
+  head "https://github.com/perkeep/perkeep.git", branch: "master"
+
+  stable do
+    url "https://github.com/perkeep/perkeep.git",
+        tag:      "0.11",
+        revision: "76755286451a1b08e2356f549574be3eea0185e5"
+
+    # Newer gopherjs to support a newer Go version.
+    resource "gopherjs" do
+      url "https://github.com/gopherjs/gopherjs/archive/refs/tags/1.17.1+go1.17.3.tar.gz"
+      sha256 "8c5275ddf09646fdeb9df701f49425feb2327ec25dddfa49e2d9d323813398af"
+    end
+  end
 
   bottle do
-    sha256 "1e51d2d991309cec65b66411ff9dbbd1d93ec40c4c595d1b91a786541c15d738" => :mojave
-    sha256 "4db15262421ce0cefad97fd2df3affba61cba2e1ba1e4153614940cec138ae10" => :high_sierra
-    sha256 "9ab629c218f4af8f769520ec269c81c6499c6c9676c5ae43da8fc7ac8212c0ff" => :sierra
-    sha256 "e4e42c68017500af8a8aa7b542e89905849b09b398a547da818323f08a6e680a" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "80b74aa6f9784371b2a2b4f79ed15fb8d998a3589f1cc85885ba60d259196dea"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "b02cb9968771e49d46b9f605d53f88b61bb32cd765d46146280b2426abffc00f"
+    sha256 cellar: :any_skip_relocation, monterey:       "a30e484cd077d745047fcf919d857ed2d1ca68589b7017e91e0417fa5c256b6b"
+    sha256 cellar: :any_skip_relocation, big_sur:        "663b51444cae568b049afdc4c3bffb0dadd70dc0d63764cf6a9e9d9f5568afc1"
+    sha256 cellar: :any_skip_relocation, catalina:       "6ccd732cc142a7efb8b78b150909eb0eabde2d9fbb9683fdfaaf550c2ebbbbdb"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "a3822eb5d2bc22fb31733101ca980db8baf8ebc4ab1994a47fc0739ab35a998d"
   end
 
-  depends_on "go" => :build
+  # This should match what gopherjs supports.
+  depends_on "go@1.17" => :build
   depends_on "pkg-config" => :build
 
-  conflicts_with "hello", :because => "both install `hello` binaries"
+  conflicts_with "hello", because: "both install `hello` binaries"
 
   def install
-    ENV["GOPATH"] = buildpath
-    (buildpath/"src/perkeep.org").install buildpath.children
-    cd "src/perkeep.org" do
+    if build.stable?
+      ENV["GOPATH"] = buildpath
+      ENV["CAMLI_GOPHERJS_GOROOT"] = Formula["go"].opt_libexec
+
+      (buildpath/"src/perkeep.org").install buildpath.children
+
+      # Vendored version of gopherjs requires go 1.10, so use the newest available gopherjs, which
+      # supports newer Go versions.
+      rm_rf buildpath/"src/perkeep.org/vendor/github.com/gopherjs/gopherjs"
+      resource("gopherjs").stage buildpath/"src/perkeep.org/vendor/github.com/gopherjs/gopherjs"
+
+      cd "src/perkeep.org" do
+        system "go", "run", "make.go"
+      end
+
+      bin.install Dir["bin/*"].select { |f| File.executable? f }
+    else
       system "go", "run", "make.go"
-      prefix.install_metafiles
+      bin.install Dir[".brew_home/go/bin/*"].select { |f| File.executable? f }
     end
-    bin.install Dir["bin/*"].select { |f| File.executable? f }
   end
 
-  plist_options :manual => "perkeepd"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-      <key>KeepAlive</key>
-      <true/>
-      <key>Label</key>
-      <string>#{plist_name}</string>
-      <key>ProgramArguments</key>
-      <array>
-        <string>#{opt_bin}/perkeepd</string>
-        <string>-openbrowser=false</string>
-      </array>
-      <key>RunAtLoad</key>
-      <true/>
-    </dict>
-    </plist>
-  EOS
+  service do
+    run [opt_bin/"perkeepd", "-openbrowser=false"]
+    keep_alive true
   end
 
   test do

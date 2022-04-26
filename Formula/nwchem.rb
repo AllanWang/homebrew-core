@@ -1,22 +1,40 @@
 class Nwchem < Formula
-  desc "NWChem: Open Source High-Performance Computational Chemistry"
-  homepage "http://www.nwchem-sw.org"
-  url "https://github.com/nwchemgit/nwchem/releases/download/6.8.1-release/nwchem-6.8.1-release.revision-v6.8-133-ge032219-src.2018-06-14.tar.bz2"
-  version "6.8.1"
-  sha256 "23ce8241a5977a93d8224f66433851c81a08ad58a4c551858ae031485b095ab7"
-  revision 7
+  desc "High-performance computational chemistry tools"
+  homepage "https://nwchemgit.github.io"
+  url "https://github.com/nwchemgit/nwchem/releases/download/v7.0.2-release/nwchem-7.0.2-release.revision-b9985dfa-src.2020-10-12.tar.bz2"
+  version "7.0.2"
+  sha256 "d9d19d87e70abf43d61b2d34e60c293371af60d14df4a6333bf40ea63f6dc8ce"
+  license "ECL-2.0"
+  revision 2
+
+  livecheck do
+    url "https://github.com/nwchemgit/nwchem.git"
+    regex(/^v?(\d+(?:\.\d+)+)-release$/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "225aaa9593d6433e0715aa208a81ed26185c2f9d6fef870a92efd3fbede026ee" => :mojave
-    sha256 "298f0d842f8abf790675ae8499770124a1bc95be8aa75e6c0a8a9f15beb58590" => :high_sierra
-    sha256 "48a06e4c8fa18a7a49f4560ac1cc12dd509f32a06123b6937a368d7df93dc472" => :sierra
+    sha256 cellar: :any, monterey: "bf4b2dfa17eb48b600343b6488980fd8ef988cd20bab9ad67b7e5abd82c0f076"
+    sha256 cellar: :any, big_sur:  "e652f67d76cad24fc36ca61c54fec440692c493217d857604f180244e647ebab"
+    sha256 cellar: :any, catalina: "c94e9afb94a3c8f8ab43bf4ffad7d1004ddd696dc56f68dfb3624023c44c0190"
   end
 
   depends_on "gcc" # for gfortran
   depends_on "open-mpi"
   depends_on "openblas"
+  depends_on "python@3.10"
   depends_on "scalapack"
+
+  # patches for compatibility with python@3.10
+  # https://github.com/nwchemgit/nwchem/issues/271
+  patch do
+    url "https://github.com/nwchemgit/nwchem/commit/638401361c6f294164a4f820ff867a62ac836fd5.patch?full_index=1"
+    sha256 "20516447b75bde548eb7e40faafcc5d310e8236a7cd3e44f53a753ac1312530e"
+  end
+
+  patch do
+    url "https://github.com/nwchemgit/nwchem/commit/cd0496c6bdd58cf2f1004e32cb39499a14c4c677.patch?full_index=1"
+    sha256 "1ff3fdacdebb0f812f6f14c423053a12f2389b0208b8809f3ab401b066866ffc"
+  end
 
   def install
     pkgshare.install "QA"
@@ -38,17 +56,14 @@ class Nwchem < Formula
 
       inreplace "util/util_nwchemrc.F", "/etc/nwchemrc", "#{etc}/nwchemrc"
 
-      ENV["NWCHEM_TOP"] = buildpath
-      ENV["PYTHONVERSION"] = "2.7"
-      pyhome = `python-config --prefix`.chomp
-      ENV["PYTHONHOME"] = pyhome
-      ENV["NWCHEM_LONG_PATHS"] = "Y"
+      # needed to use python 3.X to skip using default python2
+      ENV["PYTHONVERSION"] = Language::Python.major_minor_version "python3"
       ENV["BLASOPT"] = "-L#{Formula["openblas"].opt_lib} -lopenblas"
+      ENV["LAPACK_LIB"] = "-L#{Formula["openblas"].opt_lib} -lopenblas"
       ENV["BLAS_SIZE"] = "4"
       ENV["SCALAPACK"] = "-L#{Formula["scalapack"].opt_prefix}/lib -lscalapack"
       ENV["USE_64TO32"] = "y"
       system "make", "nwchem_config", "NWCHEM_MODULES=all python"
-      system "make", "64_to_32"
       system "make", "NWCHEM_TARGET=MACX64", "USE_MPI=Y"
 
       bin.install "../bin/MACX64/nwchem"
@@ -64,7 +79,7 @@ class Nwchem < Formula
       ENV["NWCHEM_TOP"] = pkgshare
       ENV["NWCHEM_TARGET"] = "MACX64"
       ENV["NWCHEM_EXECUTABLE"] = "#{bin}/nwchem"
-      system "./runtests.mpi.unix", "procs", "0", "dft_he2+", "prop_mep_gcube", "pspw", "tddft_h2o", "tce_n2"
+      system "./runtests.mpi.unix", "procs", "0", "dft_he2+", "pyqa3", "prop_mep_gcube", "pspw", "tddft_h2o", "tce_n2"
     end
   end
 end

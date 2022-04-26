@@ -1,53 +1,24 @@
-require "language/go"
-
 class Gron < Formula
   desc "Make JSON greppable"
   homepage "https://github.com/tomnomnom/gron"
-  url "https://github.com/tomnomnom/gron/archive/v0.6.0.tar.gz"
-  sha256 "fe75b1b4922b591723f48cb9cd2c31cb60bb3ab9f8d0398df75a08b781d8591c"
-  head "https://github.com/tomnomnom/gron.git"
+  url "https://github.com/tomnomnom/gron/archive/v0.7.1.tar.gz"
+  sha256 "1c98f2ef2ba03558864b1ab5e9c4b47a2e89d3ffaf24cfa0ac75cd38d775feb4"
+  license "MIT"
+  head "https://github.com/tomnomnom/gron.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "8250d3b6d9acc5bf1700a6513ab9df0df1a3e5660d2f984a4a903c234e6cd555" => :mojave
-    sha256 "7838ab1c751a11027f31b7b4dac4f7a83402b04a7eef522edeb15735846dfd81" => :high_sierra
-    sha256 "fa5310f4ac25091387f24e5dd4bb0364db432ebc9f3273da371cbd35116af09e" => :sierra
-    sha256 "23c3378ea69d5936b6966608942a0769c4adad0cdeabb9575e8b811b9b6c3a26" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "856236ceb1dbc90437bd4a214ac5cbf9618ae17bb170f5187fc0acbd8110b174"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "322c63263dead630c89ab151634b663ecf95d93a82034b3e5b75c42318912835"
+    sha256 cellar: :any_skip_relocation, monterey:       "7b03cebd6d4120718aeb3de935087981d9e234c844df866076518417dfd6e9e0"
+    sha256 cellar: :any_skip_relocation, big_sur:        "c28a8bf800179d49a5aeb52d57bac6100eee9a5755c0dc112dc7fd7e7413323f"
+    sha256 cellar: :any_skip_relocation, catalina:       "d8422ab18406e6231c4731d0f124641508175c2ee142bd5bd0d99f1a97252c3b"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "b10089d68a7958fb52643f3813b910fb5ab3a89ffb18d5161e5f717956b6bf2c"
   end
 
   depends_on "go" => :build
 
-  go_resource "github.com/fatih/color" do
-    url "https://github.com/fatih/color.git",
-        :revision => "2d684516a8861da43017284349b7e303e809ac21"
-  end
-
-  go_resource "github.com/mattn/go-colorable" do
-    url "https://github.com/mattn/go-colorable.git",
-        :revision => "efa589957cd060542a26d2dd7832fd6a6c6c3ade"
-  end
-
-  go_resource "github.com/mattn/go-isatty" do
-    url "https://github.com/mattn/go-isatty.git",
-        :revision => "6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c"
-  end
-
-  go_resource "github.com/nwidger/jsoncolor" do
-    url "https://github.com/nwidger/jsoncolor.git",
-        :revision => "75a6de4340e59be95f0884b9cebdda246e0fdf40"
-  end
-
-  go_resource "github.com/pkg/errors" do
-    url "https://github.com/pkg/errors.git",
-        :revision => "816c9085562cd7ee03e7f8188a1cfd942858cded"
-  end
-
   def install
-    ENV["GOPATH"] = buildpath
-    (buildpath/"src/github.com/tomnomnom").mkpath
-    ln_s buildpath, buildpath/"src/github.com/tomnomnom/gron"
-    Language::Go.stage_deps resources, buildpath/"src"
-    system "go", "build", "-o", bin/"gron"
+    system "go", "build", *std_go_args(ldflags: "-s -w")
   end
 
   test do

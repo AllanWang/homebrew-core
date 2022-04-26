@@ -1,27 +1,33 @@
 class Jena < Formula
   desc "Framework for building semantic web and linked data apps"
   homepage "https://jena.apache.org/"
-  url "https://archive.apache.org/dist/jena/binaries/apache-jena-3.11.0.tar.gz"
-  sha256 "65916308002d02a3e83f8b1a019d9b02068be5503ca906bdddb61b6c1095e7b5"
+  url "https://www.apache.org/dyn/closer.lua?path=jena/binaries/apache-jena-4.4.0.tar.gz"
+  mirror "https://archive.apache.org/dist/jena/binaries/apache-jena-4.4.0.tar.gz"
+  sha256 "ffe17bc0a9251622777531ddeb9d080529c060e031fd92db93da1fa1917d13c9"
+  license "Apache-2.0"
 
-  bottle :unneeded
-
-  def shim_script(target)
-    <<~EOS
-      #!/usr/bin/env bash
-      export JENA_HOME="#{libexec}"
-      "$JENA_HOME/bin/#{target}" "$@"
-    EOS
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "8f2de42e58c625bdf7be71a9bd0a9e3557e70f69c47202f979748fa0504b5289"
   end
 
+  depends_on "openjdk"
+
   def install
+    env = {
+      JAVA_HOME: Formula["openjdk"].opt_prefix,
+      JENA_HOME: libexec,
+    }
+
     rm_rf "bat" # Remove Windows scripts
 
-    prefix.install %w[LICENSE NOTICE README]
     libexec.install Dir["*"]
-    Dir.glob("#{libexec}/bin/*") do |path|
-      bin_name = File.basename(path)
-      (bin/bin_name).write shim_script(bin_name)
+    Pathname.glob("#{libexec}/bin/*") do |file|
+      next if file.directory?
+
+      basename = file.basename
+      next if basename.to_s == "service"
+
+      (bin/basename).write_env_script file, env
     end
   end
 

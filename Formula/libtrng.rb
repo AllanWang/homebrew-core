@@ -1,21 +1,30 @@
 class Libtrng < Formula
   desc "Tina's Random Number Generator Library"
   homepage "https://www.numbercrunch.de/trng/"
-  url "https://www.numbercrunch.de/trng/trng-4.20.tar.gz"
-  sha256 "8cffd03392a3e498fe9f93ccfa9ff0c9eacf9fd9d33e3655123852d701bbacbc"
+  url "https://github.com/rabauke/trng4/archive/refs/tags/v4.24.tar.gz"
+  sha256 "92dd7ab4de95666f453b4fef04827fa8599d93a3e533cdc604782c15edd0c13c"
+  license "BSD-3-Clause"
+  head "https://github.com/rabauke/trng4.git", branch: "master"
 
-  bottle do
-    cellar :any
-    sha256 "5ec98840f9e339911ef1cd9d666160005ad73dc9191e8954d5f96bead5ae404c" => :mojave
-    sha256 "c6ed745a330d0da3123467cb19dd6f4c8f6871aed54b4f6addd813271599a2d6" => :high_sierra
-    sha256 "54e596853cd0ea1b49dd62d0d3fc5f559063572a6f19e3fb26ef09ed19a01564" => :sierra
-    sha256 "e821f8b59abe5f15689ac8720539bd258eab64f83ecfa6047406e4c11884bdef" => :el_capitan
+  livecheck do
+    url :stable
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
   end
 
+  bottle do
+    sha256 cellar: :any,                 arm64_monterey: "13e5f4fedf353053c7a7a1362123bd6788a2d12a0a730a2422c4283c06cd6160"
+    sha256 cellar: :any,                 arm64_big_sur:  "9cfa0851919690b182b5cd227c71e77b7f07f5179ff5d06b52894fb98ca131df"
+    sha256 cellar: :any,                 monterey:       "3238a818540f3b1d4b0bc5329bb3e5447d137114e9de70dd0e28a8883b530fb7"
+    sha256 cellar: :any,                 big_sur:        "c97a7c825b5a6614dd771cef5f0aebdadb70f5b619e19aa446afff5072ec236d"
+    sha256 cellar: :any,                 catalina:       "044b708b751a88a22b95e4b75c47a8125fe017d6e69ea39c1177c9bc06c0de85"
+    sha256 cellar: :any,                 mojave:         "85e7a9b91ec9df836ce6127af7ca09deffd9052136c34ae1b0d3e310467eddc9"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d0bdaf850b042ac22709529e655ac2f94816569096e66935ee039b47d8a41ac8"
+  end
+
+  depends_on "cmake" => :build
+
   def install
-    system "./configure", "--disable-dependency-tracking",
-                          "--disable-silent-rules",
-                          "--prefix=#{prefix}"
+    system "cmake", ".", *std_cmake_args
     system "make"
     system "make", "install"
   end
@@ -32,7 +41,7 @@ class Libtrng < Formula
         return 0;
       }
     EOS
-    system ENV.cxx, "test.cpp", "-o", "test", "-I#{include}", "-L#{lib}", "-ltrng4"
+    system ENV.cxx, "-std=c++11", "test.cpp", "-o", "test", "-I#{include}", "-L#{lib}", "-ltrng4"
     system "./test"
   end
 end

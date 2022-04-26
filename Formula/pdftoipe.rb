@@ -1,23 +1,30 @@
 class Pdftoipe < Formula
   desc "Reads arbitrary PDF files and generates an XML file readable by Ipe"
   homepage "https://github.com/otfried/ipe-tools"
-  url "https://github.com/otfried/ipe-tools/archive/v7.2.8.1.tar.gz"
-  sha256 "a6174aae72f93b56c6652c2c27d5203e0f867e11a5e1c7d89c4aa3b4bcb67eb3"
+  url "https://github.com/otfried/ipe-tools/archive/v7.2.24.1.tar.gz"
+  sha256 "561b18fc2a7ae45c37c5d0390443b37f4585549f09cd7765d856456be24e5dbc"
+  license "GPL-2.0-or-later"
   revision 4
 
   bottle do
-    cellar :any
-    sha256 "a27d7d1c991dd6d38384eb72c8e6738b37d073eae111f6b8ecc0de659dc1ad64" => :mojave
-    sha256 "4b8f5e7638f7a72a4a1eac021135e54225a4621aebbe9b95916a354b7c5636ad" => :high_sierra
-    sha256 "4c8e877c2143a05d060eab21d51612e60ed893127ebe9a03eb70aa38c44a85d1" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "3ab6a38078e56d64e493b40ffca5eed6cd1bae0286ee487c5b4b429e9d44f850"
+    sha256 cellar: :any,                 arm64_big_sur:  "60ef16eb2b4a7d2c128b045d753a72c62de79dee856629479f76ed0b20f96c1b"
+    sha256 cellar: :any,                 monterey:       "0786e636f7046f93bdb3a04948ce1e18addc65e330b0ff966ebbec5b4fbf084e"
+    sha256 cellar: :any,                 big_sur:        "6756d901b8e14244157ac0c4f139ef530c9f5159cf31603ad3ab639d65e62fc3"
+    sha256 cellar: :any,                 catalina:       "08b6e6e6bfd3479c3941d016916d3eb649cf007c16a34f81e3562f540a9085a3"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "e69d1de07d33576a3beae635f8d69dfeb3cf390e8d064ebf15126aa6f4a49402"
   end
 
   depends_on "pkg-config" => :build
   depends_on "poppler"
 
-  def install
-    ENV.cxx11
+  on_linux do
+    depends_on "gcc"
+  end
 
+  fails_with gcc: "5"
+
+  def install
     cd "pdftoipe" do
       system "make"
       bin.install "pdftoipe"
@@ -28,6 +35,6 @@ class Pdftoipe < Formula
   test do
     cp test_fixtures("test.pdf"), testpath
     system bin/"pdftoipe", "test.pdf"
-    assert_match "Homebrew test.</text>", File.read("test.ipe")
+    assert_match "<ipestyle>", File.read("test.ipe")
   end
 end

@@ -4,20 +4,26 @@ class ArpSk < Formula
   url "https://web.archive.org/web/20180223202629/sid.rstack.org/arp-sk/files/arp-sk-0.0.16.tgz"
   mirror "https://pkg.freebsd.org/ports-distfiles/arp-sk-0.0.16.tgz"
   sha256 "6e1c98ff5396dd2d1c95a0d8f08f85e51cf05b1ed85ea7b5bcf73c4ca5d301dd"
+  revision 1
 
   bottle do
-    cellar :any
-    sha256 "b0c8b814c565ed44ce9bf1a52f9555fa6223d64a51bece46749a71403d1988fd" => :mojave
-    sha256 "db71e1610feac13246511f6c67bbf224e20b49e9a130d76dc5ca3317fe755601" => :high_sierra
-    sha256 "d933c37e26f227918a6e770dc3214a76f06ca79abbf1f646a6c00447ad9933ac" => :sierra
-    sha256 "5d112e8d54329bff104270b7ca27cd4884e48f8c47904bb5838a2e107c035736" => :el_capitan
-    sha256 "11253608a659d16a179c9c7b25050989991a29a68c9c9b4647fe9614e191fcff" => :yosemite
-    sha256 "cea3047a876b12520e9614be8cfcf09348a49522bb5c8bbb7d2c185950e4c08d" => :mavericks
+    sha256 cellar: :any,                 arm64_monterey: "814f89b6e1bfcf86c29eefef47ccc5077c8d38efd4626cccc029363097048328"
+    sha256 cellar: :any,                 arm64_big_sur:  "e9a3123cc035debcdac3582b5aa868cf8ab2f64d10c2ddac6e41df4df0121d52"
+    sha256 cellar: :any,                 monterey:       "43b6e66bf25c5be9893862c174e4a1aaaf3928f38bc68c25d0177026d3923a4f"
+    sha256 cellar: :any,                 big_sur:        "206b69b4456fabe2614dbf5c5ab2886530d2b238f18adb28545a9758fc9a4561"
+    sha256 cellar: :any,                 catalina:       "bc28c6d58a3838fac59ab625ab26a917b3b0282ac54a8f37a95034efd0740007"
+    sha256 cellar: :any,                 mojave:         "cbe02395698a24f9f835b7cba4128a308a15beefda6ad7e79cfd38d73823cdc2"
+    sha256 cellar: :any,                 high_sierra:    "67666cd80446c78b49deac3b8f2589ccbd140f32b739b662556a6dc7bda7b453"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "6a6745104a8b8035108f38a3f35ae90527790a02641cca54c29e99c962c74f16"
   end
 
   depends_on "libnet"
 
   def install
+    # libnet 1.2 compatibility - it is API compatible with 1.1.
+    # arp-sk's last update was in 2004.
+    inreplace "configure", "1.1.", "1.2"
+
     system "./configure", "--disable-debug", "--disable-dependency-tracking",
                           "--prefix=#{prefix}",
                           "--mandir=#{man}",

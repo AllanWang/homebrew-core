@@ -1,29 +1,39 @@
 class Pjproject < Formula
   desc "C library for multimedia protocols such as SIP, SDP, RTP and more"
   homepage "https://www.pjsip.org/"
-  url "https://www.pjsip.org/release/2.7.2/pjproject-2.7.2.tar.bz2"
-  sha256 "9c2c828abab7626edf18e04b041ef274bfaa86f99adf2c25ff56f1509e813772"
-  head "https://svn.pjsip.org/repos/pjproject/trunk"
+  url "https://github.com/pjsip/pjproject/archive/2.11.1.tar.gz"
+  sha256 "45f6604372df3f49293749cd7c0b42cb21c4fb666c66f8ed9765de004d1eae38"
+  license "GPL-2.0-or-later"
+  head "https://github.com/pjsip/pjproject.git", branch: "master"
 
-  bottle do
-    cellar :any
-    sha256 "2aa9d3fa63190d540d0a97203d086a096d7806db0d3fdb2995b1f1cc85674998" => :mojave
-    sha256 "eec232d8fe6c5b4e05521a87a4bd1a5cb4fcc6a4f0a996ddaacc33bd2d93255f" => :high_sierra
-    sha256 "f7d12f6bcb2a628df0e87e4bbaffc368ca004ed6de12d11d4d019b080257a2d0" => :sierra
-    sha256 "52a55c49ef0d0d53abf447fd060e7eaf8bd1d10c8f6b419582c5e453634d5b61" => :el_capitan
+  livecheck do
+    url :stable
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
   end
 
-  depends_on "openssl"
+  bottle do
+    sha256 cellar: :any,                 arm64_monterey: "ae7ac8144de063925b9ddcdfac52ec5cfa8286fc0e21255ef1cc11b36270b726"
+    sha256 cellar: :any,                 arm64_big_sur:  "ebe2c56bf87c397d2e2269acfbfc345b54f3a8b117515fad1827c20da620a227"
+    sha256 cellar: :any,                 monterey:       "dd65ff7722e647f5441aad3eba86a3493274f4850169b3332b7c2527ba38031d"
+    sha256 cellar: :any,                 big_sur:        "31319f83ddc57bc93650d5fc1890869b823ebc04f8584a9c280e23ab8d8e2caf"
+    sha256 cellar: :any,                 catalina:       "90b5e44910157070b4e1d9b494076c30cf16d9b1ef9790cfa080331348dfea89"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "51fbe4542de05e29af4379cc48b8702560032197b829033806c85a0c70e04928"
+  end
+
+  depends_on macos: :high_sierra # Uses Security framework API enum cases introduced in 10.13.4
+  depends_on "openssl@1.1"
 
   def install
     system "./configure", "--prefix=#{prefix}"
+    ENV.deparallelize
     system "make", "dep"
     system "make"
     system "make", "install"
 
-    arch = Utils.popen_read("uname -m").chomp
-    rel = Utils.popen_read("uname -r").chomp
-    bin.install "pjsip-apps/bin/pjsua-#{arch}-apple-darwin#{rel}" => "pjsua"
+    arch = OS.mac? && Hardware::CPU.arm? ? "arm" : Hardware::CPU.arch.to_s
+    target = OS.mac? ? "apple-darwin#{OS.kernel_version}" : "unknown-linux-gnu"
+
+    bin.install "pjsip-apps/bin/pjsua-#{arch}-#{target}" => "pjsua"
   end
 
   test do

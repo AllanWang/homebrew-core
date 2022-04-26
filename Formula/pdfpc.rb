@@ -1,14 +1,20 @@
 class Pdfpc < Formula
   desc "Presenter console with multi-monitor support for PDF files"
   homepage "https://pdfpc.github.io/"
-  url "https://github.com/pdfpc/pdfpc/archive/v4.3.4.tar.gz"
-  sha256 "cc3ccd7a23990b76dd6083e774d28f63d726a86db3a7f180b1c90596b735d5ed"
-  head "https://github.com/pdfpc/pdfpc.git"
+  url "https://github.com/pdfpc/pdfpc/archive/v4.4.1.tar.gz"
+  sha256 "4adb42fd1844a7e2ab44709dd043ade618c87f2aaec03db64f7ed659e8d3ddad"
+  license "GPL-3.0-or-later"
+  revision 1
+  head "https://github.com/pdfpc/pdfpc.git", branch: "master"
 
   bottle do
-    sha256 "80fa8e226eb146d7d5d04096ad69cbba4e1358f255ccf44333162eaec2ca0976" => :mojave
-    sha256 "79745c4f54d0347251ae9dc09c9eeb3b5c12caffbe45d3da1d581c2002edafab" => :high_sierra
-    sha256 "9142b108ce4ff8c361e293bf7f55efe4c7d0f5015eae64fb3055433d25766427" => :sierra
+    sha256 arm64_monterey: "69fcafdc5492f2c38753aac0d2e146c929eeecefe7f0e7091b3a90d2463cdb46"
+    sha256 arm64_big_sur:  "91b6ccda2deea3571d72dde84a374ef36be20ec5a2641b8f18ac701988e63051"
+    sha256 monterey:       "7eb9b89630d7285c2b20fa0a131bec86dcf2b6a304fdea6f680949f396cd0397"
+    sha256 big_sur:        "b2de1a251cd401445b171247210e1e3a729cd793eeddfe7e725039b4ea9d272c"
+    sha256 catalina:       "6797e6bfdcff10e4e4b099d28547f608fbbc4aa94c0063d04b0e4d5195924f63"
+    sha256 mojave:         "ceb38afd15133764d031c8abca4aabbd39fb2407bac81e0b0c0d8b9511e249cf"
+    sha256 x86_64_linux:   "7f8c4bf4f879d5785c7c0832ca121e93742d82f7c03a67e3f1648028393a7d55"
   end
 
   depends_on "cmake" => :build
@@ -20,11 +26,15 @@ class Pdfpc < Formula
   depends_on "poppler"
 
   def install
-    system "cmake", ".", "-DMOVIES=on", *std_cmake_args
-    system "make", "install"
+    system "cmake", "-S", ".", "-B", "build", *std_cmake_args, "-DMOVIES=ON", "-DCMAKE_INSTALL_SYSCONFDIR=#{etc}"
+    system "cmake", "--build", "build"
+    system "cmake", "--install", "build"
   end
 
   test do
+    # Gtk-WARNING **: 00:25:01.545: cannot open display
+    return if OS.linux? && ENV["HOMEBREW_GITHUB_ACTIONS"].present?
+
     system "#{bin}/pdfpc", "--version"
   end
 end

@@ -1,51 +1,52 @@
 class Freeglut < Formula
   desc "Open-source alternative to the OpenGL Utility Toolkit (GLUT) library"
   homepage "https://freeglut.sourceforge.io/"
-  url "https://downloads.sourceforge.net/project/freeglut/freeglut/3.0.0/freeglut-3.0.0.tar.gz"
-  sha256 "2a43be8515b01ea82bcfa17d29ae0d40bd128342f0930cd1f375f1ff999f76a2"
+  url "https://downloads.sourceforge.net/project/freeglut/freeglut/3.2.2/freeglut-3.2.2.tar.gz"
+  sha256 "c5944a082df0bba96b5756dddb1f75d0cd72ce27b5395c6c1dde85c2ff297a50"
+  license "MIT"
 
   bottle do
-    cellar :any
-    sha256 "5d701c190fea27fad91532d1e66164d6ebeb4f406dc91291986b841c4fe169ef" => :mojave
-    sha256 "587bdcd98c006a1077dbb077a36439c67b14064c9430c610225971f0b1b549ad" => :high_sierra
-    sha256 "ac029acfd40b4c4381dc241e1e0ad94f950cd05ed7c76348e5550a3f848d0152" => :sierra
-    sha256 "e3f9e0796917b54055f737677324560db1ffd849c415a1a40019598383671139" => :el_capitan
-    sha256 "c2816abf98614e8bf4fc1e6fb65a10d637bf1b85659cf7e9e524bee4d46b3ebe" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "85f94ee7f0436554c19f3e8f50fda475bdf913c04fec8e23792056adc1e1fb79"
+    sha256 cellar: :any,                 arm64_big_sur:  "b2cbc54b86715fbf75f671e11165d1a2b61ae5185d5d5e73c6fefe1fb36ccd5a"
+    sha256 cellar: :any,                 monterey:       "b4bb0d39e2a2d9d67298665b11cdd28e2e66ab58e6d35ffc2a9f7a3962574273"
+    sha256 cellar: :any,                 big_sur:        "1a218709c3f10ddf43df97c79ee616d7ad9aa5f5c8c10f44060266e3ae641b42"
+    sha256 cellar: :any,                 catalina:       "74a7a0bf713cb2030d4eb0f9d6d234bec221c97d5113ba36b1ebb71df6257d52"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "057c5a28a73b5c225322f4c8fd878f80b632e22e13f294a733e2ce1c9b7c4149"
   end
 
   depends_on "cmake" => :build
-  depends_on :x11
+  depends_on "pkg-config" => :test
+  depends_on "libx11"
+  depends_on "libxi"
+  depends_on "libxrandr"
+  depends_on "libxxf86vm"
+  depends_on "mesa"
 
-  patch :DATA
+  on_linux do
+    depends_on "mesa-glu"
+    depends_on "xinput"
+  end
+
+  resource "init_error_func.c" do
+    url "https://raw.githubusercontent.com/dcnieho/FreeGLUT/c63102d06d09f8a9d4044fd107fbda2034bb30c6/freeglut/freeglut/progs/demos/init_error_func/init_error_func.c"
+    sha256 "74ff9c3f722043fc617807f19d3052440073b1cb5308626c1cefd6798a284613"
+  end
 
   def install
-    inreplace "src/x11/fg_main_x11.c", "CLOCK_MONOTONIC", "UNDEFINED_GIBBERISH"
-    system "cmake", "-D", "FREEGLUT_BUILD_DEMOS:BOOL=OFF", "-D", "CMAKE_INSTALL_PREFIX:PATH=#{prefix}", "."
+    args = %W[
+      -DFREEGLUT_BUILD_DEMOS=OFF
+      -DOPENGL_INCLUDE_DIR=#{Formula["mesa"].include}
+      -DOPENGL_gl_LIBRARY=#{Formula["mesa"].lib}/#{shared_library("libGL")}
+    ]
+    system "cmake", *std_cmake_args, *args, "."
     system "make", "all"
     system "make", "install"
   end
+
+  test do
+    resource("init_error_func.c").stage(testpath)
+    flags = shell_output("pkg-config --cflags --libs glut gl xext x11").chomp.split
+    system ENV.cc, "init_error_func.c", "-o", "init_error_func", *flags
+    assert_match "Entering user defined error handler", shell_output("./init_error_func 2>&1", 1)
+  end
 end
-
-__END__
-
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 28f8651..d1f6a86 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -220,6 +220,16 @@
- IF(FREEGLUT_GLES)
-   ADD_DEFINITIONS(-DFREEGLUT_GLES)
-   LIST(APPEND LIBS GLESv2 GLESv1_CM EGL)
-+ELSEIF(APPLE)
-+  # on OSX FindOpenGL uses framework version of OpenGL, but we need X11 version
-+  FIND_PATH(GLX_INCLUDE_DIR GL/glx.h
-+            PATHS /opt/X11/include /usr/X11/include /usr/X11R6/include)
-+  FIND_LIBRARY(OPENGL_gl_LIBRARY GL
-+               PATHS /opt/X11/lib /usr/X11/lib /usr/X11R6/lib)
-+  FIND_LIBRARY(OPENGL_glu_LIBRARY GLU
-+               PATHS /opt/X11/lib /usr/X11/lib /usr/X11R6/lib)
-+  LIST(APPEND LIBS ${OPENGL_gl_LIBRARY})
-+  INCLUDE_DIRECTORIES(${GLX_INCLUDE_DIR})
- ELSE()
-   FIND_PACKAGE(OpenGL REQUIRED)
-   LIST(APPEND LIBS ${OPENGL_gl_LIBRARY})

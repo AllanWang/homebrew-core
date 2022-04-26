@@ -3,19 +3,32 @@ class Pbc < Formula
   homepage "https://crypto.stanford.edu/pbc/"
   url "https://crypto.stanford.edu/pbc/files/pbc-0.5.14.tar.gz"
   sha256 "772527404117587560080241cedaf441e5cac3269009cdde4c588a1dce4c23d2"
-  head "https://repo.or.cz/pbc.git"
+  license "LGPL-3.0"
+  head "https://repo.or.cz/pbc.git", branch: "master"
+
+  livecheck do
+    url "https://crypto.stanford.edu/pbc/download.html"
+    regex(/href=.*?pbc[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "3d34df3cd1f1d357a3893f53d19496721d3dfb04b86b1d22b87fb88df27746c1" => :mojave
-    sha256 "f737a917951f31a9477b2ee46761eb3d9323ca96d77b5b0ab78d7566eb743213" => :high_sierra
-    sha256 "9ec971f355f67d0faf644e955a26e9a86b667066eac0791288b802bbe7c0f4aa" => :sierra
-    sha256 "5295bb2d5b2698685ff7ff8b64e0578a5b8c9b9f9602fc51583cae058ee24b81" => :el_capitan
-    sha256 "5ec07e1b5752aa02b6a479665ca8a57b85ed55d5cd3b05a34cf403d7b47ea142" => :yosemite
-    sha256 "3be60cf755e2d568867c2d5c53a46774627afe1fe7439b7f86437e718ba52ed8" => :mavericks
+    rebuild 1
+    sha256 cellar: :any, arm64_monterey: "2397daa1cad88180149983c0f6557b6a48fa2124c24ac78a8d95dd0af9cac8a0"
+    sha256 cellar: :any, arm64_big_sur:  "ac722f3534f9cf0679f2c999353a524d822d4068d8f9877a5967fe6fbcef9f04"
+    sha256 cellar: :any, monterey:       "dfe0e9676dd479513ec0cf524d6a225229de96aa058492a6319cdd914dd3509f"
+    sha256 cellar: :any, big_sur:        "c14c0514c725c35d0dffbc7dc410ddc5be033e061ffc66d9c039033b0ca1e6e4"
+    sha256 cellar: :any, catalina:       "83d464696ab79f463ec2dc930cbd9c3ecbdedde5c578e70a4994b2cd8fec1f6d"
+    sha256 cellar: :any, mojave:         "85855bfe6dfe9a4fc0b0359f74aa7ea587283c1c724a6c4aee77972ecfc1d390"
+    sha256 cellar: :any, high_sierra:    "adc712fd4cc68990b669922be5b8ab15e4d499176c09facb5b129c6d7c847262"
   end
 
   depends_on "gmp"
+
+  # Fix -flat_namespace being used on Big Sur and later.
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-pre-0.4.2.418-big_sur.diff"
+    sha256 "83af02f2aa2b746bb7225872cab29a253264be49db0ecebb12f841562d9a2923"
+  end
 
   def install
     system "./configure", "--disable-dependency-tracking",
@@ -55,7 +68,8 @@ class Pbc < Formula
         return 0;
       }
     EOS
-    system ENV.cc, "test.c", "-lgmp", "-L#{lib}", "-lpbc", "-o", "test"
+    system ENV.cc, "test.c", "-L#{Formula["gmp"].lib}", "-lgmp", "-L#{lib}",
+                   "-lpbc", "-o", "test"
     system "./test"
   end
 end

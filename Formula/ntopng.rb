@@ -1,28 +1,33 @@
 class Ntopng < Formula
   desc "Next generation version of the original ntop"
   homepage "https://www.ntop.org/products/traffic-analysis/ntop/"
+  license "GPL-3.0-only"
+  revision 2
 
   stable do
-    url "https://github.com/ntop/ntopng/archive/3.8.tar.gz"
-    sha256 "683d28aece3bf3f17c3d53d7a76fbd2a24719767477f5dce55268683fd87f821"
+    url "https://github.com/ntop/ntopng/archive/5.0.tar.gz"
+    sha256 "e540eb37c3b803e93a0648a6b7d838823477224f834540106b3339ec6eab2947"
 
     resource "nDPI" do
-      url "https://github.com/ntop/nDPI/archive/2.6.tar.gz"
-      sha256 "efdfb68940385b18079920330528978765dc2a90c8163d10f63301bddadbf91e"
+      url "https://github.com/ntop/nDPI.git",
+        revision: "46ebd7128fd38f3eac5289ba281f3f25bad1d899"
     end
   end
 
   bottle do
-    sha256 "50b5e9d664fc6b20296a5bdd3715d3b5b3a94e681af848598a0aa14e785758bd" => :mojave
-    sha256 "c0c59b7ac0b8529766e6e2a19dee3ceea518cc3f4395d9e699e74f01ee4ff1e9" => :high_sierra
-    sha256 "c0727b952e29993aaba518f06a7951602db50cbb41b0757e8cf5f0fe8131d6b6" => :sierra
+    sha256 arm64_monterey: "68bc573dc0f255b53e9ace0ff6053964822964ab83dc8ea2aaf872a80b0d6fdc"
+    sha256 arm64_big_sur:  "e0d1448d1c891f910c2030a8acec578f6b4d3eae74626688584ab472a5884445"
+    sha256 monterey:       "8b5fc5a64bbb1f6561bfa691a7d4d68e71d2df69ecb9aed7d14dc5d2c7a6da62"
+    sha256 big_sur:        "600e95026b9fe50bf256a1188f3c5488dd8eb2c478aa041a9698796cf2a0ab45"
+    sha256 catalina:       "34241759200243e7ba06a85aff12a02ebe13167fafcfd35e3ab74d202075216d"
+    sha256 x86_64_linux:   "6807697535223ab5df55cb90700f9a7811f9bdb1aa72fa8ef6405be03a279b2e"
   end
 
   head do
-    url "https://github.com/ntop/ntopng.git", :branch => "dev"
+    url "https://github.com/ntop/ntopng.git", branch: "dev"
 
     resource "nDPI" do
-      url "https://github.com/ntop/nDPI.git", :branch => "dev"
+      url "https://github.com/ntop/nDPI.git", branch: "dev"
     end
   end
 
@@ -31,15 +36,25 @@ class Ntopng < Formula
   depends_on "gnutls" => :build
   depends_on "json-glib" => :build
   depends_on "libtool" => :build
+  depends_on "lua" => :build
   depends_on "pkg-config" => :build
-  depends_on "zeromq" => :build
   depends_on "geoip"
   depends_on "json-c"
   depends_on "libmaxminddb"
-  depends_on "lua"
   depends_on "mysql-client"
   depends_on "redis"
   depends_on "rrdtool"
+  depends_on "zeromq"
+
+  uses_from_macos "curl"
+  uses_from_macos "libpcap"
+  uses_from_macos "sqlite"
+
+  on_linux do
+    depends_on "gcc"
+  end
+
+  fails_with gcc: "5"
 
   def install
     resource("nDPI").stage do
@@ -50,10 +65,23 @@ class Ntopng < Formula
     system "./autogen.sh"
     system "./configure", "--prefix=#{prefix}"
     system "make"
-    system "make", "install"
+    system "make", "install", "MAN_DIR=#{man}"
   end
 
   test do
-    system "#{bin}/ntopng", "-V"
+    redis_port = free_port
+    redis_bin = Formula["redis"].bin
+    fork do
+      exec redis_bin/"redis-server", "--port", redis_port.to_s
+    end
+    sleep 3
+
+    mkdir testpath/"ntopng"
+    fork do
+      exec bin/"ntopng", "-i", test_fixtures("test.pcap"), "-d", testpath/"ntopng", "-r", "localhost:#{redis_port}"
+    end
+    sleep 15
+
+    assert_match "list", shell_output("#{redis_bin}/redis-cli -p #{redis_port} TYPE ntopng.trace")
   end
 end

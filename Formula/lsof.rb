@@ -1,39 +1,44 @@
 class Lsof < Formula
   desc "Utility to list open files"
-  homepage "https://people.freebsd.org/~abe/"
-  url "https://www.mirrorservice.org/sites/lsof.itap.purdue.edu/pub/tools/unix/lsof/lsof_4.91.tar.bz2"
-  sha256 "c9da946a525fbf82ff80090b6d1879c38df090556f3fe0e6d782cb44172450a3"
+  homepage "https://github.com/lsof-org/lsof"
+  url "https://github.com/lsof-org/lsof/archive/4.94.0.tar.gz"
+  sha256 "a9865eeb581c3abaac7426962ddb112ecfd86a5ae93086eb4581ce100f8fa8f4"
+  license "Zlib"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "830be0b158cbb5ff2f6bf019a517e6c89ff013760a6297fe8e285e66322b8e1a" => :mojave
-    sha256 "276399b5b42f5a9dc167515add55c3bb2e545faec1299516b06793b1581a9311" => :high_sierra
-    sha256 "9d57eea962770c2f3c5b56d26d9fdb9b0bbdde559dfc92d0c9db3dcaae33cc43" => :sierra
-    sha256 "59c8c1a9455e3f10c8d6326bab49ab33a85c3cfa702627aa4ba2dd9600cc7d72" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "b446898f51c1ba795ee34955ba5f2a9f482c5cfa54973717db1ed40dfd44af7a"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "3202f83509eefa73603b865ea4aca0433bbbf69d30f43d229a5ee256d1977424"
+    sha256 cellar: :any_skip_relocation, monterey:       "4a7a23611d5ed1fdb24ea4fd8dceec7a51f04d1c582dfe5dc4941323738aafd9"
+    sha256 cellar: :any_skip_relocation, big_sur:        "7dbab0c2a35d97381ed52fa32e1507c0fe83bc405fc40c4d00c79e12c79cffe4"
+    sha256 cellar: :any_skip_relocation, catalina:       "58d2ee9a7484541a7280f5a139f2d0454b494f54bca3b9f10273e036d8071bde"
+    sha256 cellar: :any_skip_relocation, mojave:         "9eb185a83e641bd8bd90fab3a8cde572b23ebb1ce269a8832fb85a66c5037318"
+    sha256 cellar: :any_skip_relocation, high_sierra:    "268fe15ecc8d9e4dd4f2f45737c921e54a5aa999f15ab6b724b9bd34deeef8d1"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "bee8fc9744aa9543709ec247328c89e361dadde77cc64d10a81aed761e5a0f47"
   end
 
-  def install
-    system "tar", "xf", "lsof_#{version}_src.tar"
-    cd "lsof_#{version}_src" do
-      inreplace "dialects/darwin/libproc/dfile.c",
-                "#extern\tstruct pff_tab\tPgf_tab[];", "extern\tstruct pff_tab\tPgf_tab[];"
+  keg_only :provided_by_macos
 
-      ENV["LSOF_INCLUDE"] = "#{MacOS.sdk_path}/usr/include"
+  def install
+    if OS.mac?
+      ENV["LSOF_INCLUDE"] = MacOS.sdk_path/"usr/include"
 
       # Source hardcodes full header paths at /usr/include
       inreplace %w[
         dialects/darwin/kmem/dlsof.h
         dialects/darwin/kmem/machine.h
         dialects/darwin/libproc/machine.h
-      ], "/usr/include", "#{MacOS.sdk_path}/usr/include"
-
-      mv "00README", "README"
-      system "./Configure", "-n", "darwin"
-      system "make"
-      bin.install "lsof"
-      man8.install "lsof.8"
-      prefix.install_metafiles
+      ], "/usr/include", MacOS.sdk_path/"usr/include"
     end
+
+    ENV["LSOF_CC"] = ENV.cc
+    ENV["LSOF_CCV"] = ENV.cxx
+
+    mv "00README", "README"
+    system "./Configure", "-n", OS.kernel_name.downcase
+
+    system "make"
+    bin.install "lsof"
+    man8.install "Lsof.8"
   end
 
   test do

@@ -1,27 +1,32 @@
 class NanopbGenerator < Formula
+  include Language::Python::Shebang
+
   desc "C library for encoding and decoding Protocol Buffer messages"
   homepage "https://jpa.kapsi.fi/nanopb/docs/index.html"
-  url "https://jpa.kapsi.fi/nanopb/download/nanopb-0.3.9.3.tar.gz"
-  sha256 "95b5544f975b6ebf052677caca9c55c5176857aaf3bc11185faf25fd9d8159e8"
+  url "https://jpa.kapsi.fi/nanopb/download/nanopb-0.4.5.tar.gz"
+  sha256 "7efc553d3d861bceb1221f79d29b03e4353f0df2db690cbced0f4a81882d95fd"
+  license "Zlib"
+  revision 1
+
+  livecheck do
+    url "https://jpa.kapsi.fi/nanopb/download/"
+    regex(/href=.*?nanopb[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "fa46a4150df33670da03c430f0159b8481d10872b2786e8a177cb76170029db5" => :mojave
-    sha256 "fa46a4150df33670da03c430f0159b8481d10872b2786e8a177cb76170029db5" => :high_sierra
-    sha256 "f9073ddbdcffb922e3f0137fe04d52ce9a4ce5a937fd9408c14a6e31665d8489" => :sierra
+    sha256 cellar: :any_skip_relocation, all: "6901779f65d9c073574e8889a856d9e7543b7b5a551520b796837a9529353465"
   end
 
   depends_on "protobuf"
-  depends_on "python@2"
+  depends_on "python@3.10"
 
   conflicts_with "mesos",
-    :because => "they depend on an incompatible version of protobuf"
+    because: "they depend on an incompatible version of protobuf"
 
   def install
     cd "generator" do
       system "make", "-C", "proto"
-      inreplace "nanopb_generator.py", %r{^#!/usr/bin/env python$},
-                                       "#!/usr/bin/python"
+      rewrite_shebang detected_python_shebang, "nanopb_generator.py"
       libexec.install "nanopb_generator.py", "protoc-gen-nanopb", "proto"
       bin.install_symlink libexec/"protoc-gen-nanopb", libexec/"nanopb_generator.py"
     end
@@ -35,10 +40,11 @@ class NanopbGenerator < Formula
         required string test_field = 1;
       }
     EOS
+
     system Formula["protobuf"].bin/"protoc",
       "--proto_path=#{testpath}", "--plugin=#{bin}/protoc-gen-nanopb",
       "--nanopb_out=#{testpath}", testpath/"test.proto"
-    system "grep", "test_field", testpath/"test.pb.c"
-    system "grep", "test_field", testpath/"test.pb.h"
+    system "grep", "Test", testpath/"test.pb.c"
+    system "grep", "Test", testpath/"test.pb.h"
   end
 end

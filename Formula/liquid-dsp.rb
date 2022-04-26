@@ -1,15 +1,17 @@
 class LiquidDsp < Formula
   desc "Digital signal processing library for software-defined radios"
   homepage "https://liquidsdr.org/"
-  url "https://github.com/jgaeddert/liquid-dsp/archive/v1.3.1.tar.gz"
-  sha256 "e3f66ce72a3b5d74eea5ccffb049c62c422c91b0ab92d6dbbef21af3c3bfec73"
+  url "https://github.com/jgaeddert/liquid-dsp/archive/v1.4.0.tar.gz"
+  sha256 "66f38d509aa8f6207d2035bae5ee081a3d9df0f2cab516bc2118b5b1c6ce3333"
+  license "MIT"
 
   bottle do
-    cellar :any
-    sha256 "f8f9a384db2f8832e7f31fa61223a3119a9278d9d6af8a2b11b6ec76c477edad" => :mojave
-    sha256 "5d12243dc96220b6cc34ea32e440c91fd99c9e39f91f08afbbdd889005d06ecd" => :high_sierra
-    sha256 "d58108029dc01dbf26931044f74afcf75d81b7de867fc1904e281ea02acd2dfe" => :sierra
-    sha256 "8e979793bbc8c8101195a9107d1be8d10f6809d14982eb4e464019cf1914f577" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "5525a2714e2baa91de8f2a08f1c650446358185b6c560038bf996096d6944b91"
+    sha256 cellar: :any,                 arm64_big_sur:  "857eb55de818dc04505bcc75c87d9a90dba7ad4adfe3c1e7a499def9fccb0459"
+    sha256 cellar: :any,                 monterey:       "43302c6bab18caf9875454bbb1be50b9d21941d1acd2f1b89d3b62c189434be9"
+    sha256 cellar: :any,                 big_sur:        "f922ccf08ab5854dd13926f597cc2941a7da65782979f96ac18fec489ed76e7b"
+    sha256 cellar: :any,                 catalina:       "7e4e09278e8c3cc2fd14284cf203563db6c471ba6411457391be897d48f05495"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "b44afc5d89530c5a20db1f0cd619fffcfd34a13619331068b9277ceb0739bd3c"
   end
 
   depends_on "autoconf" => :build

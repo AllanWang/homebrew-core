@@ -3,10 +3,15 @@ class Jasmin < Formula
   homepage "https://jasmin.sourceforge.io/"
   url "https://downloads.sourceforge.net/project/jasmin/jasmin/jasmin-2.4/jasmin-2.4.zip"
   sha256 "eaa10c68cec68206fd102e9ec7113739eccd790108a1b95a6e8c3e93f20e449d"
+  license "BSD-4-Clause"
+  revision 2
 
-  bottle :unneeded
+  bottle do
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, all: "e1795ecda92b84db3d33eaeb6fec584eb948a6a010368d0b977265346d46c44b"
+  end
 
-  depends_on :java
+  depends_on "openjdk"
 
   def install
     # Remove Windows scripts
@@ -35,6 +40,6 @@ class Jasmin < Formula
       .end method
     EOS
     system "#{bin}/jasmin", "#{testpath}/test.j"
-    assert_equal "Hello Homebrew\n", shell_output("java HomebrewTest")
+    assert_equal "Hello Homebrew\n", shell_output("#{Formula["openjdk"].bin}/java HomebrewTest")
   end
 end

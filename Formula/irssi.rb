@@ -1,13 +1,24 @@
 class Irssi < Formula
   desc "Modular IRC client"
   homepage "https://irssi.org/"
-  url "https://github.com/irssi/irssi/releases/download/1.2.1/irssi-1.2.1.tar.xz"
-  sha256 "5466a1ed9612cfa707d9a37d60b29d027b4ac7d83c74ceb1a410e2b59edba92c"
+  url "https://github.com/irssi/irssi/releases/download/1.2.3/irssi-1.2.3.tar.xz"
+  sha256 "a647bfefed14d2221fa77b6edac594934dc672c4a560417b1abcbbc6b88d769f"
+  license "GPL-2.0-or-later"
+  revision 1
+
+  livecheck do
+    url "https://irssi.org/download/"
+    regex(%r{<p>Latest release version: <strong>v?(\d+(?:\.\d+)+)</strong>}i)
+  end
 
   bottle do
-    sha256 "7e5b4748f6cbf3cd92f5981aff4ac68bbea75cab1ff4ba8a102774053ec82d41" => :mojave
-    sha256 "d74dccec46a3cbab24126dc7f3be346b05caa50bdf492e9196a0fda15ad0a2fa" => :high_sierra
-    sha256 "70d8c2802625e36774aba6762d31adae082eef57e690dd0e1feb4f836a6fb5fc" => :sierra
+    sha256 arm64_monterey: "6f90ced76f4dff3f6a4a65f47cdb996dc8e0473c677a4ae939019c54e69c88a8"
+    sha256 arm64_big_sur:  "745a8f336278ed4d2ccb4f7a396b8dd3b8cb6ac4b8cc20ae9e39822815aeb01b"
+    sha256 monterey:       "e8842954b54c584b9669ba93f2a9717edb536dca7c06f0bc9ef5703a701e1c25"
+    sha256 big_sur:        "837696228d18006f66c7669f3bc64daf8425d07231ffd33650ca0cf3754e63bd"
+    sha256 catalina:       "4906dd3fa6634f850b5c5bbcef90288f7e005401de43a5de144bdf824a93d1ba"
+    sha256 mojave:         "e24824148ee68afeb363aaae3db05a4fb30cb632416d04bd18c4763be8ae95b7"
+    sha256 x86_64_linux:   "20589844282f32a4ddeb87db55f9a8fcbfd890fa0d0d3ff2d42f639cdbed2383"
   end
 
   head do
@@ -20,7 +31,9 @@ class Irssi < Formula
 
   depends_on "pkg-config" => :build
   depends_on "glib"
-  depends_on "openssl"
+  depends_on "openssl@1.1"
+
+  uses_from_macos "ncurses"
   uses_from_macos "perl"
 
   def install
@@ -34,10 +47,15 @@ class Irssi < Formula
       --with-proxy
       --enable-true-color
       --with-socks=no
-      --with-ncurses=#{MacOS.sdk_path}/usr
       --with-perl=yes
       --with-perl-lib=#{lib}/perl5/site_perl
     ]
+
+    args << if OS.mac?
+      "--with-ncurses=#{MacOS.sdk_path/"usr"}"
+    else
+      "--with-ncurses=#{Formula["ncurses"].prefix}"
+    end
 
     if build.head?
       ENV["NOCONFIGURE"] = "yes"

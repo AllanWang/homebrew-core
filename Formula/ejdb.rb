@@ -1,81 +1,120 @@
 class Ejdb < Formula
-  desc "C library based on modified version of Tokyo Cabinet"
-  homepage "https://ejdb.org/"
-  url "https://github.com/Softmotions/ejdb/archive/v1.2.12.tar.gz"
-  sha256 "858b58409a2875eb2b0c812ce501661f1c8c0378f7756d2467a72a1738c8a0bf"
-  head "https://github.com/Softmotions/ejdb.git"
+  desc "Embeddable JSON Database engine C11 library"
+  homepage "https://ejdb.org"
+  url "https://github.com/Softmotions/ejdb.git",
+      tag:      "v2.72",
+      revision: "5f44c3f222b34dc9180259e37cdd1677b84d1a85"
+  license "MIT"
+  head "https://github.com/Softmotions/ejdb.git", branch: "master"
 
   bottle do
-    cellar :any
-    rebuild 1
-    sha256 "3be122c7eda269b79e711ed5dd0792d336c4ed6f7d879566f5c23a2e5cb88e3e" => :mojave
-    sha256 "75817c5481e57bdbf55d29289f2d22dabf162810cf94308826a2c40d40904f52" => :high_sierra
-    sha256 "1ef9acee32b25883f868a7148e72f5b22303b504c347711f0509d2324425fdae" => :sierra
-    sha256 "6d470ca361e813d40dbff0e27ef7589d5062bba9a7b005f5b360bd595c343ded" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "c1a23396c872b4a5e05a98ae982103cfc67da805706a091dc1c57d7770026998"
+    sha256 cellar: :any,                 arm64_big_sur:  "85c60ffc351cf601c932406f75606edbf041abade468ea7ca47b2cb9a7f4cee7"
+    sha256 cellar: :any,                 monterey:       "c0a2639abef7cd76b167ae19af901b9d4cca045a2b88044e9dddcf65bc1494db"
+    sha256 cellar: :any,                 big_sur:        "e77d0cd2d377db7230ab9d6663f859ce9b4d59333204858851aae34bf689c54e"
+    sha256 cellar: :any,                 catalina:       "13387810b1f21f9d068dfe4dd82844e19a3f4e12fa95c7fd78d8fb001a1ff6c5"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "eedee3fd1e621438e436a004062a96fc79e195f4b3b1e1358220c6cd46ace47f"
   end
 
   depends_on "cmake" => :build
-  uses_from_macos "bzip2"
+
+  uses_from_macos "curl" => :build
+
+  on_linux do
+    depends_on "gcc" => [:build, :test]
+  end
+
+  fails_with :gcc do
+    version "7"
+    cause <<-EOS
+      build/src/extern_iwnet/src/iwnet.c: error: initializer element is not constant
+      Fixed in GCC 8.1, see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69960
+    EOS
+  end
 
   def install
     mkdir "build" do
       system "cmake", "..", *std_cmake_args
+      ENV.deparallelize # CMake Error: WSLAY Not Found
       system "make", "install"
     end
   end
 
   test do
     (testpath/"test.c").write <<~EOS
-      #include <ejdb/ejdb.h>
+      #include <ejdb2/ejdb2.h>
 
-      static EJDB *jb;
+      #define RCHECK(rc_)          \\
+        if (rc_) {                 \\
+          iwlog_ecode_error3(rc_); \\
+          return 1;                \\
+        }
+
+      static iwrc documents_visitor(EJDB_EXEC *ctx, const EJDB_DOC doc, int64_t *step) {
+        // Print document to stderr
+        return jbl_as_json(doc->raw, jbl_fstream_json_printer, stderr, JBL_PRINT_PRETTY);
+      }
+
       int main() {
-          jb = ejdbnew();
-          if (!ejdbopen(jb, "addressbook", JBOWRITER | JBOCREAT | JBOTRUNC)) {
-              return 1;
+
+        EJDB_OPTS opts = {
+          .kv = {
+            .path = "testdb.db",
+            .oflags = IWKV_TRUNC
           }
-          EJCOLL *coll = ejdbcreatecoll(jb, "contacts", NULL);
+        };
+        EJDB db;     // EJDB2 storage handle
+        int64_t id;  // Document id placeholder
+        JQL q = 0;   // Query instance
+        JBL jbl = 0; // Json document
 
-          bson bsrec;
-          bson_oid_t oid;
+        iwrc rc = ejdb_init();
+        RCHECK(rc);
 
-          bson_init(&bsrec);
-          bson_append_string(&bsrec, "name", "Bruce");
-          bson_append_string(&bsrec, "phone", "333-222-333");
-          bson_append_int(&bsrec, "age", 58);
-          bson_finish(&bsrec);
+        rc = ejdb_open(&opts, &db);
+        RCHECK(rc);
 
-          ejdbsavebson(coll, &bsrec, &oid);
-          bson_destroy(&bsrec);
+        // First record
+        rc = jbl_from_json(&jbl, "{\\"name\\":\\"Bianca\\", \\"age\\":4}");
+        RCGO(rc, finish);
+        rc = ejdb_put_new(db, "parrots", jbl, &id);
+        RCGO(rc, finish);
+        jbl_destroy(&jbl);
 
-          bson bq1;
-          bson_init_as_query(&bq1);
-          bson_append_start_object(&bq1, "name");
-          bson_append_string(&bq1, "$begin", "Bru");
-          bson_append_finish_object(&bq1);
-          bson_finish(&bq1);
+        // Second record
+        rc = jbl_from_json(&jbl, "{\\"name\\":\\"Darko\\", \\"age\\":8}");
+        RCGO(rc, finish);
+        rc = ejdb_put_new(db, "parrots", jbl, &id);
+        RCGO(rc, finish);
+        jbl_destroy(&jbl);
 
-          EJQ *q1 = ejdbcreatequery(jb, &bq1, NULL, 0, NULL);
+        // Now execute a query
+        rc =  jql_create(&q, "parrots", "/[age > :age]");
+        RCGO(rc, finish);
 
-          uint32_t count;
-          TCLIST *res = ejdbqryexecute(coll, q1, &count, 0, NULL);
+        EJDB_EXEC ux = {
+          .db = db,
+          .q = q,
+          .visitor = documents_visitor
+        };
 
-          int i;
-          for (i = 0; i < TCLISTNUM(res); ++i) {
-              void *bsdata = TCLISTVALPTR(res, i);
-              bson_print_raw(bsdata, 0);
-          }
-          tclistdel(res);
+        // Set query placeholder value.
+        // Actual query will be /[age > 3]
+        rc = jql_set_i64(q, "age", 0, 3);
+        RCGO(rc, finish);
 
-          ejdbquerydel(q1);
-          bson_destroy(&bq1);
+        // Now execute the query
+        rc = ejdb_exec(&ux);
 
-          ejdbclose(jb);
-          ejdbdel(jb);
-          return 0;
+      finish:
+        if (q) jql_destroy(&q);
+        if (jbl) jbl_destroy(&jbl);
+        ejdb_close(&db);
+        RCHECK(rc);
+        return 0;
       }
     EOS
-    system ENV.cc, "-I#{include}", "test.c", "-L#{lib}", "-lejdb", "-o", testpath/"test"
+    system ENV.cc, "-I#{include}", "test.c", "-L#{lib}", "-lejdb2", "-o", testpath/"test"
     system "./test"
   end
 end

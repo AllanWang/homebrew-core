@@ -3,11 +3,16 @@ class Bats < Formula
   homepage "https://github.com/sstephenson/bats"
   url "https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz"
   sha256 "480d8d64f1681eee78d1002527f3f06e1ac01e173b761bc73d0cf33f4dc1d8d7"
-  head "https://github.com/sstephenson/bats.git"
+  license "MIT"
+  head "https://github.com/sstephenson/bats.git", branch: "master"
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "ab1210bf9790f9002e57584fb139802c79e7d0c7f6124a7024711a2998895a75"
+  end
 
-  conflicts_with "bats-core", :because => "both install `bats` executables"
+  deprecate! date: "2021-05-24", because: :repo_archived
+
+  conflicts_with "bats-core", because: "both install `bats` executables"
 
   def install
     system "./install.sh", prefix

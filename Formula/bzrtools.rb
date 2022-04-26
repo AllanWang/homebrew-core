@@ -5,7 +5,11 @@ class Bzrtools < Formula
   mirror "https://deb.debian.org/debian/pool/main/b/bzrtools/bzrtools_2.6.0.orig.tar.gz"
   sha256 "8b17fbba61dafc8dbefe1917a2ce084a8adc7650dee60add340615270dfb7f58"
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "27337af0179d9a1a9897def816bfc6c9e85df08186bdb72918bc6327c2b7c2db"
+  end
+
+  deprecate! date: "2021-08-19", because: :unsupported
 
   depends_on "bazaar"
 

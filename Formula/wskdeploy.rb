@@ -1,28 +1,24 @@
 class Wskdeploy < Formula
   desc "Apache OpenWhisk project deployment utility"
   homepage "https://openwhisk.apache.org/"
-  url "https://github.com/apache/incubator-openwhisk-wskdeploy/archive/0.9.9.tar.gz"
-  sha256 "fa0164b9262b90c57cee868de000459ae8461042c0984d40ce22bf0c0ce4a49f"
+  url "https://github.com/apache/openwhisk-wskdeploy/archive/1.2.0.tar.gz"
+  sha256 "bffe6f6ef2167189fc38893943a391aaf7327e9e6b8d27be1cc1c26535c06e86"
+  license "Apache-2.0"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "c8d5674fda8507a62dd30b0b26c382bccdc48945c405758c8b805d5350e565aa" => :mojave
-    sha256 "3569a4127a3503f8507d5b437d0d35c4c5a259055f84984553d83a6ad9be42e0" => :high_sierra
-    sha256 "0cd26ef2912f60d108795fb7588a81edf6a1c937e90a2f8ba4987926376c0cab" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "4b42f8375e4d73e6fc92323e40b2c12f98227b4293e0e948cdfc514e698207fe"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "87364286a37d26de6a051ba1d0244de932de11058e041e969ea20400560df8e5"
+    sha256 cellar: :any_skip_relocation, monterey:       "e3d3c61f5b230af2a2a5776448d06985cee14f9c7aa5b51dc40179922d655df1"
+    sha256 cellar: :any_skip_relocation, big_sur:        "c77d6ad2c5fa8acec45bf9507d840f3de1a125edb5759f6de49427efb454fd38"
+    sha256 cellar: :any_skip_relocation, catalina:       "17ff44da88c60d8c8c3a17fd4e2844c90d1bf7fe460928ae21731da5a7f52740"
+    sha256 cellar: :any_skip_relocation, mojave:         "375d6f828a4a45d398ba11dcee4c60e64651697ee374917db7f2137b4c98cb77"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "eabf999a20dc7a3ce1b521b85e4a60731b740413ea133e5299ea534b0c44764a"
   end
 
   depends_on "go" => :build
-  depends_on "godep" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-    (buildpath/"src/github.com/apache/incubator-openwhisk-wskdeploy").install buildpath.children
-    cd "src/github.com/apache/incubator-openwhisk-wskdeploy" do
-      system "godep", "restore"
-      system "go", "build", "-o", bin/"wskdeploy",
-                   "-ldflags", "-X main.Version=#{version}"
-      prefix.install_metafiles
-    end
+    system "go", "build", *std_go_args, "-ldflags", "-X main.Version=#{version}"
   end
 
   test do

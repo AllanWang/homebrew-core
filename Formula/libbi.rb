@@ -1,16 +1,19 @@
 class Libbi < Formula
   desc "Bayesian state-space modelling on parallel computer hardware"
   homepage "https://libbi.org/"
-  url "https://github.com/lawmurray/LibBi/archive/1.4.4.tar.gz"
-  sha256 "37bf4d3a9686000442494204972d09504f27a8a840174c0f116b0cf2ff7713fd"
-  revision 3
-  head "https://github.com/lawmurray/LibBi.git"
+  url "https://github.com/lawmurray/LibBi/archive/1.4.5.tar.gz"
+  sha256 "af2b6d30e1502f99a3950d63ceaf7d7275a236f4d81eff337121c24fbb802fbe"
+  license "GPL-2.0-only"
+  revision 4
+  head "https://github.com/lawmurray/LibBi.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "2e53c92aaa7dc0446b22a305130ae8d7e3deaf3d370116fae8b1b7ef60a6820e" => :mojave
-    sha256 "b0888c11a7fde4aceea78f281593b2dee115521bec9cfa9aaa0b29109881cf51" => :high_sierra
-    sha256 "dc6d58a9f2b19b86d64097ecee68e40f1f060020b17590d08c759b199b740924" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "ae593b0f46cfb4176070508a9ecf1379ab1ce5c6d6946f067455854751545ee9"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "95b9bd0f690a89f42ec6a1e670248a5464ba14fc7e80589a6bc4b28788a30f1d"
+    sha256 cellar: :any_skip_relocation, monterey:       "25e4409e1cc95c4759c2b0c338db8fdc30245c5ec6d6f068d77ed148a224a80d"
+    sha256 cellar: :any_skip_relocation, big_sur:        "9739fadb79161f0b2db4e73d8ff9bbe2c2bc3f9c40bebc6fb6cadc9387121741"
+    sha256 cellar: :any_skip_relocation, catalina:       "fa9a991443966cd592070a228cf2d8092b3e154eda52ac390ea756d03b30e670"
+    sha256 cellar: :any_skip_relocation, mojave:         "c90c7105c8eaa9bb53ce0fc9e608dc0c4df8d082361846ce764dfc0d141ec5b4"
   end
 
   depends_on "automake"
@@ -18,6 +21,8 @@ class Libbi < Formula
   depends_on "gsl"
   depends_on "netcdf"
   depends_on "qrupdate"
+
+  uses_from_macos "perl"
 
   resource "Test::Simple" do
     url "https://cpan.metacpan.org/authors/id/E/EX/EXODIST/Test-Simple-1.302133.tar.gz"
@@ -132,12 +137,12 @@ class Libbi < Formula
     system "make", "install"
 
     pkgshare.install "Test.bi", "test.conf"
-    bin.env_script_all_files(libexec+"bin", :PERL5LIB => ENV["PERL5LIB"])
+    bin.env_script_all_files(libexec+"bin", PERL5LIB: ENV["PERL5LIB"])
   end
 
   test do
     cp Dir[pkgshare/"Test.bi", pkgshare/"test.conf"], testpath
-    system "#{bin}/libbi", "sample", "@test.conf", "--disable-openmp"
+    system "#{bin}/libbi", "sample", "@test.conf"
     assert_predicate testpath/"test.nc", :exist?
   end
 end

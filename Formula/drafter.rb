@@ -1,29 +1,26 @@
 class Drafter < Formula
   desc "Native C/C++ API Blueprint Parser"
   homepage "https://apiblueprint.org/"
-  url "https://github.com/apiaryio/drafter/releases/download/v3.2.7/drafter-v3.2.7.tar.gz"
-  sha256 "a2b7061e2524804f153ac2e80f6367ae65dfcd367f4ee406eddecc6303f7f7ef"
-  head "https://github.com/apiaryio/drafter.git"
+  url "https://github.com/apiaryio/drafter/releases/download/v5.0.0/drafter-5.0.0.tar.gz"
+  sha256 "a35894a8f4de8b9ead216056b6a77c8c03a4156b6a6e7eae46d9e11d116a748e"
+  license "MIT"
+  head "https://github.com/apiaryio/drafter.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "886a7b2595eebd07cee223f5d5a53a4748e91719c7f4f3a37c236c8476b3c532" => :mojave
-    sha256 "5d350d1a7fb4aa5e9561933f0e9638ee59fd93b0d9168d07e665a806e472d5f1" => :high_sierra
-    sha256 "a90e9d4493f252d29d69e186dcc49eb116f6bc506d07769f03864f56d5840f08" => :sierra
-    sha256 "dc86d4e8dc44c2dead52e57c3bf6403d691926b9abf274f16b94c9649dd562fd" => :el_capitan
+    sha256 cellar: :any,                 arm64_big_sur: "e87c12f12a181902f5013f06c3ca34608c68de6216d90f3c2fa568d4f8a35a5e"
+    sha256 cellar: :any,                 big_sur:       "74fcc290a59528b6be28739c6e4e9fac9660051430c74910f006cb000271a235"
+    sha256 cellar: :any,                 catalina:      "29fa18ff148f6ebf454ed383181384bfb9aff1520e64072dfb386445bf8e52a3"
+    sha256 cellar: :any,                 mojave:        "2a56e75e39f7b46eba355ae6163b645e161c4e458a4f127c37a948377143ac3e"
+    sha256 cellar: :any,                 high_sierra:   "125fb907888693fd3d638a79d185483f44112f5bb64f098626aa17f00b25513d"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:  "327e24cfd4df62c3a6941735c16b8e63f70eb78bf14184a884c0ddb3fabc1432"
   end
 
   depends_on "cmake" => :build
 
   def install
-    if build.head?
-      system "cmake", ".", *std_cmake_args
-      system "make"
-      system "make", "install"
-    else
-      system "./configure"
-      system "make", "install", "DESTDIR=#{prefix}"
-    end
+    system "cmake", ".", *std_cmake_args
+    system "make", "drafter"
+    system "make", "install"
   end
 
   test do

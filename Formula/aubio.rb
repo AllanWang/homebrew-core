@@ -3,33 +3,53 @@ class Aubio < Formula
   homepage "https://aubio.org/"
   url "https://aubio.org/pub/aubio-0.4.9.tar.bz2"
   sha256 "d48282ae4dab83b3dc94c16cf011bcb63835c1c02b515490e1883049c3d1f3da"
+  revision 3
+
+  livecheck do
+    url "https://aubio.org/pub/"
+    regex(/href=.*?aubio[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "1c011afadd6d9590101b46cb6f3bf530c5ddfb2cef0983bf4fea287ef5f8c265" => :mojave
-    sha256 "f4d0585fe52669ce1c8f3b33e64af22219cc8623f27423bc7d9ce8c3f4e2351a" => :high_sierra
-    sha256 "11ce710814cb514c434620c24fbb4504a3744747ae06dfe260bcdcfa6b69ef64" => :sierra
+    sha256 cellar: :any, arm64_monterey: "24480a57c922ecce159a8c51c7b6cbd888534ad071f8e6e44c2673d9af3cc123"
+    sha256 cellar: :any, arm64_big_sur:  "1109fc08328664e84eff65a547737b1ac602e23519e6a88855fbd9a25a341a2c"
+    sha256 cellar: :any, monterey:       "81bde2bc55939b498d263f6486f80f2c29b67ef6927db247ace8345ae34b2357"
+    sha256 cellar: :any, big_sur:        "ce2477e78e0ddf5c3d2801c571c65e73a73a33967650aa067a94d49695a144d4"
+    sha256 cellar: :any, catalina:       "3a0a2bcf355eef8bb66385c5bda82105569c2a7f999182626ca0b417d44e6255"
   end
 
   depends_on "libtool" => :build
   depends_on "pkg-config" => :build
   depends_on "numpy"
-  depends_on "python"
+  depends_on "python@3.10"
+
+  on_linux do
+    depends_on "libsndfile"
+  end
+
+  resource "aiff" do
+    url "http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/AIFF/Samples/CCRMA/wood24.aiff"
+    sha256 "a87279e3a101162f6ab0d4f70df78594d613e16b80e6257cf19c5fc957a375f9"
+  end
 
   def install
     # Needed due to issue with recent clang (-fno-fused-madd))
     ENV.refurbish_args
 
+    # Ensure `python` references use our python3
+    ENV.prepend_path "PATH", Formula["python@3.10"].opt_libexec/"bin"
+
     system "python3", "./waf", "configure", "--prefix=#{prefix}"
     system "python3", "./waf", "build"
     system "python3", "./waf", "install"
 
-    system "python3", *Language::Python.setup_install_args(prefix)
-    bin.env_script_all_files(libexec/"bin", :PYTHONPATH => ENV["PYTHONPATH"])
+    system "python3", *Language::Python.setup_install_args(prefix),
+                      "--install-lib=#{prefix/Language::Python.site_packages("python3")}"
   end
 
   test do
-    system "#{bin}/aubiocut", "--verbose", "/System/Library/Sounds/Glass.aiff"
-    system "#{bin}/aubioonset", "--verbose", "/System/Library/Sounds/Glass.aiff"
+    testpath.install resource("aiff")
+    system bin/"aubiocut", "--verbose", "wood24.aiff"
+    system bin/"aubioonset", "--verbose", "wood24.aiff"
   end
 end

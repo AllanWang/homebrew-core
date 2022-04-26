@@ -1,24 +1,32 @@
 class Genometools < Formula
-  desc "GenomeTools: The versatile open source genome analysis software"
+  desc "Versatile open source genome analysis software"
   homepage "http://genometools.org/"
-  url "http://genometools.org/pub/genometools-1.5.10.tar.gz"
-  sha256 "0208591333b74594bc219fb67f5a29b81bb2ab872f540c408ac1743716274e6a"
-  revision 3
-  head "https://github.com/genometools/genometools.git"
+  # genometools does not have source code on par with their binary dist on their website
+  url "https://github.com/genometools/genometools/archive/v1.6.2.tar.gz"
+  sha256 "974825ddc42602bdce3d5fbe2b6e2726e7a35e81b532a0dc236f6e375d18adac"
+  license "ISC"
+  head "https://github.com/genometools/genometools.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "015822f99146040c6a5330bf99d3ae3be3802388362483058943ccf50e798f69" => :mojave
-    sha256 "85f0a2692a6f93089bc2a1a7967f7d410b99b55a9536db8a3191008999b17e4b" => :high_sierra
-    sha256 "e7a8e2ae40f1b5fb56e09e0449fefc10f00b820fe333d9f8fb2ed19ad92ebce1" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "08242bc47368b56715af9ff71c75e61bf65d1b74e545007b53411a85c286dd2c"
+    sha256 cellar: :any,                 arm64_big_sur:  "1bdde783ed231c4a60b1b9b1ca43e1ad1115140a83c98ed8b709bd1a9c73d011"
+    sha256 cellar: :any,                 monterey:       "5806462e96ba7622cc672e8179c42ec153c99e231032ae1d30d6671cab1cca9d"
+    sha256 cellar: :any,                 big_sur:        "8adf70e333da419e3ee99a7da16c72c32cd2b03584bf0210d69ee7dcb3106d63"
+    sha256 cellar: :any,                 catalina:       "41a9e52f2f0853eb1826e7136a43ae17410292fdc277860eef8f56980f124572"
+    sha256 cellar: :any,                 mojave:         "606831c946666247431971c496c9d028434c04537a4cbf67f9965a83508f54d7"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "6007cc8d2b711a4a49af59d58bfc18478f837635a2de07c85c9ef73fdafc521e"
   end
 
   depends_on "pkg-config" => :build
   depends_on "cairo"
   depends_on "pango"
-  depends_on "python"
+  depends_on "python@3.9"
 
-  conflicts_with "libslax", :because => "both install `bin/gt`"
+  on_linux do
+    depends_on "libpthread-stubs" => :build
+  end
+
+  conflicts_with "libslax", because: "both install `bin/gt`"
 
   def install
     system "make", "prefix=#{prefix}"
@@ -37,6 +45,6 @@ class Genometools < Formula
 
   test do
     system "#{bin}/gt", "-test"
-    system "python3", "-c", "import gt"
+    system Formula["python@3.9"].opt_bin/"python3", "-c", "import gt"
   end
 end

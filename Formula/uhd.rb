@@ -1,44 +1,63 @@
 class Uhd < Formula
   desc "Hardware driver for all USRP devices"
   homepage "https://files.ettus.com/manual/"
-  url "https://github.com/EttusResearch/uhd/archive/v3.14.1.0.tar.gz"
-  sha256 "8fc1ad70d80f7f69a30c957fee218ef8767cfd5a0ee4f0830e506f2b22e5b923"
-  head "https://github.com/EttusResearch/uhd.git"
+  # The build system uses git to recover version information
+  url "https://github.com/EttusResearch/uhd.git",
+      tag:      "v4.1.0.5",
+      revision: "6bd0be9cda5db97081e4f3ee3127c45eed21239c"
+  license all_of: ["GPL-3.0-or-later", "LGPL-3.0-or-later", "MIT", "BSD-3-Clause", "Apache-2.0"]
+  revision 1
+  head "https://github.com/EttusResearch/uhd.git", branch: "master"
+
+  livecheck do
+    url :stable
+    strategy :github_latest
+  end
 
   bottle do
-    sha256 "fd131dbc43c309c4f1ec23c6c7940c31eb60f0e6ff05d1a0ad65aa03d0630ce3" => :mojave
-    sha256 "0aa1e0de9fbff3ed4068342542e49e90c5d5ed85107d67235a8c083c645ddb6a" => :high_sierra
-    sha256 "449cf96866e67ec63207dbcc4d67d2d5b87282511ceada9a2fcb22974d512908" => :sierra
+    sha256                               arm64_monterey: "f28080c677864d601d55636193c4d18c5fed1160614143352bc11556e1acb8d9"
+    sha256                               arm64_big_sur:  "0b4775a1d539b2ed26a95381e8f79b4b410a32e0ccbaf776c59dd8189792f87c"
+    sha256                               monterey:       "a26c8df36a888e5350c22f6427dd3e625b73594fbea21cbd3b153b5998f080c0"
+    sha256                               big_sur:        "ba5a56ba00f5c38638f95e922b244343ea6d25312e5aa23a9ee2210906e825c5"
+    sha256                               catalina:       "bf5ffc292b0cb950c30a0fccb58dae4df82a7b2724522c9d796a2ace8c52cccd"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "79a52bc3e1317b4de223e24e444267f3a96d19e9b6ef21c360b27c4ba3d2c8a2"
   end
 
   depends_on "cmake" => :build
   depends_on "doxygen" => :build
+  depends_on "pkg-config" => :build
   depends_on "boost"
   depends_on "libusb"
-  depends_on "python"
+  depends_on "python@3.9"
+
+  on_linux do
+    depends_on "gcc"
+  end
+
+  fails_with gcc: "5"
 
   resource "Mako" do
-    url "https://files.pythonhosted.org/packages/eb/f3/67579bb486517c0d49547f9697e36582cd19dafb5df9e687ed8e22de57fa/Mako-1.0.7.tar.gz"
-    sha256 "4e02fde57bd4abb5ec400181e4c314f56ac3e49ba4fb8b0d50bba18cb27d25ae"
+    url "https://files.pythonhosted.org/packages/af/b6/42cd322ae555aa770d49e31b8c5c28a243ba1bbb57ad927e1a5f5b064811/Mako-1.1.6.tar.gz"
+    sha256 "4e9e345a41924a954251b95b4b28e14a301145b544901332e658907a7464b6b2"
   end
 
   def install
-    xy = Language::Python.major_minor_version "python3"
+    xy = Language::Python.major_minor_version Formula["python@3.9"].opt_bin/"python3"
     ENV.prepend_create_path "PYTHONPATH", libexec/"vendor/lib/python#{xy}/site-packages"
 
     resource("Mako").stage do
-      system "python3", *Language::Python.setup_install_args(libexec/"vendor")
+      system Formula["python@3.9"].opt_bin/"python3",
+             *Language::Python.setup_install_args(libexec/"vendor")
     end
 
     mkdir "host/build" do
-      system "cmake", "..", *std_cmake_args, "-DENABLE_PYTHON3=ON"
+      system "cmake", "..", *std_cmake_args, "-DENABLE_TESTS=OFF"
       system "make"
-      system "make", "test"
       system "make", "install"
     end
   end
 
   test do
-    assert_match version.to_s, shell_output("#{bin}/uhd_config_info --version")
+    assert_match version.major_minor_patch.to_s, shell_output("#{bin}/uhd_config_info --version")
   end
 end

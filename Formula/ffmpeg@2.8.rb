@@ -1,15 +1,23 @@
 class FfmpegAT28 < Formula
   desc "Play, record, convert, and stream audio and video"
   homepage "https://ffmpeg.org/"
-  url "https://ffmpeg.org/releases/ffmpeg-2.8.15.tar.bz2"
-  sha256 "35647f6c1f6d4a1719bc20b76bf4c26e4ccd665f46b5676c0e91c5a04622ee21"
-  revision 4
+  url "https://ffmpeg.org/releases/ffmpeg-2.8.18.tar.xz"
+  sha256 "96ef935af1d0adfd9e1a6823b55307dd0cc671192138660b6d5bde8cd6c1cd4c"
+  # None of these parts are used by default, you have to explicitly pass `--enable-gpl`
+  # to configure to activate them. In this case, FFmpeg's license changes to GPL v2+.
+  license "GPL-2.0-or-later"
+
+  livecheck do
+    url "https://ffmpeg.org/download.html"
+    regex(/href=.*?ffmpeg[._-]v?(2\.8(?:\.\d+)*)\.t/i)
+  end
 
   bottle do
-    rebuild 1
-    sha256 "5d98294c8ba9abc1050279d483cd5732322eea149b55bb91cc5ea1004315c39e" => :mojave
-    sha256 "37b37ddee29f08d13d01d0f22a595897848be7f3910ec98f10e273e73bd816e1" => :high_sierra
-    sha256 "770fb7817b355d58757e899413ad5f0f24cf255a69e707959225a4ffb52b8b7f" => :sierra
+    sha256 arm64_monterey: "c9062aaa537c8d0dea31ecf713f3d193a1c716207ad93b680d7cf690f0e3fa65"
+    sha256 arm64_big_sur:  "46dcab918292c83b05fe0a66b5093494a91cb4de3862137d5584941692f68557"
+    sha256 monterey:       "84fbb1fe0f5c5aa78cd61fbaa46cf4e3dc6ecf12c2d5abbf5531a288838c57cb"
+    sha256 big_sur:        "bab81dd752fec0d0945c4683863d6fb89176e8d8213e227f67414d43a9305b94"
+    sha256 catalina:       "edea22eff2016286a9da86bbc0e7ec16508d57744fe023bf3621e97827745956"
   end
 
   keg_only :versioned_formula
@@ -38,12 +46,6 @@ class FfmpegAT28 < Formula
   depends_on "xvid"
 
   def install
-    # Fixes "dyld: lazy symbol binding failed: Symbol not found: _clock_gettime"
-    if MacOS.version == "10.11" && MacOS::Xcode.version >= "8.0"
-      inreplace %w[libavdevice/v4l2.c libavutil/time.c], "HAVE_CLOCK_GETTIME",
-                                                         "UNDEFINED_GIBBERISH"
-    end
-
     args = %W[
       --prefix=#{prefix}
       --enable-shared
@@ -74,27 +76,28 @@ class FfmpegAT28 < Formula
       --enable-libopencore-amrwb
       --enable-librtmp
       --enable-libspeex
-      --enable-opencl
       --disable-indev=jack
+      --disable-libxcb
+      --disable-xlib
     ]
+
+    args << "--enable-opencl" if OS.mac?
 
     # A bug in a dispatch header on 10.10, included via CoreFoundation,
     # prevents GCC from building VDA support. GCC has no problems on
     # 10.9 and earlier.
     # See: https://github.com/Homebrew/homebrew/issues/33741
-    if MacOS.version < :yosemite || ENV.compiler == :clang
-      args << "--enable-vda"
+    args << if ENV.compiler == :clang
+      "--enable-vda"
     else
-      args << "--disable-vda"
+      "--disable-vda"
     end
 
     system "./configure", *args
 
     inreplace "config.mak" do |s|
       shflags = s.get_make_var "SHFLAGS"
-      if shflags.gsub!(" -Wl,-read_only_relocs,suppress", "")
-        s.change_make_var! "SHFLAGS", shflags
-      end
+      s.change_make_var! "SHFLAGS", shflags if shflags.gsub!(" -Wl,-read_only_relocs,suppress", "")
     end
 
     system "make", "install"
@@ -106,8 +109,8 @@ class FfmpegAT28 < Formula
 
   test do
     # Create an example mp4 file
-    system "#{bin}/ffmpeg", "-y", "-filter_complex",
-        "testsrc=rate=1:duration=1", "#{testpath}/video.mp4"
-    assert_predicate testpath/"video.mp4", :exist?
+    mp4out = testpath/"video.mp4"
+    system bin/"ffmpeg", "-y", "-filter_complex", "testsrc=rate=1:duration=1", mp4out
+    assert_predicate mp4out, :exist?
   end
 end

@@ -1,16 +1,23 @@
 class Ratfor < Formula
   desc "Rational Fortran"
   homepage "http://www.dgate.org/ratfor/"
-  url "http://www.dgate.org/ratfor/tars/ratfor-1.03.tar.gz"
-  sha256 "d77497cd0856aad43e0d122f04aef4965994b744f1af9ab1237d7cd6849d139c"
-  revision 2
+  url "http://www.dgate.org/ratfor/tars/ratfor-1.05.tar.gz"
+  sha256 "826278c5cec11f8956984f146e982137e90b0722af5dde9e8c5bf1fef614853c"
+
+  livecheck do
+    url :homepage
+    regex(/href=.*?ratfor[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "1778a37f2498200cef410a1b208d1f21f591f909f13b566b139bb66f70734f88" => :mojave
-    sha256 "4a9b3b69f2eadb0023747734a5b1145717d3d776742eb555c35ae20edd0e5d59" => :high_sierra
-    sha256 "ab06a92daf0033b37df76b0a8f8b0191718017d1b7c629c1af82eca0117c8da2" => :sierra
-    sha256 "f6556cca206a70a3dca1ac897078cdbbe61be5c3b2c5e70e540b11998f8f0f5e" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "7b7dd12c9a6ec7c9b817cc0f6179dd4b23a517b99a9645818b6dfdf297336ea6"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "86d1de3e075edcc1e493b46fc7186bd21906644ba69a7032f3bc827487eb9449"
+    sha256 cellar: :any_skip_relocation, monterey:       "fc0242f98c14b752d27ed3bf1ce4c92827474918c87e38f541fc95c8cd95a267"
+    sha256 cellar: :any_skip_relocation, big_sur:        "0d9bfcd885197bf8bbfbd38469cd831e16f2dceb6cb6155acf075f0dfebcf095"
+    sha256 cellar: :any_skip_relocation, catalina:       "053917ccdf191b7cb15adb1c207cb3f18553def7d4cc9584b09222be07754660"
+    sha256 cellar: :any_skip_relocation, mojave:         "054cb6d92e13050233c54a5bbfdd1dc9fbaed09d63937b8426d543d9569ee07b"
+    sha256 cellar: :any_skip_relocation, high_sierra:    "16c83b337e66de93f5e1b21d77242b849a4a1613e2c2e38d1971a77277924bce"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "fc4ca4d1047a943807d656cadc90ed26f141e91435dd60b94a9d4633e729de70"
   end
 
   depends_on "gcc" # for gfortran

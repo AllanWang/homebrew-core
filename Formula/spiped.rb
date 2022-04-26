@@ -1,20 +1,24 @@
 class Spiped < Formula
   desc "Secure pipe daemon"
   homepage "https://www.tarsnap.com/spiped.html"
-  url "https://www.tarsnap.com/spiped/spiped-1.6.0.tgz"
-  sha256 "e6f7f8f912172c3ad55638af8346ae7c4ecaa92aed6d3fb60f2bda4359cba1e4"
+  url "https://www.tarsnap.com/spiped/spiped-1.6.2.tgz"
+  sha256 "05d4687d12d11d7f9888d43f3d80c541b7721c987038d085f71c91bb06204567"
+
+  livecheck do
+    url :homepage
+    regex(/href=.*?spiped[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "4cf975e7272d99897109b7a5b2cca741d46e9b34d877c6be13a140920d8b8901" => :mojave
-    sha256 "f2008c86b377357db0888b384029b54ee9573d73e891ec322018b80dc499d165" => :high_sierra
-    sha256 "53e5ec39c188fed1d8a762904988490dd6a73f34f6bfcef986063a34a804cd6a" => :sierra
-    sha256 "3597aef864440d96505a2445348060926cbab9b2ea44af4ee61094e4bc419d4e" => :el_capitan
-    sha256 "d61db0a6cf96273e9564fcd3208ff5836840b0369e0a9c269c79904d9f1d3ab6" => :yosemite
+    sha256 cellar: :any, arm64_monterey: "63451c713c91962ed596254ff1924de72d6adc4bb7d950082d420cafa70596a0"
+    sha256 cellar: :any, arm64_big_sur:  "3df7565403ad24361e05d3661242f8724bde49bdee1124bcc07aa234dbdcecf2"
+    sha256 cellar: :any, monterey:       "b343cf4da6e41a3c30d76ea2e25bf18c1e63d0479e7ceb13e8764232a035b727"
+    sha256 cellar: :any, big_sur:        "4e78ef161701b82728993c1107fbb155bb9a17cea82df586c9a1df520ec8d656"
+    sha256 cellar: :any, catalina:       "f3edfef25280658dbeaee09e50d2b284a5d9768ffb2632502b3bfc050590e073"
   end
 
   depends_on "bsdmake" => :build
-  depends_on "openssl"
+  depends_on "openssl@1.1"
 
   def install
     man1.mkpath

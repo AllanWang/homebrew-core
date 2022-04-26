@@ -1,21 +1,26 @@
 class Osm2pgsql < Formula
   desc "OpenStreetMap data to PostgreSQL converter"
-  homepage "https://wiki.openstreetmap.org/wiki/Osm2pgsql"
-  url "https://github.com/openstreetmap/osm2pgsql/archive/0.96.0.tar.gz"
-  sha256 "b6020e77d88772989279a69ae4678e9782989b630613754e483b5192cd39c723"
-  revision 1
-  head "https://github.com/openstreetmap/osm2pgsql.git"
+  homepage "https://osm2pgsql.org"
+  url "https://github.com/openstreetmap/osm2pgsql/archive/1.6.0.tar.gz"
+  sha256 "0ec8b58ab972ac8356185af4161270c1b625a77299f09e5fb7f45e616ef1a9a5"
+  license "GPL-2.0-only"
+  revision 2
+  head "https://github.com/openstreetmap/osm2pgsql.git", branch: "master"
 
   bottle do
-    sha256 "0ebba50375c8d63d13db3e8d1dc2b326d5099758f272c6fd5216be6497bba2ae" => :mojave
-    sha256 "2ad65d522d094b6b9b742bca379d66f9999658050efbb19f1ad79fafbb1f823d" => :high_sierra
-    sha256 "59fa881b0b8e0f1f0c542881814f21896d676bdcf6ab71c823f1676b0432be87" => :sierra
+    sha256 arm64_monterey: "aa3e782aca8953d6ef78b2397fef8da5fcca0b191ea6dd3da4d81e4a54e2118a"
+    sha256 arm64_big_sur:  "e7bf361f2d2ffcd646e84dfbed4e775fc0a2880524ecee3d3d446c63524cbd80"
+    sha256 monterey:       "4e3e12fcbf10774a8526bdb1387111034fcc34f87b15cbc0eb582f811d5f0166"
+    sha256 big_sur:        "39cba6f1ce9a9039e99c32f130d5ef88932c098355673aaa898e7ca0215a37b8"
+    sha256 catalina:       "01af4be809ca6182195e1a65c8722db7b1044c6aa5e765a29ceb66d31aee1e9b"
+    sha256 x86_64_linux:   "7b87389923ce699c38bd8b3f7ede176114b43290549a344ff0d5ef8ec984fd98"
   end
 
   depends_on "cmake" => :build
+  depends_on "lua" => :build
   depends_on "boost"
   depends_on "geos"
-  depends_on "lua"
+  depends_on "luajit-openresty"
   depends_on "postgresql"
   depends_on "proj"
 
@@ -23,21 +28,17 @@ class Osm2pgsql < Formula
     # This is essentially a CMake disrespects superenv problem
     # rather than an upstream issue to handle.
     lua_version = Formula["lua"].version.to_s.match(/\d\.\d/)
-    inreplace "cmake/FindLua.cmake", "LUA_VERSIONS5 5.3 5.2 5.1 5.0",
-                                     "LUA_VERSIONS5 #{lua_version}"
-
-    # Use Proj 6.0.0 compatibility headers
-    # https://github.com/openstreetmap/osm2pgsql/issues/922
-    # and https://github.com/osmcode/libosmium/issues/277
-    ENV.append_to_cflags "-DACCEPT_USE_OF_DEPRECATED_PROJ_API_H"
+    inreplace "cmake/FindLua.cmake", /set\(LUA_VERSIONS5( \d\.\d)+\)/,
+                                     "set(LUA_VERSIONS5 #{lua_version})"
 
     mkdir "build" do
-      system "cmake", "..", *std_cmake_args
+      system "cmake", "-DWITH_LUAJIT=ON", "-DUSE_PROJ_LIB=6", "..", *std_cmake_args
       system "make", "install"
     end
   end
 
   test do
-    assert_match version.to_s, shell_output("#{bin}/osm2pgsql -h 2>&1")
+    assert_match "Connecting to database failed: connection to server",
+                 shell_output("#{bin}/osm2pgsql /dev/null 2>&1", 1)
   end
 end

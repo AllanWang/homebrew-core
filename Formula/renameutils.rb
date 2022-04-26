@@ -3,20 +3,29 @@ class Renameutils < Formula
   homepage "https://www.nongnu.org/renameutils/"
   url "https://download.savannah.gnu.org/releases/renameutils/renameutils-0.12.0.tar.gz"
   sha256 "cbd2f002027ccf5a923135c3f529c6d17fabbca7d85506a394ca37694a9eb4a3"
-  revision 2
+  license "GPL-3.0-or-later"
+  revision 3
+
+  livecheck do
+    url "https://download.savannah.gnu.org/releases/renameutils/"
+    regex(/href=.*?renameutils[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "9f13f1f0096e9875dfa28466cf6689203c7018a8b38cf32def6567f63fd1d3e0" => :mojave
-    sha256 "69dacfc5145602d3310aac38122aa7385956fbfb56c9af97adee0f77c2c01453" => :high_sierra
-    sha256 "89d596e819476c80807653aaf8a20f7cef7976f53570e4242d87ccebea4cb92f" => :sierra
+    sha256 cellar: :any, arm64_monterey: "a6570746ef47eed43cbde686b8ebf162559a9ada031bab821064c5e0754135a8"
+    sha256 cellar: :any, arm64_big_sur:  "0ea05fad50a7a43df09d3bbb652140e5037e91320ff9e549a9ad0cf41dfaa958"
+    sha256 cellar: :any, monterey:       "93a4fb65fd3bba13cd797f0c374981b8dde01ee25a0b0637f6e4448b655457e4"
+    sha256 cellar: :any, big_sur:        "503b84eed8791b4a924e61fdfb0ea53cb6d349fe8a55c43ab7582c1e2a0985ba"
+    sha256 cellar: :any, catalina:       "2ec48c66fea9f53acf2b2ba3b726e6f7a9ff35778a3fb574fc59e7c6d01f681a"
+    sha256 cellar: :any, mojave:         "4f360267cba9842ef85e9cfbb1baaf73e9576dccfb924aade7f0ad6bbf0bf605"
+    sha256 cellar: :any, high_sierra:    "d25dc64bcc5d30e7695c65a93f7285849b57fdbdb18bf7d5e7bc22f0786cb14c"
+    sha256               x86_64_linux:   "1a7ddae9fa3352ec89e73c91eaabedc5e941e3e752fdf5afda5b5098fb65cd7c"
   end
 
   depends_on "coreutils"
   depends_on "readline" # Use instead of system libedit
 
-  conflicts_with "ipmiutil", :because => "both install `icmd` binaries"
-  conflicts_with "irods", :because => "both install `icp` and `imv` binaries"
+  conflicts_with "ipmiutil", because: "both install `icmd` binaries"
 
   # Use the GNU versions of certain system utilities. See:
   # https://trac.macports.org/ticket/24525
@@ -24,9 +33,15 @@ class Renameutils < Formula
   # The fourth patch is new and fixes a Makefile syntax error that causes
   # make install to fail.  Reported upstream via email and fixed in HEAD.
   # Remove patch #4 at version > 0.12.0.  The first three should persist.
-  patch :DATA
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/85fa66a9/renameutils/0.12.0.patch"
+    sha256 "ed964edbaf388db40a787ffd5ca34d525b24c23d3589c68dc9aedd8b45160cd9"
+  end
 
   def install
+    # Work around build failure on Apple Silicon due to trying to use deprecated stat64.
+    # io-utils.c:93:19: error: variable has incomplete type 'struct stat64'
+    ENV["ac_cv_func_lstat64"] = "no" if Hardware::CPU.arm?
     system "./configure", "--disable-dependency-tracking",
                           "--prefix=#{prefix}",
                           "--with-packager=Homebrew"
@@ -41,54 +56,3 @@ class Renameutils < Formula
     assert_equal File.read("test.txt"), File.read("test.txt.2")
   end
 end
-
-__END__
---- a/src/apply.c
-+++ b/src/apply.c
-@@ -72,9 +72,9 @@ perform_command(FileSpec *spec)
-     if (force_command != NULL)
-         command = force_command;
-     else if (strcmp(program, "qmv") == 0)
--        command = "mv";
-+        command = "gmv";
-     else
--        command = "cp";
-+        command = "gcp";
- 
-     child = fork();
-     if (child < 0) {
---- a/src/icmd.c
-+++ b/src/icmd.c
-@@ -45,8 +45,8 @@
- #include "common/string-utils.h"
- #include "common/common.h"
- 
--#define MV_COMMAND "mv"
--#define CP_COMMAND "cp"
-+#define MV_COMMAND "gmv"
-+#define CP_COMMAND "gcp"
- /* This list should be up to date with mv and cp!
-  * It was last updated on 2007-11-30 for
-  * Debian coreutils 5.97-5.4 in unstable.
---- a/src/qcmd.c	2011-08-21 10:15:51.000000000 -0700
-+++ b/src/qcmd.c	2012-06-28 15:51:48.000000000 -0700
-@@ -239,7 +239,7 @@
-     editor_program = xstrdup(editor_program);
- 
-     if (ls_program == NULL)
--        ls_program = xstrdup("ls");
-+        ls_program = xstrdup("gls");
- 
-     /* Parse format options */
-     if (format_options != NULL && !format->parse_options(format_options))
---- a/src/Makefile.in	2012-04-23 04:24:10.000000000 -0700
-+++ b/src/Makefile.in	2012-06-29 00:42:45.000000000 -0700
-@@ -1577,7 +1577,7 @@
- 	@[ -f icp ] || (echo $(LN_S) icmd icp ; $(LN_S) icmd icp)
- 
- install-exec-local:
--	$(mkdir_p) $(DESTDIR)($bindir)
-+	$(mkdir_p) $(DESTDIR)$(bindir)
- 	@[ -f $(DESTDIR)$(bindir)/qmv ] || (echo $(LN_S) qcmd $(DESTDIR)$(bindir)/qmv ; $(LN_S) qcmd $(DESTDIR)$(bindir)/qmv)
- 	@[ -f $(DESTDIR)$(bindir)/qcp ] || (echo $(LN_S) qcmd $(DESTDIR)$(bindir)/qcp ; $(LN_S) qcmd $(DESTDIR)$(bindir)/qcp)
- 	@[ -f $(DESTDIR)$(bindir)/imv ] || (echo $(LN_S) icmd $(DESTDIR)$(bindir)/imv ; $(LN_S) icmd $(DESTDIR)$(bindir)/imv)

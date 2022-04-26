@@ -1,22 +1,36 @@
 class Udis86 < Formula
   desc "Minimalistic disassembler library for x86"
   homepage "https://udis86.sourceforge.io"
-  url "https://downloads.sourceforge.net/udis86/udis86-1.7.2.tar.gz"
+  url "https://downloads.sourceforge.net/project/udis86/udis86/1.7/udis86-1.7.2.tar.gz"
   sha256 "9c52ac626ac6f531e1d6828feaad7e797d0f3cce1e9f34ad4e84627022b3c2f4"
+  revision 1
+
+  livecheck do
+    url :stable
+    regex(%r{url=.*?/udis86[._-]v?(\d+(?:\.\d+)+)\.t}i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "b510a8349883e86135cf030953df54b671cf668a1e3e5020fc059a0f6f92a52d" => :mojave
-    sha256 "cefad0043918886a862a040adf2450699c00cbef3fd561bbc8867e2328b16ac8" => :high_sierra
-    sha256 "e3774a825eda78db57585c75b739dc60d0c069e35c8666575f5889908b0735d5" => :sierra
-    sha256 "e763db7beca50f11ab341f13f5fd571513f4847772bb70ef83d94bb576427673" => :el_capitan
-    sha256 "bcd6eb347f55bc856ceb64604d3bace30219e346de34caa8be7de2b52a1cb35d" => :yosemite
-    sha256 "84b56e3d62695b2c39c2c450d94fcd258439baedbcd68980a19b685f2e2b95c9" => :mavericks
+    sha256 cellar: :any,                 arm64_monterey: "d21c7de8ded29dbf2218802883f3a2e702e338722345b06aeab3a5146b81b29e"
+    sha256 cellar: :any,                 arm64_big_sur:  "97a5c453ede751fa70387f5c66f3c618bdc421d29ed1da6ec6e002b0efd7705f"
+    sha256 cellar: :any,                 monterey:       "d3b5ae26039dad3f35b3ead709fb8ee9be23ccaeb619d0b009830e7d94e151db"
+    sha256 cellar: :any,                 big_sur:        "d34571cf019e170edc18b80d678db9d27d1cbbeab7e4c1ba9e667868a1d3dd43"
+    sha256 cellar: :any,                 catalina:       "6e9b87a5a4d1de46246e92bc536113a6a56ec0c4565c2c0c0d122eb34ff4025b"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "a8a15d4f3b8bad23184fdace5ddc482e4d1b5d7f98030791ecf91983ec909d5a"
+  end
+
+  depends_on "python@3.10" => :build
+
+  # Fix -flat_namespace being used on Big Sur and later.
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-pre-0.4.2.418-big_sur.diff"
+    sha256 "83af02f2aa2b746bb7225872cab29a253264be49db0ecebb12f841562d9a2923"
   end
 
   def install
     system "./configure", "--prefix=#{prefix}",
-                          "--enable-shared"
+                          "--enable-shared",
+                          "--with-python=#{which("python3")}"
     system "make"
     system "make", "install"
   end

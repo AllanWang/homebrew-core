@@ -1,90 +1,127 @@
 class S2geometry < Formula
   desc "Computational geometry and spatial indexing on the sphere"
-  homepage "https://github.com/google/s2geometry.git"
-  url "https://github.com/google/s2geometry/archive/v0.9.0.tar.gz"
-  sha256 "54c09b653f68929e8929bffa60ea568e26f3b4a51e1b1734f5c3c037f1d89062"
+  homepage "https://github.com/google/s2geometry"
+  url "https://github.com/google/s2geometry/archive/v0.10.0.tar.gz"
+  sha256 "1c17b04f1ea20ed09a67a83151ddd5d8529716f509dde49a8190618d70532a3d"
+  license "Apache-2.0"
+
+  livecheck do
+    url :homepage
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "8da23e65efaf589541edbc5175d660a25f77fe561638cec60aa2ac8bb060eb27" => :mojave
-    sha256 "20ddf938193fdab274d143c291d1ace3fafc9805809fb8ee94f4268b614e6c59" => :high_sierra
-    sha256 "88dab2878c97148b09b3bb611336ea1327e7c1b9cb2a98b429213a33a59160ae" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "f5ae62a781be74d570f0c650bcc0cadd0c3c4a2138c8fe4d84b3cf92b45b8bab"
+    sha256 cellar: :any,                 arm64_big_sur:  "c1eb8f9f0550ef3fd9ac28d0e2ef2439267a58700e5a14ead2cee7a8d6419829"
+    sha256 cellar: :any,                 monterey:       "1517a221db901db944d606c2cb25680feeee9a89bacdec865167f7aac07d3410"
+    sha256 cellar: :any,                 big_sur:        "9af8adbc134bf233951eca8d1092d5ad1113304dbff197cb3e8c56a35c11a542"
+    sha256 cellar: :any,                 catalina:       "d9b29aad13307081b4f4d00e082a1698314ebc8f690d05e86b1c11bcdae89dc7"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "e57418caf840a4991114d7660c29eec116c5105efdb676248057d25caad44983"
   end
 
   depends_on "cmake" => :build
-  depends_on "glog" => :build
-  depends_on "openssl"
+  depends_on "abseil"
+  depends_on "glog"
+  depends_on "openssl@1.1"
 
-  resource "gtest" do
-    url "https://github.com/google/googletest/archive/release-1.8.1.tar.gz"
-    sha256 "9bf1fe5182a604b4135edc1a425ae356c9ad15e9b23f9f12a02e80184c3a249c"
+  on_linux do
+    depends_on "gcc"
   end
 
-  def install
-    ENV["OPENSSL_ROOT_DIR"] = Formula["openssl"].opt_prefix
+  fails_with gcc: "5" # C++17
 
-    (buildpath/"gtest").install resource "gtest"
-    (buildpath/"gtest/googletest").cd do
-      system "cmake", "."
-      system "make"
-    end
-    ENV["CXXFLAGS"] = "-I../gtest/googletest/include"
+  def install
+    # Abseil is built with C++17 and s2geometry needs to use the same C++ standard.
+    inreplace "CMakeLists.txt", "set(CMAKE_CXX_STANDARD 11)", "set(CMAKE_CXX_STANDARD 17)"
+
+    ENV["OPENSSL_ROOT_DIR"] = Formula["openssl@1.1"].opt_prefix
 
     args = std_cmake_args + %w[
+      -DWITH_GFLAGS=1
       -DWITH_GLOG=1
-      ..
     ]
 
-    mkdir "build-shared" do
-      system "cmake", *args
-      system "make", "s2"
-      lib.install "libs2.dylib"
-    end
-    mkdir "build" do
-      system "cmake", *args, "-DBUILD_SHARED_LIBS=OFF",
-                             "-DOPENSSL_USE_STATIC_LIBS=TRUE"
-      system "make", "install"
-    end
+    system "cmake", "-S", ".", "-B", "build/shared", *args
+    system "cmake", "--build", "build/shared"
+    system "cmake", "--install", "build/shared"
+
+    system "cmake", "-S", ".", "-B", "build/static", *args,
+                    "-DBUILD_SHARED_LIBS=OFF",
+                    "-DOPENSSL_USE_STATIC_LIBS=TRUE"
+    system "cmake", "--build", "build/static"
+    lib.install "build/static/libs2.a"
   end
 
   test do
     (testpath/"test.cpp").write <<~EOS
       #include <cinttypes>
+      #include <cmath>
       #include <cstdint>
       #include <cstdio>
       #include "s2/base/commandlineflags.h"
       #include "s2/s2earth.h"
+      #include "absl/flags/flag.h"
       #include "s2/s1chord_angle.h"
       #include "s2/s2closest_point_query.h"
       #include "s2/s2point_index.h"
-      #include "s2/s2testing.h"
 
-      DEFINE_int32(num_index_points, 10000, "Number of points to index");
-      DEFINE_int32(num_queries, 10000, "Number of queries");
-      DEFINE_double(query_radius_km, 100, "Query radius in kilometers");
+      S2_DEFINE_int32(num_index_points, 10000, "Number of points to index");
+      S2_DEFINE_int32(num_queries, 10000, "Number of queries");
+      S2_DEFINE_double(query_radius_km, 100, "Query radius in kilometers");
+
+      inline uint64 GetBits(int num_bits) {
+        S2_DCHECK_GE(num_bits, 0);
+        S2_DCHECK_LE(num_bits, 64);
+        static const int RAND_BITS = 31;
+        uint64 result = 0;
+        for (int bits = 0; bits < num_bits; bits += RAND_BITS) {
+          result = (result << RAND_BITS) + random();
+        }
+        if (num_bits < 64) {  // Not legal to shift by full bitwidth of type
+          result &= ((1ULL << num_bits) - 1);
+        }
+        return result;
+      }
+
+      double RandDouble() {
+        const int NUM_BITS = 53;
+        return ldexp(GetBits(NUM_BITS), -NUM_BITS);
+      }
+
+      double UniformDouble(double min, double limit) {
+        S2_DCHECK_LT(min, limit);
+        return min + RandDouble() * (limit - min);
+      }
+
+      S2Point RandomPoint() {
+        double x = UniformDouble(-1, 1);
+        double y = UniformDouble(-1, 1);
+        double z = UniformDouble(-1, 1);
+        return S2Point(x, y, z).Normalize();
+      }
 
       int main(int argc, char **argv) {
         S2PointIndex<int> index;
-        for (int i = 0; i < FLAGS_num_index_points; ++i) {
-          index.Add(S2Testing::RandomPoint(), i);
+        for (int i = 0; i < absl::GetFlag(FLAGS_num_index_points); ++i) {
+          index.Add(RandomPoint(), i);
         }
 
         S2ClosestPointQuery<int> query(&index);
-        query.mutable_options()->set_max_distance(
-            S1Angle::Radians(S2Earth::KmToRadians(FLAGS_query_radius_km)));
+        query.mutable_options()->set_max_distance(S1Angle::Radians(
+          S2Earth::KmToRadians(absl::GetFlag(FLAGS_query_radius_km))));
 
         int64_t num_found = 0;
-        for (int i = 0; i < FLAGS_num_queries; ++i) {
-          S2ClosestPointQuery<int>::PointTarget target(S2Testing::RandomPoint());
+        for (int i = 0; i < absl::GetFlag(FLAGS_num_queries); ++i) {
+          S2ClosestPointQuery<int>::PointTarget target(RandomPoint());
           num_found += query.FindClosestPoints(&target).size();
         }
 
         return  0;
       }
     EOS
-    system ENV.cxx, "test.cpp", "-std=c++11", "-L#{lib}",
-                    "-ls2", "-ls2testing",
-                    "-o", "test"
+    system ENV.cxx, "-std=c++11", "test.cpp", "-o", "test",
+                    "-I#{Formula["openssl@1.1"].opt_include}",
+                    "-L#{lib}", "-ls2"
     system "./test"
   end
 end

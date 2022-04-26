@@ -1,16 +1,18 @@
 class Openjazz < Formula
   desc "Open source Jazz Jackrabit engine"
   homepage "http://www.alister.eu/jazz/oj/"
-  url "https://github.com/AlisterT/openjazz/releases/download/20180522/openjazz-20180522.tar.xz"
-  sha256 "35260066f307ff7e31304907a2a430a20b8d1fa5f90ad2c13275ab3aca337c24"
-  head "https://github.com/AlisterT/openjazz.git"
+  url "https://github.com/AlisterT/openjazz/archive/20190106.tar.gz"
+  sha256 "27da3ab32cb6b806502a213c435e1b3b6ecebb9f099592f71caf6574135b1662"
+  license "GPL-2.0"
+  head "https://github.com/AlisterT/openjazz.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "c0f7a1ea63036f0fe37ddc60e4d161fadc549ef84de52ee1ec88c3c00516608f" => :mojave
-    sha256 "25b2ba3440262667196d729f4e88604dfb74e6c9191b92e30d31a241d9aab090" => :high_sierra
-    sha256 "ea4d18c72bc6cf5a5393d9f7ed8c40fc66d8355181c93249a926d47029eeae9c" => :sierra
-    sha256 "f410241a95a93323d5dd94fd7469b3912ce4105cbe3c3e5483b301f5ea642794" => :el_capitan
+    sha256 cellar: :any,                 arm64_big_sur: "0c93957029786455fa5dcaa7441408e0f1f5e4e5503019b056959638f54b082a"
+    sha256 cellar: :any,                 big_sur:       "f38330100102887cadfe0929d42e4f61b743e3a9e8417a78d3da7c9bf620217b"
+    sha256 cellar: :any,                 catalina:      "9f6f4144256364824f4c16c430aaa738e6675f031f8bd7eaa76fa33d4d367430"
+    sha256 cellar: :any,                 mojave:        "06066b8e0bf792d894ceb24ed1ec5409ad896982db87ecab8c07278eabdc3f98"
+    sha256 cellar: :any,                 high_sierra:   "b5684fc3faa686f06f9600e8c4bb9c787c7cbf3eb100fc8a64a52502e84ce2ca"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:  "5695fc1b02ff050deb2b42bff183e7fbbdf51ad4a679bf65d64552cf49f1ca63"
   end
 
   depends_on "autoconf" => :build
@@ -18,6 +20,8 @@ class Openjazz < Formula
   depends_on "pkg-config" => :build
   depends_on "libmodplug"
   depends_on "sdl"
+
+  uses_from_macos "zlib"
 
   # From LICENSE.DOC:
   # "Epic MegaGames allows and encourages all bulletin board systems and online
@@ -54,11 +58,12 @@ class Openjazz < Formula
     end
   end
 
-  def caveats; <<~EOS
-    The shareware version of Jazz Jackrabbit has been installed.
-    You can install the full version by copying the game files to:
-      #{pkgshare}
-  EOS
+  def caveats
+    <<~EOS
+      The shareware version of Jazz Jackrabbit has been installed.
+      You can install the full version by copying the game files to:
+        #{pkgshare}
+    EOS
   end
 end
 

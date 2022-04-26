@@ -1,12 +1,21 @@
 class Kumo < Formula
   desc "Word Clouds in Java"
   homepage "https://github.com/kennycason/kumo"
-  url "https://search.maven.org/remotecontent?filepath=com/kennycason/kumo-cli/1.17/kumo-cli-1.17.jar"
-  sha256 "17f84d6287eeccf361c9eabe6d7449983c13d777afd161105a324c00adcadd0e"
+  url "https://search.maven.org/remotecontent?filepath=com/kennycason/kumo-cli/1.28/kumo-cli-1.28.jar"
+  sha256 "43e4e2ea9da62a2230deed9151d8484f80bd6ae5fef304eaadf3301378f45fb6"
+  license "MIT"
 
-  bottle :unneeded
+  livecheck do
+    url "https://search.maven.org/remotecontent?filepath=com/kennycason/kumo-cli/maven-metadata.xml"
+    regex(%r{<version>v?(\d+(?:\.\d+)+)</version>}i)
+  end
 
-  depends_on :java => "1.8+"
+  bottle do
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, all: "596af3ddc1bc9b8881fbc386ae85804fe999cee118a99fc13e123db2c5acefe1"
+  end
+
+  depends_on "openjdk"
 
   def install
     libexec.install "kumo-cli-#{version}.jar"

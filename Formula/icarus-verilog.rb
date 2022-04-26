@@ -1,28 +1,47 @@
 class IcarusVerilog < Formula
   desc "Verilog simulation and synthesis tool"
   homepage "http://iverilog.icarus.com/"
-  url "ftp://icarus.com/pub/eda/verilog/v10/verilog-10.2.tar.gz"
-  mirror "https://deb.debian.org/debian/pool/main/i/iverilog/iverilog_10.2.orig.tar.gz"
-  sha256 "96dedbddb12d375edb45a144a926a3ba1e3e138d6598b18e7d79f2ae6de9e500"
-  revision 1
+  url "https://github.com/steveicarus/iverilog/archive/v11_0.tar.gz"
+  mirror "https://deb.debian.org/debian/pool/main/i/iverilog/iverilog_11.0.orig.tar.gz"
+  sha256 "6327fb900e66b46803d928b7ca439409a0dc32731d82143b20387be0833f1c95"
+  license all_of: ["GPL-2.0-or-later", "LGPL-2.1-or-later"]
+  head "https://github.com/steveicarus/iverilog.git", branch: "master"
+
+  livecheck do
+    url :stable
+    strategy :github_latest
+    regex(%r{href=.*?/tag/v?(\d+(?:[._]\d+)+)["' >]}i)
+  end
 
   bottle do
-    sha256 "22e4b636b8a68f5b2738c619e5d8093af32a58ee818b2c594de14e5a4b9234c8" => :mojave
-    sha256 "8e4f4c412b26be688684ed14715b4cc80a14eba73dd30d5e8b8faf93a1eae6e9" => :high_sierra
-    sha256 "579e249fe16e0151d98ad2829a4817e75aa12e5943734e0e60bf8397764f593c" => :sierra
-    sha256 "696c7b11f0b3127c22fd839b3f32645b03335a0c24f6cf0b965e96c7bb756815" => :el_capitan
+    sha256 arm64_monterey: "2ac5133198143cad8b5b04e6eabc60b0e5d9b124881b2d07531c7a4fa1e1eab3"
+    sha256 arm64_big_sur:  "8c5b344e8564ddd8834922e65bb6ed4fd3951bfdbab3a80064cb8a40f53fc643"
+    sha256 monterey:       "e7fc5ea4149ccff8b4187eab05be448d1b1cc1f5ece057e9c441d8f3882390a4"
+    sha256 big_sur:        "e4f89cc6c8f66d90e45af4357c496ec2ba49ea48ca04e552ca318ff31e825489"
+    sha256 catalina:       "99791a3fd0891487586c49112fa3293e65320e651bbf9c03f15a58b456e96e6e"
+    sha256 mojave:         "92851adfb43caad0826da2bf74706c15e6fffc2e32b2b003e19659b0e6a4542b"
+    sha256 high_sierra:    "a92f6fe981238a8c2b9f47b99d77c1e8596bc74235b8f6601835aae8f9ad70a1"
+    sha256 x86_64_linux:   "edee1d331189156e7929b50aa7c7515ad15e8721650d936028905aade9e8fccb"
   end
 
-  head do
-    url "https://github.com/steveicarus/iverilog.git"
-    depends_on "autoconf" => :build
-  end
-
+  # support for autoconf >= 2.70 was added after the current release
+  # switch to `autoconf` in the next release
+  # ref: https://github.com/steveicarus/iverilog/commit/4b3e1099e5517333dd690ba948bce1236466a395
+  depends_on "autoconf@2.69" => :build
   # parser is subtly broken when processed with an old version of bison
   depends_on "bison" => :build
 
+  uses_from_macos "flex" => :build
+  uses_from_macos "gperf" => :build
+  uses_from_macos "bzip2"
+  uses_from_macos "zlib"
+
+  on_linux do
+    depends_on "readline"
+  end
+
   def install
-    system "autoconf" if build.head?
+    system "autoconf"
     system "./configure", "--prefix=#{prefix}"
     # https://github.com/steveicarus/iverilog/issues/85
     ENV.deparallelize

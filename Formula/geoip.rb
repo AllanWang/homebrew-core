@@ -3,14 +3,18 @@ class Geoip < Formula
   homepage "https://github.com/maxmind/geoip-api-c"
   url "https://github.com/maxmind/geoip-api-c/releases/download/v1.6.12/GeoIP-1.6.12.tar.gz"
   sha256 "1dfb748003c5e4b7fd56ba8c4cd786633d5d6f409547584f6910398389636f80"
-  head "https://github.com/maxmind/geoip-api-c.git"
+  license "LGPL-2.1-or-later"
+  head "https://github.com/maxmind/geoip-api-c.git", branch: "main"
 
   bottle do
-    cellar :any
-    rebuild 1
-    sha256 "311704d07adf7fa502e60bd0e462ba26f6830838c09461f8bbac38ccb5da77f1" => :mojave
-    sha256 "17db912ce8ffcd831d775f22c1ea428faf55d7ecb4dd19cdba6ab3234874417c" => :high_sierra
-    sha256 "166b2195350b830ddcaea41a24dbdbcea48b9d42f96673088dd3d51b8d5774d7" => :sierra
+    rebuild 2
+    sha256 cellar: :any,                 arm64_monterey: "c2ae63b815cc930a90d57c78a1d7a51a57085d67aa20431db716982353a950b2"
+    sha256 cellar: :any,                 arm64_big_sur:  "fd8787e3b88f91d97504992874d3fd358c6865e03fc19c5123b8e7f1a691f0dd"
+    sha256 cellar: :any,                 monterey:       "f441710caf103a53272a50e4720f1885f858986c6306fcc4a078ef8d193cca59"
+    sha256 cellar: :any,                 big_sur:        "a3bcb8d9c69277cb943fa30f00715325ee1c4f0c3e9aeb58e0c4a288f6705313"
+    sha256 cellar: :any,                 catalina:       "140477567aa37b0418e1976bdc5f75bc0f933405c157e7170ae3441ee3fc74aa"
+    sha256 cellar: :any,                 mojave:         "e10d69d8595116bdb562b0ede63d7bd04f606c66becd3c03fb1e6d06ba99a964"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "fb045793a66f36a2737a3bdc3c8513c5822702778c223123dceceff61e847080"
   end
 
   resource "database" do
@@ -23,7 +27,6 @@ class Geoip < Formula
                           "--disable-silent-rules",
                           "--datadir=#{var}",
                           "--prefix=#{prefix}"
-    system "make", "check"
     system "make", "install"
   end
 
@@ -36,9 +39,9 @@ class Geoip < Formula
     cp Dir["#{legacy_data}/*"], geoip_data if legacy_data.exist?
 
     full = Pathname.new "#{geoip_data}/GeoIP.dat"
-    ln_s "GeoLiteCountry.dat", full unless full.exist? || full.symlink?
+    ln_s "GeoLiteCountry.dat", full if !full.exist? && !full.symlink?
     full = Pathname.new "#{geoip_data}/GeoIPCity.dat"
-    ln_s "GeoLiteCity.dat", full unless full.exist? || full.symlink?
+    ln_s "GeoLiteCity.dat", full if !full.exist? && !full.symlink?
   end
 
   test do

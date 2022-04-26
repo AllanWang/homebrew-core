@@ -1,50 +1,57 @@
 class Daq < Formula
   desc "Network intrusion prevention and detection system"
   homepage "https://www.snort.org/"
-  url "https://www.mirrorservice.org/sites/distfiles.macports.org/daq/daq-2.0.6.tar.gz"
-  mirror "https://fossies.org/linux/misc/daq-2.0.6.tar.gz"
-  sha256 "b40e1d1273e08aaeaa86e69d4f28d535b7e53bdb3898adf539266b63137be7cb"
+  url "https://github.com/snort3/libdaq/archive/v3.0.6.tar.gz"
+  mirror "https://fossies.org/linux/misc/libdaq-3.0.6.tar.gz"
+  sha256 "08455b2f09dd4b83067810464a98d25e644383375156f8be0c52ca5b5331350e"
+  license "GPL-2.0-only"
+  head "https://github.com/snort3/libdaq.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "0cc2e4509d68cc4c8b59e0e398003d7f57d50d8c85e4f4c66fc943b215da4075" => :mojave
-    sha256 "d01c68e8ece0df01a1132b9591dad43a84381e601848915972fdbe9497ecada2" => :high_sierra
-    sha256 "f0be58035bc6f4764567cf186673035818e6025d027695795f959fdfc88c7806" => :sierra
-    sha256 "9c2720bd46954e9f2631801d8f8283974436a82827f01c9e954e319f0b9f7e88" => :el_capitan
-    sha256 "02d198f42f56471feaf127824230d7ea752490b3c7f5a34f8b50ff0a85062f01" => :yosemite
-    sha256 "8ce4fbbbb9f6189f6ee51d3223a81ebc7ea76069353bd284822989d6ccc364a5" => :mavericks
+    sha256 cellar: :any,                 arm64_monterey: "d9b3ee5412c02960d47e7ec751a77cb7db4c90248e8d0acc86b5109706b94d9a"
+    sha256 cellar: :any,                 arm64_big_sur:  "de7c31db17594cfe76b75b247959bd6771c1deacdd4c170e227e88745ecdf350"
+    sha256 cellar: :any,                 monterey:       "7f3cc6fc33f45e6f30fb87be6687d85f137b0e2b0e23144e67c0d72f040c9adb"
+    sha256 cellar: :any,                 big_sur:        "b19e476f082f9e81038faa89b6f949b382bcac25a688325e5e28973b7367376d"
+    sha256 cellar: :any,                 catalina:       "0b3e1622d7fa64426a06b9d9e2055a4a54c06cd4027a9ea3621eacda242c380e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "0c90c7b2ca952f926fd80f70612b1b1084fed2cfddc08634266e628ede24ea15"
   end
 
-  # libpcap on >= 10.12 has pcap_lib_version() instead of pcap_version
-  # Reported 8 Oct 2017 to bugs AT snort DOT org
-  if MacOS.version >= :sierra
-    patch do
-      url "https://raw.githubusercontent.com/Homebrew/formula-patches/b345dac/daq/patch-pcap-version.diff"
-      sha256 "20d2bf6aec29824e2b7550f32251251cdc9d7aac3a0861e81a68cd0d1e513bf3"
-    end
-  end
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
+  depends_on "libtool" => :build
+  depends_on "pkg-config" => :build
+
+  uses_from_macos "libpcap"
 
   def install
-    system "./configure", "--disable-dependency-tracking",
-                          "--disable-silent-rules",
-                          "--prefix=#{prefix}"
+    system "./bootstrap"
+    system "./configure", *std_configure_args, "--disable-silent-rules"
     system "make", "install"
   end
 
   test do
     (testpath/"test.c").write <<~EOS
-      #include <daq.h>
+      #include <assert.h>
       #include <stdio.h>
+      #include <daq.h>
+      #include <daq_module_api.h>
+
+      extern const DAQ_ModuleAPI_t pcap_daq_module_data;
+      static DAQ_Module_h static_modules[] = { &pcap_daq_module_data, NULL };
 
       int main()
       {
-        DAQ_Module_Info_t* list;
-        int size = daq_get_module_list(&list);
-        daq_free_module_list(list, size);
+        int rval = daq_load_static_modules(static_modules);
+        assert(rval == 1);
+        DAQ_Module_h module = daq_modules_first();
+        assert(module != NULL);
+        printf("[%s] - Type: 0x%x", daq_module_get_name(module), daq_module_get_type(module));
+        module = daq_modules_next();
+        assert(module == NULL);
         return 0;
       }
     EOS
-    system ENV.cc, "test.c", "-L#{lib}", "-ldaq", "-o", "test"
-    system "./test"
+    system ENV.cc, "test.c", "-L#{lib}", "-ldaq", "-ldaq_static_pcap", "-lpcap", "-lpthread", "-o", "test"
+    assert_match "[pcap] - Type: 0xb", shell_output("./test")
   end
 end

@@ -1,38 +1,64 @@
 class Libtool < Formula
   desc "Generic library support script"
   homepage "https://www.gnu.org/software/libtool/"
-  url "https://ftp.gnu.org/gnu/libtool/libtool-2.4.6.tar.xz"
-  mirror "https://ftpmirror.gnu.org/libtool/libtool-2.4.6.tar.xz"
-  sha256 "7c87a8c2c8c0fc9cd5019e402bed4292462d00a718a7cd5f11218153bf28b26f"
-  revision 1
+  url "https://ftp.gnu.org/gnu/libtool/libtool-2.4.7.tar.xz"
+  mirror "https://ftpmirror.gnu.org/libtool/libtool-2.4.7.tar.xz"
+  sha256 "4f7f217f057ce655ff22559ad221a0fd8ef84ad1fc5fcb6990cecc333aa1635d"
+  license "GPL-2.0-or-later"
 
   bottle do
-    cellar :any
-    sha256 "c92ab35c3706c255a36b733aa7a475159da9cf375c275d230fd6a7802a94e4dc" => :mojave
-    sha256 "ebb50367eb2336ee317841587e24690de124fb2c3e4d346405e9b41c4e6120ae" => :high_sierra
-    sha256 "78a1f6c6644eae01eb5c204ef705f7e48721a0fe8ece492c10c84791061885db" => :sierra
-    sha256 "b7651d0a082e2f103f03ca3a5ed831e2ff5655ccc1044ac0452e4d1825475a35" => :el_capitan
-    sha256 "0eb206c0f51e8ce2e3e9340b5ce3c8ecef961ae6696f676073327a7ac04e5c0b" => :yosemite
-    sha256 "2e51ef82ef2bd1ad9d921a9016b9e5d7fa82d131849e2c32a3c90daa119e2eda" => :mavericks
+    sha256 cellar: :any,                 arm64_monterey: "5f92327e52a1196e8742cb5b3a64498c811d51aed658355c205858d2a835fdc9"
+    sha256 cellar: :any,                 arm64_big_sur:  "6f676b306c72b04dd0e24cc96f51117e91719a4743743dc5527c16bf03f21320"
+    sha256 cellar: :any,                 monterey:       "33bf8379256791a8e8752541bf4e182090dcef5f73aa8faa5f6521d16414a6ca"
+    sha256 cellar: :any,                 big_sur:        "bae30841faca7f4b91e5388c0db13cd6cc95df0182b6d21a62b4c1ea508ebb69"
+    sha256 cellar: :any,                 catalina:       "624bb469bae686405b26ac05706c5f750bed31cd23995a9fa91cc31646e0eadc"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "1cde2899a36adf5b04d25a9b8b4d6bec8a3099bc59ae68c63e479a4da8ca70b3"
   end
+
+  depends_on "m4"
 
   def install
-    ENV["SED"] = "sed" # prevent libtool from hardcoding sed path from superenv
-    system "./configure", "--disable-dependency-tracking",
-                          "--prefix=#{prefix}",
-                          "--program-prefix=g",
-                          "--enable-ltdl-install"
+    args = %W[
+      --disable-dependency-tracking
+      --prefix=#{prefix}
+      --enable-ltdl-install
+    ]
+
+    args << "--program-prefix=g" if OS.mac?
+
+    system "./configure", *args
     system "make", "install"
+
+    if OS.mac?
+      %w[libtool libtoolize].each do |prog|
+        (libexec/"gnubin").install_symlink bin/"g#{prog}" => prog
+        (libexec/"gnuman/man1").install_symlink man1/"g#{prog}.1" => "#{prog}.1"
+      end
+      libexec.install_symlink "gnuman" => "man"
+    end
+
+    if OS.linux?
+      bin.install_symlink "libtool" => "glibtool"
+      bin.install_symlink "libtoolize" => "glibtoolize"
+
+      # Avoid references to the Homebrew shims directory
+      inreplace bin/"libtool", Superenv.shims_path, "/usr/bin"
+    end
   end
 
-  def caveats; <<~EOS
-    In order to prevent conflicts with Apple's own libtool we have prepended a "g"
-    so, you have instead: glibtool and glibtoolize.
-  EOS
+  def caveats
+    on_macos do
+      <<~EOS
+        All commands have been installed with the prefix "g".
+        If you need to use these commands with their normal names, you
+        can add a "gnubin" directory to your PATH from your bashrc like:
+          PATH="#{opt_libexec}/gnubin:$PATH"
+      EOS
+    end
   end
 
   test do
-    system "#{bin}/glibtool", "execute", "/usr/bin/true"
+    system "#{bin}/glibtool", "execute", File.executable?("/usr/bin/true") ? "/usr/bin/true" : "/bin/true"
     (testpath/"hello.c").write <<~EOS
       #include <stdio.h>
       int main() { puts("Hello, world!"); return 0; }

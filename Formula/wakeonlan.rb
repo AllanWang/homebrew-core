@@ -1,18 +1,20 @@
 class Wakeonlan < Formula
   desc "Sends magic packets to wake up network-devices"
   homepage "https://github.com/jpoliv/wakeonlan"
-  url "https://github.com/jpoliv/wakeonlan/archive/wakeonlan-0.41.tar.gz"
-  sha256 "1d8c3cd106f515167e49134abb8209af891ca152a00ee94a8c5137f654e079bc"
+  url "https://github.com/jpoliv/wakeonlan/archive/v0.42.tar.gz"
+  sha256 "4f533f109f7f4294f6452b73227e2ce4d2aa81091cf6ae1f4fa2f87bad04a031"
+  license "Artistic-1.0-Perl"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "5fc2054a08a4ce9d08b5d004917acb1b57b198611f693503fca252550778a90b" => :mojave
-    sha256 "876e4fd4919523eb2db07159a7c7d82fa30bec74972f0ef69c55588831db8a4d" => :high_sierra
-    sha256 "2cb19ca9617f87fc2c14536434f17b44174336a739fed3ad83404ccfb412ee31" => :sierra
-    sha256 "7da7f512ae921016be21fa3899d4f01841e3da5bc96570fcd85b530e4e720c06" => :el_capitan
-    sha256 "78a5d905b250ddb09cc3fa4296f2ffc8c925788a7d8e5d05e96f5581e81a7e9d" => :yosemite
-    sha256 "0669ec3967a728dd2962727896711f418556491ad172483240e84110843998e0" => :mavericks
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "f541c4803bb947fd8bec2daa1ff9ddcc5c1f7aab2f2b1952cbae99bacea30d8c"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "cd9429ee013c7d939887d72d5876a7f617855bc521f372a9d30dd393917e874d"
+    sha256 cellar: :any_skip_relocation, monterey:       "f541c4803bb947fd8bec2daa1ff9ddcc5c1f7aab2f2b1952cbae99bacea30d8c"
+    sha256 cellar: :any_skip_relocation, big_sur:        "cd9429ee013c7d939887d72d5876a7f617855bc521f372a9d30dd393917e874d"
+    sha256 cellar: :any_skip_relocation, catalina:       "a54812034696435a392dd80980cd74b56c8dc2bc30a5d001b679637a00ce6b8e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "b1e0c7185796fd30b6592b244bcd1032fa019667e0dbc5fe92ea9ececf842f75"
   end
+
+  uses_from_macos "perl"
 
   def install
     system "perl", "Makefile.PL"

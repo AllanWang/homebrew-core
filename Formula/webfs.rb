@@ -6,19 +6,21 @@ class Webfs < Formula
   revision 1
 
   bottle do
-    cellar :any
-    sha256 "867fbe1f213380efb695d89fe6d4cc3e5197d2d303b3d70da72a45814aacc669" => :mojave
-    sha256 "bd713d90ce0e67a1cddf2b3274ddc7467e4b7b5c8ad8b80382e5c0c955c383c3" => :high_sierra
-    sha256 "cbdc088ed6befb87ecda08bf4a23a9eff3bf3d61932d98aa1f8441bb1c0fd3b5" => :sierra
-    sha256 "63755af9ac88711d4eb2e80016ef541ed40a1422f2fb2de3ded5c72b362cb39e" => :el_capitan
-    sha256 "51985bfb7ca68d15261a296886cf0c6b317d870bc79aadf881429101b9a11e09" => :yosemite
-    sha256 "79c670478aeb8f97d702a5112fde2dab07c92145ea836c12bfdf9a1acfca4232" => :mavericks
+    rebuild 1
+    sha256 cellar: :any, arm64_monterey: "fc1329e4945435c639c82dbdacc43a9ae55521188aa6fd672d3446bd06822df5"
+    sha256 cellar: :any, arm64_big_sur:  "1801afbf473ab499ddba5015432c87eed8f1316c921e181cf978dfae1c19a656"
+    sha256 cellar: :any, monterey:       "73ad4360c6dc78e9b517e0088b9c4a60a83a7fadadced409f119f8d4634644d5"
+    sha256 cellar: :any, big_sur:        "186343dd3f7bc14c248a9a52796f7afd63e430bdfaa71d570abb6142e7632b34"
+    sha256 cellar: :any, catalina:       "192b771c2cf819773c9581bcdc83dacb9954c241ab41837ff844f736a53d5a1e"
+    sha256 cellar: :any, mojave:         "f561f9dac64cd43165eefd01619d54042507a4f9a1d572c621e17229b63ec045"
+    sha256 cellar: :any, high_sierra:    "52608c9f1bd5d7e7fceec24bff51ca67e0739b1c83ae2676c6ca161fdfaaa4d7"
+    sha256 cellar: :any, sierra:         "9e678532e4546e4fabb9a96b9eb141769e00e330e15c9e5b453001141448c9fb"
   end
 
-  depends_on "openssl"
+  depends_on "openssl@1.1"
 
   patch :p0 do
-    url "https://raw.githubusercontent.com/Homebrew/formula-patches/0518a6d1/webfs/patch-ls.c"
+    url "https://github.com/Homebrew/formula-patches/raw/0518a6d1ed821aebf0de4de78e39b57d6e60e296/webfs/patch-ls.c"
     sha256 "8ddb6cb1a15f0020bbb14ef54a8ae5c6748a109564fa461219901e7e34826170"
   end
 
@@ -28,13 +30,12 @@ class Webfs < Formula
   end
 
   test do
-    begin
-      pid = fork { exec bin/"webfsd", "-F" }
-      sleep 2
-      assert_match %r{webfs\/1.21}, shell_output("curl localhost:8000")
-    ensure
-      Process.kill("SIGINT", pid)
-      Process.wait(pid)
-    end
+    port = free_port
+    pid = fork { exec bin/"webfsd", "-F", "-p", port.to_s }
+    sleep 5
+    assert_match %r{webfs/1.21}, shell_output("curl localhost:#{port}")
+  ensure
+    Process.kill("SIGINT", pid)
+    Process.wait(pid)
   end
 end

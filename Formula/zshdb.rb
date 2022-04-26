@@ -1,14 +1,27 @@
 class Zshdb < Formula
   desc "Debugger for zsh"
   homepage "https://github.com/rocky/zshdb"
-  url "https://downloads.sourceforge.net/project/bashdb/zshdb/1.0.0/zshdb-1.0.0.tar.gz"
-  sha256 "593faf4056683a5f2d2bb145c58a3ec9b62b5495003215fce22b4d9357593136"
+  url "https://downloads.sourceforge.net/project/bashdb/zshdb/1.1.2/zshdb-1.1.2.tar.gz"
+  sha256 "bf9cb36f60ce6833c5cd880c58d6741873b33f5d546079eebcfce258d609e9af"
+  license "GPL-3.0"
+
+  # We check the "zshdb" directory page because the bashdb project contains
+  # various software and zshdb releases may be pushed out of the SourceForge
+  # RSS feed.
+  livecheck do
+    url "https://sourceforge.net/projects/bashdb/files/zshdb/"
+    strategy :page_match
+    regex(%r{href=(?:["']|.*?zshdb/)?v?(\d+(?:[.-]\d+)+)/?["' >]}i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "01ec9d4e145a8baa08d28b9fe2d7b5b8ac23dbcd18c7418cd0255192da314bf1" => :mojave
-    sha256 "01ec9d4e145a8baa08d28b9fe2d7b5b8ac23dbcd18c7418cd0255192da314bf1" => :high_sierra
-    sha256 "5deb4b52890ad39981494b708b30f184fa7ec66c95528d93468c6bcb3b93bc91" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_big_sur: "388da120bb13ac218a9940ac65353776836a05a1d7b22b464d87800d5b7a8f91"
+    sha256 cellar: :any_skip_relocation, big_sur:       "192eac5cebd479f637b5a0d6ea50abb908f0ab2453b570e9888a16f1c5eea1ec"
+    sha256 cellar: :any_skip_relocation, catalina:      "2bdc583e95b4d4bd92624d48ce804561e3a337792dbba74f451a2507eb939704"
+    sha256 cellar: :any_skip_relocation, mojave:        "2bdc583e95b4d4bd92624d48ce804561e3a337792dbba74f451a2507eb939704"
+    sha256 cellar: :any_skip_relocation, high_sierra:   "2bdc583e95b4d4bd92624d48ce804561e3a337792dbba74f451a2507eb939704"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:  "0095aa6ebce686ac4a2208a3e0dfdabd31d05d191e19dd81270621743d5e63c0"
+    sha256 cellar: :any_skip_relocation, all:           "0095aa6ebce686ac4a2208a3e0dfdabd31d05d191e19dd81270621743d5e63c0"
   end
 
   head do

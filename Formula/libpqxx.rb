@@ -1,21 +1,36 @@
 class Libpqxx < Formula
   desc "C++ connector for PostgreSQL"
   homepage "http://pqxx.org/development/libpqxx/"
-  url "https://github.com/jtv/libpqxx/archive/6.4.5.tar.gz"
-  sha256 "86921fdb0fe54495a79d5af2c96f2c771098c31e9b352d0834230fd2799ad362"
+  url "https://github.com/jtv/libpqxx/archive/7.7.3.tar.gz"
+  sha256 "11e147bbe2d3024d68d29b38eab5d75899dbb6131e421a2dbf9f88bac9bf4b0d"
+  license "BSD-3-Clause"
 
   bottle do
-    cellar :any
-    sha256 "b7e05e165295e36748a07ab7016f0919b0907484682e9be96718f9b73c659332" => :mojave
-    sha256 "7a847d2a0b385c3db67b2e98ace52e15674f86ccdb31f51a6658164bfd3bb224" => :high_sierra
-    sha256 "8d79ba4de3bfcf6f32a8642b8f567b2bc3890327728a7c05efadf3d82864412d" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "735b7df4d11a673461099d606727b595d491ff1f73f441bd5cfdceced9706100"
+    sha256 cellar: :any,                 arm64_big_sur:  "42e1a8488b64bdd59fe427c9dba9667b0f23bf4fad08d937fab81482064a8af9"
+    sha256 cellar: :any,                 monterey:       "860504675d2b564be0b14e3240d22d65483d39bd1213ec3e2d4ebea7cc55dd16"
+    sha256 cellar: :any,                 big_sur:        "efefcdbac601d3c83b3cd646e7a0fe2fd33ea4b91b7f101b8c07fbc6e0a16916"
+    sha256 cellar: :any,                 catalina:       "92bf4e430fd554b0a415f6143ce589ac5e20650853fbde4baf7dd21e70bbe8a8"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d675a02a11124975690ccb5673bb8d0860c8d83c94518ea98bf52d61863a1e39"
   end
 
   depends_on "pkg-config" => :build
+  depends_on "python@3.10" => :build
   depends_on "xmlto" => :build
-  depends_on "postgresql"
+  depends_on "libpq"
+  depends_on macos: :catalina # requires std::filesystem
+
+  on_linux do
+    depends_on "gcc" # for C++17
+  end
+
+  fails_with gcc: "5"
 
   def install
+    ENV.append "CXXFLAGS", "-std=c++17"
+    ENV.prepend_path "PATH", Formula["python@3.10"].opt_libexec/"bin"
+    ENV["PG_CONFIG"] = Formula["libpq"].opt_bin/"pg_config"
+
     system "./configure", "--prefix=#{prefix}", "--enable-shared"
     system "make", "install"
   end
@@ -28,14 +43,9 @@ class Libpqxx < Formula
         return 0;
       }
     EOS
-    system ENV.cxx, "-std=c++11", "test.cpp", "-L#{lib}", "-lpqxx",
+    system ENV.cxx, "-std=c++17", "test.cpp", "-L#{lib}", "-lpqxx",
            "-I#{include}", "-o", "test"
-    # Running ./test will fail because there is no runnning postgresql server
+    # Running ./test will fail because there is no running postgresql server
     # system "./test"
-
-    # `pg_config` uses Cellar paths not opt paths
-    postgresql_include = Formula["postgresql"].opt_include.realpath.to_s
-    assert_match postgresql_include, (lib/"pkgconfig/libpqxx.pc").read,
-                 "Please revision bump libpqxx."
   end
 end

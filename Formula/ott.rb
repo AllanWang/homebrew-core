@@ -1,16 +1,23 @@
 class Ott < Formula
   desc "Tool for writing definitions of programming languages and calculi"
   homepage "https://www.cl.cam.ac.uk/~pes20/ott/"
-  url "https://github.com/ott-lang/ott/archive/0.28.tar.gz"
-  sha256 "30c7613802cdd7f03eb1df1d634da3e13197e210d5697252382d29b5f03618f2"
-  head "https://github.com/ott-lang/ott.git"
+  url "https://github.com/ott-lang/ott/archive/0.32.tar.gz"
+  sha256 "c4a9d9a6b67f3d581383468468ea36d54a0097804e9fac43c8090946904d3a2c"
+  license "BSD-3-Clause"
+  head "https://github.com/ott-lang/ott.git", branch: "master"
+
+  livecheck do
+    url :stable
+    strategy :github_latest
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "a64451a61a2d6cb0d34e327459bdd789233d8acc2fd89673b931220a7780b869" => :mojave
-    sha256 "d590c5c215ca73f47baceb8c851836c1e9ea0d78fcb6f253c02568c6db56a65d" => :high_sierra
-    sha256 "d2132bd134e79d0e73a4b4ea6e23363f9b14ade49b550fa65b5744dc41c35fd9" => :sierra
-    sha256 "12177801e7faf22a9d875d6c0e222fd7eff9fcab5755f5a6266223296ec01ef4" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "511bf3f6279cba0c1714a9bcbc91b2b988b3407f5a9ffdcab04528bf1045a4a5"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "9dfaa3e076ad777bb50da8904c52eb7742fb9158747d7f83bec71542f871972d"
+    sha256 cellar: :any_skip_relocation, monterey:       "09ae9f15978dce2f09f98d3ee1bd0ea77f53bf9872a9f2270a759abfc85b6a5e"
+    sha256 cellar: :any_skip_relocation, big_sur:        "d80abf32c8153b5c72db279404531851fd09a5efdc6232c1d67bbf865dd8f73f"
+    sha256 cellar: :any_skip_relocation, catalina:       "f2045c4dbc0ef48247e47274dbf546624fa68d46bd022e0a4365153f3c5e0275"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "0ca84d7f68137c731edd143156701f3abca196a1aacfc36120ec31b545549a55"
   end
 
   depends_on "ocaml" => :build

@@ -1,23 +1,26 @@
 class Gistit < Formula
   desc "Command-line utility for creating Gists"
   homepage "https://gistit.herokuapp.com/"
-  url "https://github.com/jrbasso/gistit/archive/v0.1.3.tar.gz"
-  sha256 "b7203c318460c264bd19b35a767da1cef33e5cae2c65b057e401fe20f47e1cca"
-  head "https://github.com/jrbasso/gistit.git"
+  url "https://github.com/jrbasso/gistit/archive/v0.1.4.tar.gz"
+  sha256 "9d87cfdd6773ebbd3f6217b11d9ebcee862ee4db8be7e18a38ebb09634f76a78"
+  license "MIT"
+  head "https://github.com/jrbasso/gistit.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "56cf73e5a5c9742640a146b1b37ed2aea557b356b2e5a96ff437130a6aab4dfb" => :mojave
-    sha256 "decb56c455eb39e379b94b6832281ea06ae8a42c745eb6c108c15883a0ef2fad" => :high_sierra
-    sha256 "269b7429070e11980d6764f2f6bd1d870d2e391cfd919f948159cb35cfab1184" => :sierra
-    sha256 "b968a2885e3ac3e0c717fdabb9986149a39d58d031476d4ef3ada7a9e1ad07e9" => :el_capitan
-    sha256 "052536cb990d1c5ea4b48612026dfb13addd03cbc06ed8c6b42f3636eb6771a7" => :yosemite
-    sha256 "c2388d390d86f39934ae51e71edfa1fd890d8ad4384427ab14275280eece97ce" => :mavericks
+    sha256 cellar: :any,                 arm64_monterey: "a56fc428aa4bb3b6c0f81c25542fe92b5c78ddc7f10159b1e626dad75356c4f7"
+    sha256 cellar: :any,                 arm64_big_sur:  "ad2652284c1907697535715d31eec9dfb558fe123b8cfe6aabf76ef0bd858cc7"
+    sha256 cellar: :any,                 monterey:       "f4f4aa3d57eb29d34654abc12b9919879e34ecb532b0b77e139216dbc9b6b30e"
+    sha256 cellar: :any,                 big_sur:        "090920bf2761a37d9b9877386a1c0b4466ba80a8c412e807a7a03de14239a3a0"
+    sha256 cellar: :any,                 catalina:       "844955e49de622786a9a676e91b767926ff9953c950db2affa98f6d82978899f"
+    sha256 cellar: :any,                 mojave:         "c55986f583c7d8744c4009f7856d00568ee5c3a31836075dd8b44af7b9807284"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d4bf0e5e2cfdb3adf8c3e9170c7239c8d5fe95339c36b13b607adfc926978e61"
   end
 
   depends_on "autoconf" => :build
   depends_on "automake" => :build
   depends_on "jansson"
+
+  uses_from_macos "curl"
 
   def install
     mv "configure.in", "configure.ac" # silence warning
@@ -28,6 +31,9 @@ class Gistit < Formula
   end
 
   test do
-    system "#{bin}/gistit", "-v"
+    (testpath/"test.txt").write "Hello"
+
+    # Gist creation should fail due to lack of authentication token
+    assert_match "- code 401", shell_output("#{bin}/gistit -priv test.txt", 1)
   end
 end

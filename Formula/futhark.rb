@@ -1,32 +1,30 @@
-require "language/haskell"
-
 class Futhark < Formula
-  include Language::Haskell::Cabal
-
   desc "Data-parallel functional programming language"
   homepage "https://futhark-lang.org/"
-  url "https://github.com/diku-dk/futhark/archive/v0.11.2.tar.gz"
-  sha256 "a79d39fc0cb4251fadecd8077df4243a03c4c7797304783567137aec21eaec8f"
-  head "https://github.com/diku-dk/futhark.git"
+  url "https://github.com/diku-dk/futhark/archive/v0.21.10.tar.gz"
+  sha256 "c2662b8389dedfa4e1181cd07febb7df042a9c9c756bb2caa26c57b599e123ba"
+  license "ISC"
+  head "https://github.com/diku-dk/futhark.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "3282ade380310b4a74d52aad648b9c46a00d2641c00d46aed164b4e2bedf2ad1" => :mojave
-    sha256 "1f3a5cfbcfd3c12f655beb97eb9f377d91315855dace21acbd3b3aa2339650bc" => :high_sierra
-    sha256 "29e272a54eb9a17c451f6f8502f847a230857caf0a724e08fa8aec077f937eca" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "be4f436e1562bf9c1b2ec4bdcd0b90773b4c1282d39d6bfdce96f860532dd71e"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "4642d9c31ba187aa6afd01aaed377e2ebd9a559b6c76c65bc6e97917d85d72c3"
+    sha256 cellar: :any_skip_relocation, monterey:       "439d36baad1949698e4669d904146069b7a652d95ca941088b4184543d0f9205"
+    sha256 cellar: :any_skip_relocation, big_sur:        "b29950e267c2c168fbaf7c7d7876a112260722e4b5ea866e50660d3e0b8485da"
+    sha256 cellar: :any_skip_relocation, catalina:       "e91e0c922b7c56a3ef647be9ee0d3c0f7d7f7d6206370820abf228adb145489d"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "de9fac73e2dec8ddeeb75b47c574b4c8b2ee54540d18d602c9a290cee1488c1d"
   end
 
   depends_on "cabal-install" => :build
   depends_on "ghc" => :build
   depends_on "sphinx-doc" => :build
 
-  def install
-    cabal_sandbox do
-      cabal_install "hpack"
-      system "./.cabal-sandbox/bin/hpack"
+  uses_from_macos "ncurses"
+  uses_from_macos "zlib"
 
-      install_cabal_package :using => ["alex", "happy"]
-    end
+  def install
+    system "cabal", "v2-update"
+    system "cabal", "v2-install", *std_cabal_v2_args
 
     system "make", "-C", "docs", "man"
     man1.install Dir["docs/_build/man/*.1"]
@@ -34,7 +32,7 @@ class Futhark < Formula
 
   test do
     (testpath/"test.fut").write <<~EOS
-      let main (n: i32) = reduce (*) 1 (1...n)
+      def main (n: i32) = reduce (*) 1 (1...n)
     EOS
     system "#{bin}/futhark", "c", "test.fut"
     assert_equal "3628800i32", pipe_output("./test", "10", 0).chomp

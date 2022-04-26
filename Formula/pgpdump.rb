@@ -1,17 +1,22 @@
 class Pgpdump < Formula
   desc "PGP packet visualizer"
   homepage "https://www.mew.org/~kazu/proj/pgpdump/en/"
-  url "https://github.com/kazu-yamamoto/pgpdump/archive/v0.33.tar.gz"
-  sha256 "fe580ef43f651da59816c70f38f177ea4fa769d64e3d6883a9d1f661bb0a6952"
-  head "https://github.com/kazu-yamamoto/pgpdump.git"
+  url "https://github.com/kazu-yamamoto/pgpdump/archive/v0.35.tar.gz"
+  sha256 "50b817d0ceaee41597b51e237e318803bf561ab6cf2dc1b49f68e85635fc8b0f"
+  license "BSD-3-Clause"
+  head "https://github.com/kazu-yamamoto/pgpdump.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "8141ac85359c7be7ac5ef51075823612582ecd0e02f0048cace4b4bae2217771" => :mojave
-    sha256 "2d5ad982f29c20cad30f5a90d4fcd8af3d369432e2c4ab4f35fcfa3b31712a1f" => :high_sierra
-    sha256 "9c2ed5f4eb7e0c833a90d53fc8d96d613b781b36c3524959fa102ae62a4d167e" => :sierra
-    sha256 "1cfd7cb5b0cdbc7e70031841d7efb1196ddbbd6f11f5af3cce4b38b6f7358ae2" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "ac46048c8942181a690342b419170333bf927cab9c2d0e44438b958c5b0e11b2"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "c11019a404c8ae3a4f7519a243fbdaa878052ac2512e583ce14c60fa57dedec9"
+    sha256 cellar: :any_skip_relocation, monterey:       "62f3bdf6d9a51b7f8784af38704430b845086339f170b926edc323852f161728"
+    sha256 cellar: :any_skip_relocation, big_sur:        "1efb877cc6591952d096279502e7fe4a64bd1d849e5d3c4cbededc1d2a823839"
+    sha256 cellar: :any_skip_relocation, catalina:       "dab47ba0a8b1e740427b3757eb1f0e64ab246266f8e5983cca29796ba53b9ed4"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d1898d68705749cf00190abbbb994003aa3def71515468331a074aabadf7ffd6"
   end
+
+  uses_from_macos "bzip2"
+  uses_from_macos "zlib"
 
   def install
     system "./configure", "--prefix=#{prefix}"

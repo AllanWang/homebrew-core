@@ -3,25 +3,42 @@ class Ffmpeg2theora < Formula
   homepage "https://v2v.cc/~j/ffmpeg2theora/"
   url "https://v2v.cc/~j/ffmpeg2theora/downloads/ffmpeg2theora-0.30.tar.bz2"
   sha256 "4f6464b444acab5d778e0a3359d836e0867a3dcec4ad8f1cdcf87cb711ccc6df"
-  revision 4
-  head "https://git.xiph.org/ffmpeg2theora.git"
+  revision 10
+  head "https://gitlab.xiph.org/xiph/ffmpeg2theora.git", branch: "master"
+
+  livecheck do
+    url "http://v2v.cc/~j/ffmpeg2theora/download.html"
+    regex(/href=.*?ffmpeg2theora[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "110c82493cedbf7b5c1ba0840eb5a01d33ace587db01fc1ed4e9707073a21322" => :mojave
-    sha256 "5fb50e2d8436ef85aa47efca7494e0d25f43e46a1f66895d1457771a65b08f6b" => :high_sierra
-    sha256 "5bd541db8f60a4f6a432794c800c8a6fc68cd74e5a96ca6547bdfc5cc64e4b1f" => :sierra
+    sha256 cellar: :any, arm64_monterey: "fda3d3ece47a930bb675a3bfcf9bb9f9565ee64ffb8249ec1b282dc52d886b15"
+    sha256 cellar: :any, arm64_big_sur:  "821bc4ec0b0900b41bc8236edfba9087b0637ddccbb58b60bf393f96177d6858"
+    sha256 cellar: :any, monterey:       "c1da252c4ada9b2dc39ae83a1af5d1d2a449191173a35a2fb05c1667224fada9"
+    sha256 cellar: :any, big_sur:        "83c525d0923c3b2b550e00b78dd6257dc4ff4ed9639464e6d360ed6784b9d09e"
+    sha256 cellar: :any, catalina:       "33be387b709b49ebd87f07c95f396b24aabbe09dc4ee74d71067b08ae13978a9"
   end
 
   depends_on "pkg-config" => :build
   depends_on "scons" => :build
-  depends_on "ffmpeg"
+  depends_on "ffmpeg@4"
   depends_on "libkate"
   depends_on "libogg"
   depends_on "libvorbis"
   depends_on "theora"
 
+  fails_with gcc: "5" # ffmpeg is compiled with GCC
+
+  # Use python3 print()
+  patch do
+    url "https://salsa.debian.org/multimedia-team/ffmpeg2theora/-/raw/master/debian/patches/0002-Use-python3-print.patch"
+    sha256 "8cf333e691cf19494962b51748b8246502432867d9feb3d7919d329cb3696e97"
+  end
+
   def install
+    # Fix unrecognized "PRId64" format specifier
+    inreplace "src/theorautils.c", "#include <limits.h>", "#include <limits.h>\n#include <inttypes.h>"
+
     args = [
       "prefix=#{prefix}",
       "mandir=PREFIX/share/man",

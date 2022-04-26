@@ -1,60 +1,42 @@
 class Metricbeat < Formula
   desc "Collect metrics from your systems and services"
-  homepage "https://www.elastic.co/products/beats/metricbeat"
+  homepage "https://www.elastic.co/beats/metricbeat"
   url "https://github.com/elastic/beats.git",
-      :tag      => "v6.8.1",
-      :revision => "6e16f47450373f04d6a60db1d23c5b13b37f7431"
-  head "https://github.com/elastic/beats.git"
+      tag:      "v8.1.3",
+      revision: "271435c21bfd4e2e621d87c04f4b815980626978"
+  license "Apache-2.0"
+  head "https://github.com/elastic/beats.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "3cebb937a1a651b2720da38866310417153f2523b37b8bc1883c7666b0aad803" => :mojave
-    sha256 "bbee3c9ab34a7c4edfa1b9334eb824030166cf5198046b2b826438e0efcc7de8" => :high_sierra
-    sha256 "48ce2f9f54a3c5e57a7b3ba13b10866f6e766b46f3ad014b596ef06e0ebc5cd4" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "800521c3889860e49aadf2c28dd9b70adb7029da1b30d0987f13c8b902e7d366"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "75caf9a9676dee3940e4306d34ae0904794f107fad3f76d97298b73dd588a80d"
+    sha256 cellar: :any_skip_relocation, monterey:       "67a5bfe7dd11f05df6b51fa9c3fe44e5d7fb1ddf0d8e250bb8101142ff13ff2b"
+    sha256 cellar: :any_skip_relocation, big_sur:        "48a8240c71608d0f5aa2eaa3d1166a1a761c5b694db682c41427ab154e131034"
+    sha256 cellar: :any_skip_relocation, catalina:       "0f9f2473cbc4375bab3a402f11e0097e0c159c2f4cbd54a8cd44484d02c05f6b"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "f6cd5d79f4abd0cf15b27de6f4dfb4192d6b2226dce90185c14ad22c31c44eb8"
   end
 
   depends_on "go" => :build
-  depends_on "python@2" => :build
-
-  resource "virtualenv" do
-    url "https://files.pythonhosted.org/packages/8b/f4/360aa656ddb0f4168aeaa1057d8784b95d1ce12f34332c1cf52420b6db4e/virtualenv-16.3.0.tar.gz"
-    sha256 "729f0bcab430e4ef137646805b5b1d8efbb43fe53d4a0f33328624a84a5121f7"
-  end
+  depends_on "mage" => :build
+  depends_on "python@3.10" => :build
 
   def install
     # remove non open source files
     rm_rf "x-pack"
 
-    ENV["GOPATH"] = buildpath
-    (buildpath/"src/github.com/elastic/beats").install buildpath.children
-
-    ENV.prepend_create_path "PYTHONPATH", buildpath/"vendor/lib/python2.7/site-packages"
-
-    resource("virtualenv").stage do
-      system "python", *Language::Python.setup_install_args(buildpath/"vendor")
-    end
-
-    ENV.prepend_path "PATH", buildpath/"vendor/bin" # for virtualenv
-    ENV.prepend_path "PATH", buildpath/"bin" # for mage (build tool)
-
-    cd "src/github.com/elastic/beats/metricbeat" do
+    cd "metricbeat" do
       # don't build docs because it would fail creating the combined OSS/x-pack
       # docs and we aren't installing them anyway
-      inreplace "Makefile", "collect: assets collect-docs configs kibana imports",
-                            "collect: assets configs kibana imports"
+      inreplace "magefile.go", "mg.Deps(CollectDocs, FieldsDocs)", ""
 
-      system "make", "mage"
-      # prevent downloading binary wheels during python setup
-      system "make", "PIP_INSTALL_COMMANDS=--no-binary :all", "python-env"
       system "mage", "-v", "build"
+      ENV.deparallelize
       system "mage", "-v", "update"
 
       (etc/"metricbeat").install Dir["metricbeat.*", "fields.yml", "modules.d"]
       (libexec/"bin").install "metricbeat"
-      prefix.install "_meta/kibana.generated"
+      prefix.install "build/kibana"
     end
-
-    prefix.install_metafiles buildpath/"src/github.com/elastic/beats"
 
     (bin/"metricbeat").write <<~EOS
       #!/bin/sh
@@ -67,23 +49,8 @@ class Metricbeat < Formula
     EOS
   end
 
-  plist_options :manual => "metricbeat"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
-    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>Program</key>
-        <string>#{opt_bin}/metricbeat</string>
-        <key>RunAtLoad</key>
-        <true/>
-      </dict>
-    </plist>
-  EOS
+  service do
+    run opt_bin/"metricbeat"
   end
 
   test do
@@ -101,17 +68,19 @@ class Metricbeat < Formula
     (testpath/"logs").mkpath
     (testpath/"data").mkpath
 
-    pid = fork do
+    fork do
       exec bin/"metricbeat", "-path.config", testpath/"config", "-path.data",
                              testpath/"data"
     end
 
-    begin
-      sleep 30
-      assert_predicate testpath/"data/metricbeat", :exist?
-    ensure
-      Process.kill "SIGINT", pid
-      Process.wait pid
+    sleep 15
+
+    output = JSON.parse((testpath/"data/meta.json").read)
+    assert_includes output, "first_start"
+
+    (testpath/"data").glob("metricbeat-*.ndjson") do |file|
+      s = JSON.parse(file.read.lines.first.chomp)
+      assert_match "metricbeat", s["@metadata"]["beat"]
     end
   end
 end

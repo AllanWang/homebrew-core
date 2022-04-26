@@ -1,20 +1,22 @@
 class Sile < Formula
   desc "Modern typesetting system inspired by TeX"
-  homepage "http://www.sile-typesetter.org/"
-  url "https://github.com/simoncozens/sile/releases/download/v0.9.5.1/sile-0.9.5.1.tar.bz2"
-  sha256 "60cdcc4509971973feab352dfc1a86217cc1fdb12d56823f04d863afef92003a"
-  revision 1
-
-  head "https://github.com/simoncozens/sile.git"
+  homepage "https://sile-typesetter.org"
+  url "https://github.com/sile-typesetter/sile/releases/download/v0.12.5/sile-0.12.5.tar.xz"
+  sha256 "de97ff483dd4cd5150ae3ec5b60ca11515bc47e143eb0ee980da67c5716c3c7d"
+  license "MIT"
 
   bottle do
-    cellar :any
-    sha256 "12de7ca23d0c7a5cb5a092038035c387dad903104aeea27e33695c331f468697" => :mojave
-    sha256 "e9ab785e292c2cf41c4be79a36107bed3a8da920764799fd16c1c9933e503537" => :high_sierra
-    sha256 "12583105738af88dbed8fafc2f00f4763035e073dc5f0e1b0b89a4c79b0a0c97" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "491f120c9c92d3e6e38b4ce82a3d972581fad3c2e66e45880c495b79cb6ef1fc"
+    sha256 cellar: :any,                 arm64_big_sur:  "e20f6a402a2d523e2932e18fcf94f0e0fa3f34fcbf894ece8928d7e8cf2d9d6a"
+    sha256 cellar: :any,                 monterey:       "8af56005fd361da02bfe68b4fcdaed37688e08f8648f7a6c3a6419b43791859d"
+    sha256 cellar: :any,                 big_sur:        "072e5c0be1814dfd6399fb25f5bccc524b25397588b5a3d4162efb0f257d43f8"
+    sha256 cellar: :any,                 catalina:       "a82c4e0e65eea5686e23d2ec3e8d5cecd328e5b8d6f44a1b34c6ab4fbc228b12"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "b8c9681b50d7e4aece0c1837e484081c9d2e1e619d9502c6470e8e56b49946b9"
   end
 
-  if build.head?
+  head do
+    url "https://github.com/sile-typesetter/sile.git"
+
     depends_on "autoconf" => :build
     depends_on "automake" => :build
     depends_on "libtool" => :build
@@ -22,64 +24,144 @@ class Sile < Formula
 
   depends_on "luarocks" => :build
   depends_on "pkg-config" => :build
-  depends_on "expat"
   depends_on "fontconfig"
   depends_on "harfbuzz"
   depends_on "icu4c"
   depends_on "libpng"
   depends_on "lua"
-  depends_on "openssl"
-  depends_on "zlib"
+  depends_on "openssl@1.1"
+
+  uses_from_macos "expat"
+  uses_from_macos "zlib"
+
+  resource "stdlib" do
+    url "https://luarocks.org/manifests/gvvaughan/stdlib-41.2.2-1.src.rock"
+    sha256 "67eadaccbb2b6037ea70129f9616da49eaeeaf1477652a8e2cc77740286531cf"
+  end
+
+  resource "bit32" do
+    url "https://luarocks.org/manifests/siffiejoe/bit32-5.3.5.1-1.src.rock"
+    sha256 "0e273427f2b877270f9cec5642ebe2670242926ba9638d4e6df7e4e1263ca12c"
+  end
+
+  resource "linenoise" do
+    url "https://luarocks.org/manifests/hoelzro/linenoise-0.9-1.rockspec"
+    sha256 "e4f942e0079092993832cf6e78a1f019dad5d8d659b9506692d718d0c0432c72"
+  end
 
   resource "lpeg" do
-    url "http://www.inf.puc-rio.br/~roberto/lpeg/lpeg-1.0.1.tar.gz"
-    mirror "https://mirror.sobukus.de/files/grimoire/lua-forge/lpeg-1.0.1.tar.gz"
-    sha256 "62d9f7a9ea3c1f215c77e0cadd8534c6ad9af0fb711c3f89188a8891c72f026b"
+    url "https://luarocks.org/manifests/gvvaughan/lpeg-1.0.2-1.src.rock"
+    sha256 "e0d0d687897f06588558168eeb1902ac41a11edd1b58f1aa61b99d0ea0abbfbc"
+  end
+
+  # Depends on lpeg
+  resource "cosmo" do
+    url "https://luarocks.org/manifests/mascarenhas/cosmo-16.06.04-1.src.rock"
+    sha256 "9c83d50c8b734c0d405f97df9940ddb27578214033fd0e3cfc3e7420c999b9a9"
+  end
+
+  resource "lua_cliargs" do
+    url "https://luarocks.org/manifests/amireh/lua_cliargs-3.0-2.src.rock"
+    sha256 "3c79981292aab72dbfba9eb5c006bb37c5f42ee73d7062b15fdd840c00b70d63"
   end
 
   resource "lua-zlib" do
-    url "https://github.com/brimworks/lua-zlib/archive/v1.2.tar.gz"
-    sha256 "26b813ad39c94fc930b168c3418e2e746af3b2e80b92f94f306f6f954cc31e7d"
+    url "https://luarocks.org/manifests/brimworks/lua-zlib-1.2-1.rockspec"
+    sha256 "3c61e946b5a1fb150839cd155ad6528143cdf9ce385eb5f580566fb2d25b37a3"
   end
 
   resource "luaexpat" do
-    url "https://matthewwild.co.uk/projects/luaexpat/luaexpat-1.3.0.tar.gz"
-    sha256 "d060397960d87b2c89cf490f330508b7def1a0677bdc120531c571609fc57dc3"
+    url "https://luarocks.org/manifests/tomasguisasola/luaexpat-1.3.3-1.src.rock"
+    sha256 "b55908fcd7df490a59aab25284460add8283f1c6b94ab584900fe3e49775172a"
+  end
+
+  resource "luaepnf" do
+    url "https://luarocks.org/manifests/siffiejoe/luaepnf-0.3-2.src.rock"
+    sha256 "7abbe5888abfa183878751e4010239d799e0dfca6139b717f375c26292876f07"
   end
 
   resource "luafilesystem" do
-    url "https://github.com/keplerproject/luafilesystem/archive/v1_7_0_2.tar.gz"
-    sha256 "23b4883aeb4fb90b2d0f338659f33a631f9df7a7e67c54115775a77d4ac3cc59"
+    url "https://luarocks.org/manifests/hisham/luafilesystem-1.8.0-1.src.rock"
+    sha256 "576270a55752894254c2cba0d49d73595d37ec4ea8a75e557fdae7aff80e19cf"
+  end
+
+  resource "luarepl" do
+    url "https://luarocks.org/manifests/hoelzro/luarepl-0.9-1.rockspec"
+    sha256 "1fc5b25e5dfffe1407537b58f7f118379ed3e86e86c09c0b9e4893ddada20990"
   end
 
   resource "luasocket" do
-    url "https://github.com/diegonehab/luasocket/archive/v3.0-rc1.tar.gz"
-    sha256 "8b67d9b5b545e1b694753dab7bd6cdbc24c290f2b21ba1e14c77b32817ea1249"
+    url "https://luarocks.org/manifests/luasocket/luasocket-3.0rc1-2.src.rock"
+    sha256 "3882f2a1e1c6145ceb43ead385b861b97fa2f8d487e8669ec5b747406ab251c7"
+    version "3.0rc1-2"
   end
 
+  # depends on `luasocket`
   resource "luasec" do
-    url "https://github.com/brunoos/luasec/archive/luasec-0.7.tar.gz"
-    sha256 "2176e95b1d2a72a3235ede5d2aa9838050feee55dade8fdbde4be7fdc66f3a31"
+    url "https://luarocks.org/manifests/brunoos/luasec-1.0.1-1.src.rock"
+    sha256 "0e91f9686ccda7d373d74518da85d22f678a1b0de35e38b4a444041eba53040d"
+  end
+
+  resource "penlight" do
+    url "https://luarocks.org/manifests/tieske/penlight-1.12.0-1.src.rock"
+    sha256 "99e2d88d5539901989f785100c8d216ef8e9461e08f93a850e9ea6abc9952927"
+  end
+
+  # Depends on luafilesystem and penlight
+  resource "cassowary" do
+    url "https://luarocks.org/manifests/simoncozens/cassowary-2.3.1-2.src.rock"
+    sha256 "bf2ac4c04999402aab9bfa3b38868514f625a9e79c6884aa724b9560714aa500"
+  end
+
+  resource "luautf8" do
+    url "https://luarocks.org/manifests/xavier-wang/luautf8-0.1.3-1.src.rock"
+    sha256 "88c456bc0f00d28201b33551d83fa6e5c3ae6025aebec790c37afb317290e4fa"
+  end
+
+  resource "vstruct" do
+    url "https://luarocks.org/manifests/deepakjois/vstruct-2.1.1-1.src.rock"
+    sha256 "fcfa781a72b9372c37ee20a5863f98e07112a88efea08c8b15631e911bc2b441"
   end
 
   def install
+    lua = Formula["lua"]
+    luaversion = lua.version.major_minor
     luapath = libexec/"vendor"
-    ENV["LUA_PATH"] = "#{luapath}/share/lua/5.3/?.lua;;#{luapath}/share/lua/5.3/lxp/?.lua"
-    ENV["LUA_CPATH"] = "#{luapath}/lib/lua/5.3/?.so"
+
+    paths = %W[
+      #{luapath}/share/lua/#{luaversion}/?.lua
+      #{luapath}/share/lua/#{luaversion}/?/init.lua
+      #{luapath}/share/lua/#{luaversion}/lxp/?.lua
+    ]
+
+    ENV["LUA_PATH"] = paths.join(";")
+    ENV["LUA_CPATH"] = "#{luapath}/lib/lua/#{luaversion}/?.so"
+
+    ENV.prepend "CPPFLAGS", "-I#{lua.opt_include}/lua"
+    ENV.prepend "LDFLAGS", "-L#{lua.opt_lib}"
+
+    zlib_dir = expat_dir = "#{MacOS.sdk_path_if_needed}/usr"
+    if OS.linux?
+      zlib_dir = Formula["zlib"].opt_prefix
+      expat_dir = Formula["expat"].opt_prefix
+    end
+
+    args = %W[
+      ZLIB_DIR=#{zlib_dir}
+      EXPAT_DIR=#{expat_dir}
+      OPENSSL_DIR=#{Formula["openssl@1.1"].opt_prefix}
+      --tree=#{luapath}
+      --lua-dir=#{lua.opt_prefix}
+    ]
 
     resources.each do |r|
       r.stage do
-        if r.name == "lua-zlib"
-          # https://github.com/brimworks/lua-zlib/commit/08d6251700965
-          mv "lua-zlib-1.1-0.rockspec", "lua-zlib-1.2-0.rockspec"
-          system "luarocks", "make", "#{r.name}-#{r.version}-0.rockspec", "--tree=#{luapath}", "ZLIB_DIR=/usr/local/opt/zlib"
-        elsif r.name == "luaexpat"
-          system "luarocks", "build", r.name, "--tree=#{luapath}", "EXPAT_DIR=/usr/local/opt/expat"
-        elsif r.name == "luasec"
-          system "luarocks", "build", r.name, "--tree=#{luapath}", "OPENSSL_DIR=/usr/local/opt/openssl"
-        else
-          system "luarocks", "build", r.name, "--tree=#{luapath}"
-        end
+        rock = Pathname.pwd.children(false).first
+        unpack_dir = Utils.safe_popen_read("luarocks", "unpack", rock).split("\n")[-2]
+
+        spec = "#{r.name}-#{r.version}.rockspec"
+        spec = "cassowary-scm-0.rockspec" if r.name == "cassowary"
+        cd(unpack_dir) { system "luarocks", "make", *args, spec }
       end
     end
 
@@ -87,18 +169,19 @@ class Sile < Formula
     system "./configure", "--disable-debug",
                           "--disable-dependency-tracking",
                           "--disable-silent-rules",
+                          "--with-system-luarocks",
                           "--with-lua=#{prefix}",
                           "--prefix=#{prefix}"
     system "make"
     system "make", "install"
 
+    env = {
+      LUA_PATH:  "#{ENV["LUA_PATH"]};;",
+      LUA_CPATH: "#{ENV["LUA_CPATH"]};;",
+    }
+
     (libexec/"bin").install bin/"sile"
-    (bin/"sile").write <<~EOS
-      #!/bin/bash
-      export LUA_PATH="#{ENV["LUA_PATH"]}"
-      export LUA_CPATH="#{ENV["LUA_CPATH"]}"
-      "#{libexec}/bin/sile" "$@"
-    EOS
+    (bin/"sile").write_env_script libexec/"bin/sile", env
   end
 
   test do

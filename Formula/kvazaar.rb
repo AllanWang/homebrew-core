@@ -1,25 +1,29 @@
 class Kvazaar < Formula
   desc "Ultravideo HEVC encoder"
   homepage "https://github.com/ultravideo/kvazaar"
-  url "https://github.com/ultravideo/kvazaar/releases/download/v1.2.0/kvazaar-1.2.0.tar.xz"
-  sha256 "9bc9ba4d825b497705bd6d84817933efbee43cbad0ffaac17d4b464e11e73a37"
+  url "https://github.com/ultravideo/kvazaar/archive/v2.1.0.tar.gz"
+  sha256 "bbdd3112182e5660a1c339e30677f871b6eac1e5b4ff1292ee1ae38ecbe11029"
+  license "BSD-3-Clause"
+  head "https://github.com/ultravideo/kvazaar.git", branch: "master"
+
+  livecheck do
+    url :stable
+    strategy :github_latest
+  end
 
   bottle do
-    cellar :any
-    sha256 "cdd936796111dc2b579a313780538417a74e9f2a024deb7f516b255f49c3d377" => :mojave
-    sha256 "81e3084935b40153b533da73526e453280ffb09fac29745d43d4e305b462aa9a" => :high_sierra
-    sha256 "0f8150c11184a4a7af203db7e11b9942ceeabd8442e82ff2e34c53145cd85be3" => :sierra
-    sha256 "918e7ad37489d7bc2c602b47678f85392bcaeca1805e01953e7dabe54c1a153b" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "d84d0ad2462ff6c0fbe5ea7d2530c17d8d22629081fde5756fec48cd8ac5c409"
+    sha256 cellar: :any,                 arm64_big_sur:  "c2f8e51a5222f0b4f114df45c9a6439b84134c282a4147a3a8f5bd57aa297f14"
+    sha256 cellar: :any,                 monterey:       "2e8db48a773c5754ec93786ae52d7bb09c94cb40fa811d0b12457540fcc378c5"
+    sha256 cellar: :any,                 big_sur:        "68ec96b70d3098071e315f09d9b68d69971dd362d586e69f1c3d6938edc760f5"
+    sha256 cellar: :any,                 catalina:       "09205d5d2e16355e031d467315842030923f4459fed71576889f372f895f3b98"
+    sha256 cellar: :any,                 mojave:         "420616c74f44f1f604a2e4533d91bca6a4e014ae742d887200d927e007ae4fe0"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d28aa580e27dade3635f38fa914f2975718e4e7ea2d89b7b1d46569efa6612b3"
   end
 
-  head do
-    url "https://github.com/ultravideo/kvazaar.git"
-
-    depends_on "autoconf" => :build
-    depends_on "automake" => :build
-    depends_on "libtool" => :build
-  end
-
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
+  depends_on "libtool" => :build
   depends_on "yasm" => :build
 
   resource "videosample" do
@@ -28,7 +32,7 @@ class Kvazaar < Formula
   end
 
   def install
-    system "./autogen.sh" if build.head?
+    system "./autogen.sh"
     system "./configure", "--prefix=#{prefix}"
     system "make", "install"
   end

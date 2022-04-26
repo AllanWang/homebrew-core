@@ -3,23 +3,39 @@ class Wmctrl < Formula
   homepage "https://sites.google.com/site/tstyblo/wmctrl"
   url "https://sites.google.com/site/tstyblo/wmctrl/wmctrl-1.07.tar.gz"
   sha256 "d78a1efdb62f18674298ad039c5cbdb1edb6e8e149bb3a8e3a01a4750aa3cca9"
-  revision 1
+  license "GPL-2.0-or-later"
+  revision 2
+
+  livecheck do
+    url :homepage
+    regex(/href=.*?wmctrl[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "2223922cda28d81580d85d01fa697284102d10226df76d57660bd92093fd46c5" => :mojave
-    sha256 "59b55236fd42a64f6ccc8587a5580a25afd330a137b62e7258568042e8b1b525" => :high_sierra
-    sha256 "cbdb379f9b1264847f74c0ea01e0a5412645b442d3c069708bfbe209b845b873" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "fb8c3a7dcd11a32b075ba4181f5825bfd9b55a8ee1453f4ad8454c7dd56cf6cf"
+    sha256 cellar: :any,                 arm64_big_sur:  "83b97edb3df52830587f710abc9bbfc53c0a7b3567a18f94c2161be6b988980a"
+    sha256 cellar: :any,                 monterey:       "a5d76fe085cc3ca15ab736376b8250c82fde97e364117bbc7f7050e599dda640"
+    sha256 cellar: :any,                 big_sur:        "90c60692d669660d4d8037d2c6fa94cc13f14b6bb85e6909d0707f30644edde5"
+    sha256 cellar: :any,                 catalina:       "d585a38070e3343da1be66819f7d3f840140acee8dde1d3912542d682466ee48"
+    sha256 cellar: :any,                 mojave:         "49f4d10d0e8d8b4cfa2e5ba4240f5c623f01b66d4e466eace255c1496c627da5"
+    sha256 cellar: :any,                 high_sierra:    "10200373a514341920fd453d769c07040eae2ba01a691c418d10b6a1d44ec70b"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "f35104a632334a639f0c7d233baea5a9177a2d43fe78cd563870c97b394d78bc"
   end
 
   depends_on "pkg-config" => :build
   depends_on "gettext"
   depends_on "glib"
-  depends_on :x11
+  depends_on "libice"
+  depends_on "libsm"
+  depends_on "libx11"
+  depends_on "libxmu"
 
   # Fix for 64-bit arch. See:
   # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=362068
-  patch :DATA
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/85fa66a9/wmctrl/1.07.patch"
+    sha256 "8599f75e07cc45ed45384481117b0e0fa6932d1fce1cf2932bf7a7cf884979ee"
+  end
 
   def install
     system "./configure", "--disable-debug", "--disable-dependency-tracking",
@@ -32,44 +48,3 @@ class Wmctrl < Formula
     system "#{bin}/wmctrl", "--version"
   end
 end
-
-__END__
---- wmctrl-1.07.orig/main.c
-+++ wmctrl-1.07/main.c
-@@ -1425,6 +1425,16 @@
-      *
-      * long_length = Specifies the length in 32-bit multiples of the
-      *               data to be retrieved.
-+     *
-+     * NOTE:  see
-+     * https://mail.gnome.org/archives/wm-spec-list/2003-March/msg00067.html
-+     * In particular:
-+     *
-+     * 	When the X window system was ported to 64-bit architectures, a
-+     * rather peculiar design decision was made. 32-bit quantities such
-+     * as Window IDs, atoms, etc, were kept as longs in the client side
-+     * APIs, even when long was changed to 64 bits.
-+     *
-      */
-     if (XGetWindowProperty(disp, win, xa_prop_name, 0, MAX_PROPERTY_VALUE_LEN / 4, False,
-             xa_prop_type, &xa_ret_type, &ret_format,
-@@ -1440,7 +1450,18 @@ static gchar *get_property (Display *disp, Window win, /*{{{*/
-     }
-
-     /* null terminate the result to make string handling easier */
--    tmp_size = (ret_format / 8) * ret_nitems;
-+    switch (ret_format) {
-+        case 8:
-+            tmp_size = sizeof(char) * ret_nitems;
-+            break;
-+        case 16:
-+            tmp_size = sizeof(short) * ret_nitems;
-+            break;
-+        case 32:
-+        default:
-+            tmp_size = sizeof(long) * ret_nitems;
-+            break;
-+    }
-     ret = g_malloc(tmp_size + 1);
-     memcpy(ret, ret_prop, tmp_size);
-     ret[tmp_size] = '\0';

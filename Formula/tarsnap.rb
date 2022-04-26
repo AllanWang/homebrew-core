@@ -1,24 +1,38 @@
 class Tarsnap < Formula
   desc "Online backups for the truly paranoid"
   homepage "https://www.tarsnap.com/"
-  url "https://www.tarsnap.com/download/tarsnap-autoconf-1.0.39.tgz"
-  sha256 "5613218b2a1060c730b6c4a14c2b34ce33898dd19b38fb9ea0858c5517e42082"
+  url "https://www.tarsnap.com/download/tarsnap-autoconf-1.0.40.tgz"
+  sha256 "bccae5380c1c1d6be25dccfb7c2eaa8364ba3401aafaee61e3c5574203c27fd5"
+  license "0BSD"
+
+  livecheck do
+    url "https://www.tarsnap.com/download.html"
+    regex(/href=.*?tarsnap-autoconf[._-]v?(\d+(?:\.\d+)+[a-z]?)\.t/i)
+  end
 
   bottle do
-    sha256 "6e5bd7f2ba58872d43896d92ac1bf1d9f42f2cddc16dc1c374d7353b8d55a82d" => :mojave
-    sha256 "b152754ed7ef385e4fd816fbf24571322479757c083ce889134903d4b88e0232" => :high_sierra
-    sha256 "7d4da94d575085b3f2c2066ae5b0e83edd589d0238d065fb0f9ba68d916c3868" => :sierra
-    sha256 "6c4ff5911171f779b85bda69f07eb7a561ec0911517fe3a48b2cb917c1ff4f92" => :el_capitan
-    sha256 "6cc300ce4d0db123d225b9b2ff1d28625061440484932a9c572282de785d4819" => :yosemite
+    sha256 cellar: :any,                 arm64_monterey: "2f1ea86aae6e6e464e2e78b7e984fdb884e62ab350b3d20058e0db069d7b191e"
+    sha256 cellar: :any,                 arm64_big_sur:  "cf93e896315ebb2a3fefb2ff032b6e39c12fa6fd800aea3b92ef0634d31858eb"
+    sha256 cellar: :any,                 monterey:       "c0f9c6e1b236cb7090f165e6d0446bf7ebbeec5c376e86f95c4780914986f241"
+    sha256 cellar: :any,                 big_sur:        "1c48cabb8d20ad07878301d4569f1aaf9c170ba8a966822dbcf4f24f50b4d00c"
+    sha256 cellar: :any,                 catalina:       "46c31d5b91537dfe098c9cdf09b56585fbfa0d096035a71dd6d2ff9746841456"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d753f70ee86f887511c3a1a1dbcea99b4da13b77f21b74d56fc1e5190a5c9c6c"
   end
 
   head do
-    url "https://github.com/Tarsnap/tarsnap.git"
+    url "https://github.com/Tarsnap/tarsnap.git", branch: "master"
     depends_on "autoconf" => :build
     depends_on "automake" => :build
   end
 
-  depends_on "openssl"
+  depends_on "openssl@1.1"
+
+  uses_from_macos "bzip2"
+  uses_from_macos "zlib"
+
+  on_linux do
+    depends_on "e2fsprogs" => :build
+  end
 
   def install
     # dyld: lazy symbol binding failed: Symbol not found: _clock_gettime

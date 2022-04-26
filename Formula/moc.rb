@@ -1,7 +1,7 @@
 class Moc < Formula
   desc "Terminal-based music player"
   homepage "https://moc.daper.net/"
-  revision 5
+  revision 6
 
   stable do
     url "http://ftp.daper.net/pub/soft/moc/stable/moc-2.5.2.tar.bz2"
@@ -36,11 +36,18 @@ class Moc < Formula
     end
   end
 
+  livecheck do
+    url "https://moc.daper.net/download"
+    regex(/href=.*?moc[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
+
   bottle do
-    sha256 "b15db412cd58492ce684fd50a6bec93e18cc42f5543bfd7f45fd6e5636c56291" => :mojave
-    sha256 "8a570805d563e3ee3d4c374eb5a8e5d649b7364286e738f9d8bef864663073e1" => :high_sierra
-    sha256 "fe941dffd41e1485f85b3d9bb28a1a30cccfe27d3cac438cc5b71fb347122003" => :sierra
-    sha256 "9e39666cb49b6fd60c16b1b4535d0b39363fcc655e6495cc17d74923df13ff27" => :el_capitan
+    sha256 arm64_monterey: "ede1647dc7294609486c67127f1038eed89089ecb0a412f4b28315f21e1d0381"
+    sha256 arm64_big_sur:  "e0d4300414cfc0e63102cc677b8f5b9760c6a5c85796348f95d21d2909dd06d9"
+    sha256 monterey:       "b6359e887ac7f9c6c0b4a882258b0486e401ecb98a1c55ab325940e34bb4091a"
+    sha256 big_sur:        "a039c169c94918fe290d154eba80cd6075c685ddf89e0e37caa28c208ae1e19c"
+    sha256 catalina:       "aa76f7971087c19de921c2d2722f4734f222d252f7fc4e4d2c5684fe5efe3638"
+    sha256 x86_64_linux:   "7a3ca44601779ec514d831971f2aae1097639aaae2a96cfc3aec27c55ac44239"
   end
 
   head do
@@ -55,10 +62,12 @@ class Moc < Formula
   depends_on "gettext" => :build
   depends_on "pkg-config" => :build
   depends_on "berkeley-db"
-  depends_on "ffmpeg"
+  depends_on "ffmpeg@4"
   depends_on "jack"
   depends_on "libtool"
   depends_on "ncurses"
+
+  fails_with gcc: "5" # ffmpeg is compiled with GCC
 
   def install
     # Not needed for > 2.5.2
@@ -68,12 +77,7 @@ class Moc < Formula
   end
 
   def caveats
-    <<~EOS
-      You must start the jack daemon prior to running mocp.
-      If you need wide-character support in the player, for example
-      with Chinese characters, you can install using
-          --with-ncurses
-    EOS
+    "You must start the jack daemon prior to running mocp."
   end
 
   test do

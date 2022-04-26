@@ -1,11 +1,14 @@
 class Transcrypt < Formula
   desc "Configure transparent encryption of files in a Git repo"
   homepage "https://github.com/elasticdog/transcrypt"
-  url "https://github.com/elasticdog/transcrypt/archive/v1.1.0.tar.gz"
-  sha256 "615092a6a478fb92b4b37b950d86880548830788ab3142400f6f87b9c5b37db5"
-  head "https://github.com/elasticdog/transcrypt.git"
+  url "https://github.com/elasticdog/transcrypt/archive/v2.1.0.tar.gz"
+  sha256 "0075a25f7fb48ddfcfb33dd834a5f12fe0644ed4fb5ab0a5f2f7dca06e9ed48c"
+  license "MIT"
+  head "https://github.com/elasticdog/transcrypt.git", branch: "main"
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "a5cfd2ec236ba342258bf5119e96dd721c5669370094192ef3389146a62ae53b"
+  end
 
   def install
     bin.install "transcrypt"
@@ -19,13 +22,13 @@ class Transcrypt < Formula
     system bin/"transcrypt", "--password", "guest", "--yes"
 
     (testpath/".gitattributes").atomic_write <<~EOS
-      sensitive_file  filter=crypt diff=crypt
+      sensitive_file  filter=crypt diff=crypt merge=crypt
     EOS
     (testpath/"sensitive_file").write "secrets"
     system "git", "add", ".gitattributes", "sensitive_file"
     system "git", "commit", "--message", "Add encrypted version of file"
 
     assert_equal `git show HEAD:sensitive_file --no-textconv`.chomp,
-                 "U2FsdGVkX1/BC5TmOtJ9kCgCq4EmYX0crGU7mAIhDEA="
+                 "U2FsdGVkX198ELlOY60n2ekOK1DiMCLS1dRs53RGBeU="
   end
 end

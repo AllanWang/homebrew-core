@@ -1,19 +1,27 @@
 class Postgis < Formula
   desc "Adds support for geographic objects to PostgreSQL"
   homepage "https://postgis.net/"
-  url "https://download.osgeo.org/postgis/source/postgis-2.5.2.tar.gz"
-  sha256 "b6cb286c5016029d984f8c440947bf9178da72e1f6f840ed639270e1c451db5e"
+  url "https://download.osgeo.org/postgis/source/postgis-3.2.1.tar.gz"
+  sha256 "fbab68dde6ca3934b24ba08c8ab0cff2594f57f93deab41a15c82ae1bb69893e"
+  license "GPL-2.0-or-later"
   revision 2
 
+  livecheck do
+    url "https://download.osgeo.org/postgis/source/"
+    regex(/href=.*?postgis[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
+
   bottle do
-    cellar :any
-    sha256 "b4249fd625f68664b121d896f9ef069ad3bf4469bc6fa0173b9d7aa0524bf160" => :mojave
-    sha256 "c3e4f07c51d0b8409c2ff8eec5203de906d06360db15245f359622e6cde1c73b" => :high_sierra
-    sha256 "bc929fc49418613e0eb1a9dde940ffbe756a42baae69b40a6fcb6847fffdde29" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "e7627e1f7baa90a1c5cc7bcde2c2424a8da7d7312aae04008729a1f2c008ca48"
+    sha256 cellar: :any,                 arm64_big_sur:  "fc21222c0bf6f9d5d76b0fa616a4d0379d3e50ee8d268c23edce8436ced26b5d"
+    sha256 cellar: :any,                 monterey:       "85f53e74bac43bc11c4f3e47954de593355d1560a7f097e542dbd58f856975d7"
+    sha256 cellar: :any,                 big_sur:        "27c62120de8296b5f4197c98794a02256f4880cf2cfbea22d6fa7a44b71128b5"
+    sha256 cellar: :any,                 catalina:       "7b31458c60262f49204381b76e981caf647ce63936f47ae28b93301aabc1fcb7"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "361feda791c694c7ae40b78c73b4cbff171ee8e858953b303dc9cb20268740ad"
   end
 
   head do
-    url "https://svn.osgeo.org/postgis/trunk/"
+    url "https://git.osgeo.org/gitea/postgis/postgis.git", branch: "master"
 
     depends_on "autoconf" => :build
     depends_on "automake" => :build
@@ -25,11 +33,17 @@ class Postgis < Formula
   depends_on "gdal" # for GeoJSON and raster handling
   depends_on "geos"
   depends_on "json-c" # for GeoJSON and raster handling
-  depends_on "pcre"
+  depends_on "pcre2"
   depends_on "postgresql"
   depends_on "proj"
   depends_on "protobuf-c" # for MVT (map vector tiles) support
   depends_on "sfcgal" # for advanced 2D/3D functions
+
+  on_linux do
+    depends_on "gcc"
+  end
+
+  fails_with gcc: "5"
 
   def install
     ENV.deparallelize
@@ -50,16 +64,23 @@ class Postgis < Formula
     system "./configure", *args
     system "make"
 
+    # Install to a staging directory to circumvent the hardcoded install paths
+    # set by the PGXS makefiles.
     mkdir "stage"
     system "make", "install", "DESTDIR=#{buildpath}/stage"
 
-    bin.install Dir["stage/**/bin/*"]
-    lib.install Dir["stage/**/lib/*"]
-    include.install Dir["stage/**/include/*"]
-    (doc/"postgresql/extension").install Dir["stage/**/share/doc/postgresql/extension/*"]
-    (share/"postgresql/extension").install Dir["stage/**/share/postgresql/extension/*"]
-    pkgshare.install Dir["stage/**/contrib/postgis-*/*"]
-    (share/"postgis_topology").install Dir["stage/**/contrib/postgis_topology-*/*"]
+    # Some files are stored in the stage directory with the cellar prefix of
+    # the version of postgresql used to build postgis.  Since we copy these
+    # files into the postgis keg and symlink them to HOMEBREW_PREFIX, postgis
+    # only needs to be rebuilt when there is a new major version of postgresql.
+    postgresql_prefix = Formula["postgresql"].prefix.realpath
+    postgresql_stage_path = File.join("stage", postgresql_prefix)
+    bin.install (buildpath/postgresql_stage_path/"bin").children
+    doc.install (buildpath/postgresql_stage_path/"share/doc").children
+
+    stage_path = File.join("stage", HOMEBREW_PREFIX)
+    lib.install (buildpath/stage_path/"lib").children
+    share.install (buildpath/stage_path/"share").children
 
     # Extension scripts
     bin.install %w[
@@ -72,11 +93,14 @@ class Postgis < Formula
       utils/test_geography_joinestimation.pl
       utils/test_joinestimation.pl
     ]
-
-    man1.install Dir["doc/**/*.1"]
   end
 
   test do
+    pg_version = Formula["postgresql"].version.major
+    expected = /'PostGIS built for PostgreSQL % cannot be loaded in PostgreSQL %',\s+#{pg_version}\.\d,/
+    postgis_version = Formula["postgis"].version.major_minor
+    assert_match expected, (share/"postgresql/contrib/postgis-#{postgis_version}/postgis.sql").read
+
     require "base64"
     (testpath/"brew.shp").write ::Base64.decode64 <<~EOS
       AAAnCgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoOgDAAALAAAAAAAAAAAAAAAA
@@ -110,7 +134,7 @@ class Postgis < Formula
       igAAABI=
     EOS
     result = shell_output("#{bin}/shp2pgsql #{testpath}/brew.shp")
-    assert_match(/Point/, result)
-    assert_match(/AddGeometryColumn/, result)
+    assert_match "Point", result
+    assert_match "AddGeometryColumn", result
   end
 end

@@ -1,21 +1,30 @@
 class Crystal < Formula
   desc "Fast and statically typed, compiled language with Ruby-like syntax"
   homepage "https://crystal-lang.org/"
+  license "Apache-2.0"
 
   stable do
-    url "https://github.com/crystal-lang/crystal/archive/0.29.0.tar.gz"
-    sha256 "c2265b2a904ded282751f59a3bd0367072058eee1cf51ebe0af03a572f8e19b9"
+    url "https://github.com/crystal-lang/crystal/archive/1.4.1.tar.gz"
+    sha256 "97466656adede19943619e18af030c1d542c2c3dd1f36f3a422310bd8b53f5e0"
 
     resource "shards" do
-      url "https://github.com/crystal-lang/shards/archive/v0.8.1.tar.gz"
-      sha256 "75c74ab6acf2d5c59f61a7efd3bbc3c4b1d65217f910340cb818ebf5233207a5"
+      url "https://github.com/crystal-lang/shards/archive/v0.17.0.tar.gz"
+      sha256 "b3f0a2261437b21b3e2465b7755edf0c33f0305a112bd9a36e1b3ec74f96b098"
     end
   end
 
+  livecheck do
+    url :stable
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
+  end
+
   bottle do
-    sha256 "87ad47db7f211cc64fa79a847f23ef3850da2792f8c4d673b0c16fca9be769ce" => :mojave
-    sha256 "cfa194da34d0cf847f6d3ce19603e7d8f8502c3cf93ec6975df59247f2f1e252" => :high_sierra
-    sha256 "50982b8eee0c4ee85539e0cddd51425a54572af1bf50b7ac7dcf691bb62c0996" => :sierra
+    sha256 arm64_monterey: "0bd6b66e221cdd959199d3ba725e008bb56b4add7104a6af605a77aa8b4777d0"
+    sha256 arm64_big_sur:  "3f12fb6005eb7ea8a8e4e9d0e48d28751b0b44cb9d46d26ec2a8bf1fda2863b6"
+    sha256 monterey:       "e2d165828c73d94bebf93b9ee6e9e5f646b4b829a60aa39d439f8f3a05eac138"
+    sha256 big_sur:        "13c6d1aeef838b4541314812dca0ced5316bd9bc528e050798603a33fa41d29f"
+    sha256 catalina:       "d8670e8cd761aac62e776252d8d180c7492bbe3a2d9d9aef05e2b82513bae009"
+    sha256 x86_64_linux:   "af2c47f9bb9cfdf70ddac44e3ff36bae2c09727e63716569220b4141b8896380"
   end
 
   head do
@@ -26,81 +35,98 @@ class Crystal < Formula
     end
   end
 
-  depends_on "autoconf"      => :build # for building bdw-gc
-  depends_on "automake"      => :build # for building bdw-gc
-  depends_on "libatomic_ops" => :build # for building bdw-gc
-  depends_on "libtool"       => :build # for building bdw-gc
-
+  depends_on "bdw-gc"
   depends_on "gmp" # std uses it but it's not linked
   depends_on "libevent"
   depends_on "libyaml"
-  depends_on "llvm@6"
+  depends_on "llvm"
+  depends_on "openssl@1.1" # std uses it but it's not linked
   depends_on "pcre"
   depends_on "pkg-config" # @[Link] will use pkg-config if available
 
-  # Crystal uses an extended version of bdw-gc to handle multi-threading
-  resource "bdw-gc" do
-    url "https://github.com/ivmai/bdwgc/releases/download/v8.0.4/gc-8.0.4.tar.gz"
-    sha256 "436a0ddc67b1ac0b0405b61a9675bca9e075c8156f4debd1d06f3a56c7cd289d"
-
-    # extension to handle multi-threading
-    patch :p1 do
-      url "https://raw.githubusercontent.com/crystal-lang/distribution-scripts/ab683792f34c60159f0e697adf792ff5b0fcbf91/linux/files/feature-thread-stackbottom.patch"
-      sha256 "acbae8cfe10e3efac403a629490cfd05e809554d23e9c3a88acddbb66f8ef7e0"
-    end
+  on_linux do
+    depends_on "gcc"
   end
 
+  fails_with gcc: "5"
+
+  # Every new crystal release is built from the previous one. The exceptions are
+  # when crystal make a minor release (only bug fixes). Reason is because those
+  # bugs could make the compiler from stopping compiling the next compiler.
+  #
+  # See: https://github.com/Homebrew/homebrew-core/pull/81318
   resource "boot" do
-    url "https://github.com/crystal-lang/crystal/releases/download/0.28.0/crystal-0.28.0-1-darwin-x86_64.tar.gz"
-    version "0.28.0-1"
-    sha256 "f3ba24c297a99382d749344f319947f807da03371240e373d5c3d13117d4a113"
+    on_macos do
+      url "https://github.com/crystal-lang/crystal/releases/download/1.3.2/crystal-1.3.2-1-darwin-universal.tar.gz"
+      version "1.3.2-1"
+      sha256 "ef7c509e29313ad024a54352abc9b9c30269efc2e81c5796b7b64a5f2c68470d"
+    end
+    on_linux do
+      url "https://github.com/crystal-lang/crystal/releases/download/1.3.2/crystal-1.3.2-1-linux-x86_64.tar.gz"
+      version "1.3.2-1"
+      sha256 "6e102e55d658f2cc0c56d23fcb50bd2edbd98959aa6b59b8e1210c6860651ed4"
+    end
   end
 
   def install
+    llvm = deps.find { |dep| dep.name.match?(/^llvm(@\d+)?$/) }
+               .to_formula
+
     (buildpath/"boot").install resource("boot")
-
-    if build.head?
-      ENV["CRYSTAL_CONFIG_BUILD_COMMIT"] = Utils.popen_read("git rev-parse --short HEAD").strip
-    end
-
-    ENV["CRYSTAL_CONFIG_PATH"] = prefix/"src:lib"
-    ENV["CRYSTAL_CONFIG_LIBRARY_PATH"] = prefix/"embedded/lib"
     ENV.append_path "PATH", "boot/bin"
-
-    resource("bdw-gc").stage(buildpath/"gc")
-    cd(buildpath/"gc") do
-      system "./configure", "--disable-debug",
-                            "--disable-dependency-tracking",
-                            "--disable-shared",
-                            "--enable-large-config"
-      system "make"
-    end
-
-    ENV.prepend_path "CRYSTAL_LIBRARY_PATH", buildpath/"gc/.libs"
+    ENV.append_path "CRYSTAL_LIBRARY_PATH", Formula["bdw-gc"].opt_lib
+    ENV.append_path "CRYSTAL_LIBRARY_PATH", ENV["HOMEBREW_LIBRARY_PATHS"]
+    ENV.append_path "CRYSTAL_LIBRARY_PATH", Formula["libevent"].opt_lib
+    ENV.append_path "LLVM_CONFIG", llvm.opt_bin/"llvm-config"
 
     # Build crystal
+    crystal_build_opts = []
+    crystal_build_opts << "release=true"
+    crystal_build_opts << "FLAGS=--no-debug"
+    crystal_build_opts << "CRYSTAL_CONFIG_LIBRARY_PATH="
+    crystal_build_opts << "CRYSTAL_CONFIG_BUILD_COMMIT=#{Utils.git_short_head}" if build.head?
     (buildpath/".build").mkpath
     system "make", "deps"
-    system "bin/crystal", "build",
-                          "-D", "without_openssl",
-                          "-D", "without_zlib",
-                          "-D", "preview_overflow",
-                          "-o", ".build/crystal",
-                          "src/compiler/crystal.cr",
-                          "--release", "--no-debug"
+    system "make", "crystal", *crystal_build_opts
 
-    # Build shards
+    # Build shards (with recently built crystal)
+    #
+    # Setup the same path the wrapper script would, but just for building shards.
+    # NOTE: it seems that the installed crystal in bin/"crystal" can be used while
+    #       building the formula. Otherwise this ad-hoc setup could be avoided.
+    embedded_crystal_path=`"#{buildpath/".build/crystal"}" env CRYSTAL_PATH`.strip
+    ENV["CRYSTAL_PATH"] = "#{embedded_crystal_path}:#{buildpath/"src"}"
+
+    # Install shards
     resource("shards").stage do
-      system buildpath/"bin/crystal", "build", "-o", buildpath/".build/shards", "src/shards.cr"
+      system "make", "bin/shards", "CRYSTAL=#{buildpath/"bin/crystal"}",
+                                   "SHARDS=false",
+                                   "release=true",
+                                   "FLAGS=--no-debug"
+
+      # Install shards
+      bin.install "bin/shards"
+      man1.install "man/shards.1"
+      man5.install "man/shard.yml.5"
     end
 
-    bin.install ".build/shards"
-    bin.install ".build/crystal"
+    # Install crystal
+    libexec.install ".build/crystal"
+    (bin/"crystal").write <<~SH
+      #!/bin/bash
+      EMBEDDED_CRYSTAL_PATH=$("#{libexec/"crystal"}" env CRYSTAL_PATH)
+      export CRYSTAL_PATH="${CRYSTAL_PATH:-"$EMBEDDED_CRYSTAL_PATH:#{prefix/"src"}"}"
+      export CRYSTAL_LIBRARY_PATH="${CRYSTAL_LIBRARY_PATH:+$CRYSTAL_LIBRARY_PATH:}#{HOMEBREW_PREFIX}/lib"
+      export PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+$PKG_CONFIG_PATH:}#{Formula["openssl@1.1"].opt_lib/"pkgconfig"}"
+      exec "#{libexec/"crystal"}" "${@}"
+    SH
+
     prefix.install "src"
-    (prefix/"embedded/lib").install "#{buildpath/"gc"}/.libs/libgc.a"
 
     bash_completion.install "etc/completion.bash" => "crystal"
     zsh_completion.install "etc/completion.zsh" => "_crystal"
+
+    man1.install "man/crystal.1"
   end
 
   test do

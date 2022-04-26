@@ -1,21 +1,30 @@
 class Jython < Formula
   desc "Python implementation written in Java (successor to JPython)"
   homepage "https://www.jython.org/"
-  url "https://search.maven.org/remotecontent?filepath=org/python/jython-installer/2.7.1/jython-installer-2.7.1.jar"
-  sha256 "6e58dad0b8565b95c6fb14b4bfbf570523d1c5290244cfb33822789fa53b1d25"
+  url "https://search.maven.org/remotecontent?filepath=org/python/jython-installer/2.7.2/jython-installer-2.7.2.jar"
+  sha256 "36e40609567ce020a1de0aaffe45e0b68571c278c14116f52e58cc652fb71552"
+  license "PSF-2.0"
+  revision 1
 
-  # This isn't accidental; there is actually a compile process here.
-  bottle do
-    sha256 "495bcaf3acffdb941e3ee2080252f878a3e853229ab9a491475a9fdb773cf05f" => :mojave
-    sha256 "71b9c25bb4ef023ad684f4c1f062eafe678d388a11cf20ce1a1e69732ef557f5" => :high_sierra
-    sha256 "98bd9e1dcd92f8a0e281db6430985a2b67b2db36143d04a286502128fa9598af" => :sierra
-    sha256 "865533fa4016f5d378badbd0fce6e9bad6b373a65b6feab152a27dffdd12603b" => :el_capitan
-    sha256 "39b916844c6df58ca9e20f8125df6d4166fbcb18d732069a92a5b71edab13093" => :yosemite
+  livecheck do
+    url "https://search.maven.org/remotecontent?filepath=org/python/jython-installer/"
+    regex(%r{href=["']?v?(\d+(?:\.\d+)+)/?["' >]}i)
   end
+
+  bottle do
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "df7449a61b5503533837daa4e6b482433846bcd7711fb6a217ffe3186c359870"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "df7449a61b5503533837daa4e6b482433846bcd7711fb6a217ffe3186c359870"
+    sha256 cellar: :any_skip_relocation, monterey:       "839d5567f080b613bfd533136098e600f6364b371aad688dd2427dd33a7eea1f"
+    sha256 cellar: :any_skip_relocation, big_sur:        "774e319da7e0c604ac7c6bd894aee3e4bebe83a94d0c87ec847e63ba3f4dca33"
+    sha256 cellar: :any_skip_relocation, catalina:       "01daf9373cdf4140ff89acb5dd8b6a3537eae8cc6a9d3200cc8dddff83ce9e0e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "a2a44cf702b9351f1687ada2ac71f552e641d3230fe39fccd30a101c40946f7f"
+  end
+
+  depends_on "openjdk"
 
   def install
     system "java", "-jar", cached_download, "-s", "-d", libexec
-    bin.install_symlink libexec/"bin/jython"
+    (bin/"jython").write_env_script libexec/"bin/jython", Language::Java.overridable_java_home_env
   end
 
   test do

@@ -1,144 +1,140 @@
 class Lua < Formula
   desc "Powerful, lightweight programming language"
   homepage "https://www.lua.org/"
-  url "https://www.lua.org/ftp/lua-5.3.5.tar.gz"
-  sha256 "0c2eed3f960446e1a3e4b9a1ca2f3ff893b6ce41942cf54d5dd59ab4b3b058ac"
+  url "https://www.lua.org/ftp/lua-5.4.4.tar.gz"
+  sha256 "164c7849653b80ae67bec4b7473b884bf5cc8d2dca05653475ec2ed27b9ebf61"
+  license "MIT"
   revision 1
 
-  bottle do
-    cellar :any
-    sha256 "f045a6bc17caa285b9201e2e34c69903cf45ddb4190a5012143eb9f2cb789434" => :mojave
-    sha256 "fcf36c0a4785ed9f515a1a18d8e158ad806c8ff92a5359959fbfa1b84bc52454" => :high_sierra
-    sha256 "17947facfc289e35fc19a1c4091f4d26387bdc254150df75e0aa95d881e58135" => :sierra
-    sha256 "b6e9699312e768aaa800d06e1f1e445f1bed64c8eb614083915c60e0a2e3d746" => :el_capitan
+  livecheck do
+    url "https://www.lua.org/ftp/"
+    regex(/href=.*?lua[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
-  # Be sure to build a dylib, or else runtime modules will pull in another static copy of liblua = crashy
-  # See: https://github.com/Homebrew/legacy-homebrew/pull/5043
-  # ***Update me with each version bump!***
+  bottle do
+    sha256 cellar: :any,                 arm64_monterey: "a68739b34434711be8213dd5f0b005675534967195b04b9c6ed2f60e05a362fe"
+    sha256 cellar: :any,                 arm64_big_sur:  "87f8fc36f2f97b92016304ae6d25bd197ed4f5275966c6cf1b28a1181cc20b64"
+    sha256 cellar: :any,                 monterey:       "ef899efde91007b9c02f61a8fd4519893e271edb89c03f0c4a7f201f288dae1b"
+    sha256 cellar: :any,                 big_sur:        "55abe1007284d39071736eff023495e1a483675586414ed8504cd9507ae0d67f"
+    sha256 cellar: :any,                 catalina:       "c8cab606ce17da91d120b87f8efaddf80041e22ec601e10242fb543c805d4fbc"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "a94fd6e24f1b0ba6bb6a0c849c2fbfa6acedde81ef3e2c12fb80dcda791f01e2"
+  end
+
+  uses_from_macos "unzip" => :build
+
+  on_macos do
+    # Be sure to build a dylib, or else runtime modules will pull in another static copy of liblua = crashy
+    # See: https://github.com/Homebrew/legacy-homebrew/pull/5043
+    patch do
+      url "https://raw.githubusercontent.com/Homebrew/formula-patches/11c8360432f471f74a9b2d76e012e3b36f30b871/lua/lua-dylib.patch"
+      sha256 "a39e2ae1066f680e5c8bf1749fe09b0e33a0215c31972b133a73d43b00bf29dc"
+    end
+  end
+
+  on_linux do
+    depends_on "readline"
+
+    # Add shared library for linux. Equivalent to the mac patch above.
+    # Inspired from https://www.linuxfromscratch.org/blfs/view/cvs/general/lua.html
+    patch do
+      url "https://raw.githubusercontent.com/Homebrew/formula-patches/0dcd11880c7d63eb395105a5cdddc1ca05b40f4a/lua/lua-so.patch"
+      sha256 "522dc63a0c1d87bf127c992dfdf73a9267890fd01a5a17e2bcf06f7eb2782942"
+    end
+  end
+
+  # Fix crash issue in luac when invoked with multiple files.
+  # http://lua-users.org/lists/lua-l/2022-02/msg00113.html
   patch :DATA
 
   def install
-    # Subtitute formula prefix in `src/Makefile` for install name (dylib ID).
+    if OS.linux?
+      # Fix: /usr/bin/ld: lapi.o: relocation R_X86_64_32 against `luaO_nilobject_' can not be used
+      # when making a shared object; recompile with -fPIC
+      # See https://www.linuxfromscratch.org/blfs/view/cvs/general/lua.html
+      ENV.append_to_cflags "-fPIC"
+    end
+
+    # Substitute formula prefix in `src/Makefile` for install name (dylib ID).
     # Use our CC/CFLAGS to compile.
     inreplace "src/Makefile" do |s|
-      s.gsub! "@LUA_PREFIX@", prefix
+      s.gsub! "@OPT_LIB@", opt_lib if OS.mac?
       s.remove_make_var! "CC"
-      s.change_make_var! "CFLAGS", "#{ENV.cflags} -DLUA_COMPAT_5_2 $(SYSCFLAGS) $(MYCFLAGS)"
+      s.change_make_var! "MYCFLAGS", ENV.cflags
       s.change_make_var! "MYLDFLAGS", ENV.ldflags
     end
 
     # Fix path in the config header
     inreplace "src/luaconf.h", "/usr/local", HOMEBREW_PREFIX
 
+    os = if OS.mac?
+      "macosx"
+    else
+      "linux-readline"
+    end
+
+    system "make", os, "INSTALL_TOP=#{prefix}"
+    system "make", "install", "INSTALL_TOP=#{prefix}"
+
     # We ship our own pkg-config file as Lua no longer provide them upstream.
-    system "make", "macosx", "INSTALL_TOP=#{prefix}", "INSTALL_INC=#{include}/lua", "INSTALL_MAN=#{man1}"
-    system "make", "install", "INSTALL_TOP=#{prefix}", "INSTALL_INC=#{include}/lua", "INSTALL_MAN=#{man1}"
-    (lib/"pkgconfig/lua.pc").write pc_file
+    libs = %w[-llua -lm]
+    libs << "-ldl" if OS.linux?
+    (lib/"pkgconfig/lua.pc").write <<~EOS
+      V= #{version.major_minor}
+      R= #{version}
+      prefix=#{HOMEBREW_PREFIX}
+      INSTALL_BIN= ${prefix}/bin
+      INSTALL_INC= ${prefix}/include/lua
+      INSTALL_LIB= ${prefix}/lib
+      INSTALL_MAN= ${prefix}/share/man/man1
+      INSTALL_LMOD= ${prefix}/share/lua/${V}
+      INSTALL_CMOD= ${prefix}/lib/lua/${V}
+      exec_prefix=${prefix}
+      libdir=${exec_prefix}/lib
+      includedir=${prefix}/include/lua
+
+      Name: Lua
+      Description: An Extensible Extension Language
+      Version: #{version}
+      Requires:
+      Libs: -L${libdir} #{libs.join(" ")}
+      Cflags: -I${includedir}
+    EOS
 
     # Fix some software potentially hunting for different pc names.
-    bin.install_symlink "lua" => "lua5.3"
-    bin.install_symlink "lua" => "lua-5.3"
-    bin.install_symlink "luac" => "luac5.3"
-    bin.install_symlink "luac" => "luac-5.3"
-    (include/"lua5.3").install_symlink Dir[include/"lua/*"]
-    lib.install_symlink "liblua.5.3.dylib" => "liblua5.3.dylib"
-    (lib/"pkgconfig").install_symlink "lua.pc" => "lua5.3.pc"
-    (lib/"pkgconfig").install_symlink "lua.pc" => "lua-5.3.pc"
+    bin.install_symlink "lua" => "lua#{version.major_minor}"
+    bin.install_symlink "lua" => "lua-#{version.major_minor}"
+    bin.install_symlink "luac" => "luac#{version.major_minor}"
+    bin.install_symlink "luac" => "luac-#{version.major_minor}"
+    (include/"lua#{version.major_minor}").install_symlink Dir[include/"lua/*"]
+    lib.install_symlink shared_library("liblua", version.major_minor) => shared_library("liblua#{version.major_minor}")
+    (lib/"pkgconfig").install_symlink "lua.pc" => "lua#{version.major_minor}.pc"
+    (lib/"pkgconfig").install_symlink "lua.pc" => "lua-#{version.major_minor}.pc"
+
+    lib.install Dir[shared_library("src/liblua", "*")] if OS.linux?
   end
 
-  def pc_file; <<~EOS
-    V= 5.3
-    R= #{version}
-    prefix=#{HOMEBREW_PREFIX}
-    INSTALL_BIN= ${prefix}/bin
-    INSTALL_INC= ${prefix}/include/lua
-    INSTALL_LIB= ${prefix}/lib
-    INSTALL_MAN= ${prefix}/share/man/man1
-    INSTALL_LMOD= ${prefix}/share/lua/${V}
-    INSTALL_CMOD= ${prefix}/lib/lua/${V}
-    exec_prefix=${prefix}
-    libdir=${exec_prefix}/lib
-    includedir=${prefix}/include/lua
-
-    Name: Lua
-    Description: An Extensible Extension Language
-    Version: #{version}
-    Requires:
-    Libs: -L${libdir} -llua -lm
-    Cflags: -I${includedir}
-  EOS
-  end
-
-  def caveats; <<~EOS
-    You may also want luarocks:
-      brew install luarocks
-  EOS
+  def caveats
+    <<~EOS
+      You may also want luarocks:
+        brew install luarocks
+    EOS
   end
 
   test do
-    system "#{bin}/lua", "-e", "print ('Ducks are cool')"
+    assert_match "Homebrew is awesome!", shell_output("#{bin}/lua -e \"print ('Homebrew is awesome!')\"")
   end
 end
 
 __END__
-diff --git a/Makefile b/Makefile
-index 7fa91c8..a825198 100644
---- a/Makefile
-+++ b/Makefile
-@@ -41,7 +41,7 @@ PLATS= aix bsd c89 freebsd generic linux macosx mingw posix solaris
- # What to install.
- TO_BIN= lua luac
- TO_INC= lua.h luaconf.h lualib.h lauxlib.h lua.hpp
--TO_LIB= liblua.a
-+TO_LIB= liblua.5.3.5.dylib
- TO_MAN= lua.1 luac.1
-
- # Lua version and release.
-@@ -63,6 +63,8 @@ install: dummy
-	cd src && $(INSTALL_DATA) $(TO_INC) $(INSTALL_INC)
-	cd src && $(INSTALL_DATA) $(TO_LIB) $(INSTALL_LIB)
-	cd doc && $(INSTALL_DATA) $(TO_MAN) $(INSTALL_MAN)
-+	ln -s -f liblua.5.3.5.dylib $(INSTALL_LIB)/liblua.5.3.dylib
-+	ln -s -f liblua.5.3.dylib $(INSTALL_LIB)/liblua.dylib
-
- uninstall:
-	cd src && cd $(INSTALL_BIN) && $(RM) $(TO_BIN)
-diff --git a/src/Makefile b/src/Makefile
-index 2e7a412..d0c4898 100644
---- a/src/Makefile
-+++ b/src/Makefile
-@@ -28,7 +28,7 @@ MYOBJS=
-
- PLATS= aix bsd c89 freebsd generic linux macosx mingw posix solaris
-
--LUA_A=	liblua.a
-+LUA_A=	liblua.5.3.5.dylib
- CORE_O=	lapi.o lcode.o lctype.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o \
-	lmem.o lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o \
-	ltm.o lundump.o lvm.o lzio.o
-@@ -56,11 +56,12 @@ o:	$(ALL_O)
- a:	$(ALL_A)
-
- $(LUA_A): $(BASE_O)
--	$(AR) $@ $(BASE_O)
--	$(RANLIB) $@
-+	$(CC) -dynamiclib -install_name @LUA_PREFIX@/lib/liblua.5.3.dylib \
-+		-compatibility_version 5.3 -current_version 5.3.5 \
-+		-o liblua.5.3.5.dylib $^
-
- $(LUA_T): $(LUA_O) $(LUA_A)
--	$(CC) -o $@ $(LDFLAGS) $(LUA_O) $(LUA_A) $(LIBS)
-+	$(CC) -fno-common $(MYLDFLAGS) -o $@ $(LUA_O) $(LUA_A) -L. -llua.5.3.5 $(LIBS)
-
- $(LUAC_T): $(LUAC_O) $(LUA_A)
-	$(CC) -o $@ $(LDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
-@@ -110,7 +111,7 @@ linux:
-	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_LINUX" SYSLIBS="-Wl,-E -ldl -lreadline"
-
- macosx:
--	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_MACOSX" SYSLIBS="-lreadline"
-+	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_MACOSX -fno-common" SYSLIBS="-lreadline"
-
- mingw:
-	$(MAKE) "LUA_A=lua53.dll" "LUA_T=lua.exe" \
+diff --git a/src/luac.c b/src/luac.c
+index f6db9cf..ba0a81e 100644
+--- a/src/luac.c
++++ b/src/luac.c
+@@ -156,6 +156,7 @@ static const Proto* combine(lua_State* L, int n)
+    if (f->p[i]->sizeupvalues>0) f->p[i]->upvalues[0].instack=0;
+   }
+   luaM_freearray(L,f->lineinfo,f->sizelineinfo);
++  f->lineinfo = NULL;
+   f->sizelineinfo=0;
+   return f;
+  }

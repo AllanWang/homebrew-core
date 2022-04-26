@@ -1,14 +1,16 @@
 class Nco < Formula
   desc "Command-line operators for netCDF and HDF files"
   homepage "https://nco.sourceforge.io/"
-  url "https://github.com/nco/nco/archive/4.8.1.tar.gz"
-  sha256 "ddae3fed46c266798ed1176d6a70b36376d2d320fa933c716a623172d1e13c68"
+  url "https://github.com/nco/nco/archive/5.0.6.tar.gz"
+  sha256 "d4c74e0268af94bdddcb0c77189830992f61c04147c23669b66470f1a8595d60"
+  license "BSD-3-Clause"
 
   bottle do
-    cellar :any
-    sha256 "4dcdf9514a6379c2564a61a6b2784feeff47874ec950e4665193f333fd7efc2c" => :mojave
-    sha256 "06cadac238310edc90e3a6f956af816a71734b65283e71e39a07169e4ea9b8bd" => :high_sierra
-    sha256 "f93374f312d196f25eb550ef4c10645e4fc78f91a302c5afc23ea086b82ff38f" => :sierra
+    sha256 cellar: :any, arm64_monterey: "969c10367b15f8310e6656162903f55e43a65f1e55b269b3ddc2413e0ce06054"
+    sha256 cellar: :any, arm64_big_sur:  "a78efa89eb88eb6df2cc493ccfed637269a2f0eae864ad86ccbed4730a7010d3"
+    sha256 cellar: :any, monterey:       "3d9c9aa49c1ccf60e6221757c18685b2808e1621aac1adca951f38666ff44f49"
+    sha256 cellar: :any, big_sur:        "4b6615c01fd7fbb64bf1780fcbfcc8a365a00d2e833c2e3346c683c6f98b32c1"
+    sha256 cellar: :any, catalina:       "41a6ed161459fce3df960c04741418ffb970f8b68bac4e829858edd0ef42c070"
   end
 
   head do
@@ -23,14 +25,13 @@ class Nco < Formula
   depends_on "texinfo"
   depends_on "udunits"
 
-  resource "example_nc" do
+  resource "homebrew-example_nc" do
     url "https://www.unidata.ucar.edu/software/netcdf/examples/WMI_Lear.nc"
     sha256 "e37527146376716ef335d01d68efc8d0142bdebf8d9d7f4e8cbe6f880807bdef"
   end
 
   def install
     system "./autogen.sh" if build.head?
-
     system "./configure", "--disable-dependency-tracking",
                           "--prefix=#{prefix}",
                           "--enable-netcdf4"
@@ -38,7 +39,7 @@ class Nco < Formula
   end
 
   test do
-    testpath.install resource("example_nc")
+    testpath.install resource("homebrew-example_nc")
     output = shell_output("#{bin}/ncks --json -M WMI_Lear.nc")
     assert_match "\"time\": 180", output
   end

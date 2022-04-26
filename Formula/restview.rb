@@ -1,66 +1,52 @@
 class Restview < Formula
+  include Language::Python::Virtualenv
+
   desc "Viewer for ReStructuredText documents that renders them on the fly"
   homepage "https://mg.pov.lt/restview/"
-  url "https://github.com/mgedmin/restview/archive/2.9.2.tar.gz"
-  sha256 "155a5744111d3d1f9e7903f4445ff41c04b42c0be29705f57fb98b3d33b283bd"
+  url "https://files.pythonhosted.org/packages/df/57/c39171d211168008153b00c0dd9b873afb6d9e76eecbd3496c86aeaac8bf/restview-3.0.0.tar.gz"
+  sha256 "2b989610aaed2fd42da64f6cdc539cf3ee70ce370bcba872db72421ad515dd1e"
+  license "GPL-3.0"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "20b1b86940e4cf58ddc5f8f8ea59a34b29379aa73ad77b4fb0985b25720a35ac" => :mojave
-    sha256 "0e97c65a7f872f32ecbe3a156ad4626258e872c71a53ef8700c7cb1049e83e10" => :high_sierra
-    sha256 "59ede18c81cfedc9d2a730dd7459a874de1a0518c0471439fb31063973e4265e" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "75222c9a80589397d43420afc5cba5d73976a93d8233b82285f778c7ac57dc12"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "41ab5c0a14611252d535453bd87c54c6bf0070d3ee786bf39c171dff8cba23ad"
+    sha256 cellar: :any_skip_relocation, monterey:       "3ea3915d3a778e23677a900c3aab7425b028468150e266e74e5b6adb1e083a05"
+    sha256 cellar: :any_skip_relocation, big_sur:        "c897987aa35d178a5c1b7a9d4bc1fc6dcad8a094d850e245f91c82ace51d410d"
+    sha256 cellar: :any_skip_relocation, catalina:       "892229bead0eeddd16397bd8f6adae818bed7269a1f8ca89e7cc67c1224c08bb"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "04ddf5e1109e7978a814dfa5824461b7e70679754a3aba9b08e2618b87504ee4"
   end
 
-  depends_on "python"
+  depends_on "python@3.10"
+  depends_on "six"
 
   resource "bleach" do
-    url "https://files.pythonhosted.org/packages/eb/ea/58428609442130dc31d3a59010bf6cbd263a16c589d01d23b7c1e6997e3b/bleach-2.1.3.tar.gz"
-    sha256 "eb7386f632349d10d9ce9d4a838b134d4731571851149f9cc2c05a9a837a9a44"
-  end
-
-  resource "cffi" do
-    url "https://files.pythonhosted.org/packages/e7/a7/4cd50e57cc6f436f1cc3a7e8fa700ff9b8b4d471620629074913e3735fb2/cffi-1.11.5.tar.gz"
-    sha256 "e90f17980e6ab0f3c2f3730e56d1fe9bcba1891eeea58966e89d352492cc74f4"
-  end
-
-  resource "cmarkgfm" do
-    url "https://files.pythonhosted.org/packages/e2/a3/4021fbc17c5afe7f307d14eba0d6899a8e66b351ab65649b1c89c50a836d/cmarkgfm-0.4.2.tar.gz"
-    sha256 "f20900f16377f2109783ae9348d34bc80530808439591c3d3df73d5c7ef1a00c"
+    url "https://files.pythonhosted.org/packages/6a/a3/217842324374fd3fb33db0eb4c2909ccf3ecc5a94f458088ac68581f8314/bleach-4.1.0.tar.gz"
+    sha256 "0900d8b37eba61a802ee40ac0061f8c2b5dee29c1927dd1d233e075ebf5a71da"
   end
 
   resource "docutils" do
-    url "https://files.pythonhosted.org/packages/84/f4/5771e41fdf52aabebbadecc9381d11dea0fa34e4759b4071244fa094804c/docutils-0.14.tar.gz"
-    sha256 "51e64ef2ebfb29cae1faa133b3710143496eca21c530f3f71424d77687764274"
+    url "https://files.pythonhosted.org/packages/57/b1/b880503681ea1b64df05106fc7e3c4e3801736cf63deffc6fa7fc5404cf5/docutils-0.18.1.tar.gz"
+    sha256 "679987caf361a7539d76e584cbeddc311e3aee937877c87346f31debc63e9d06"
   end
 
-  resource "future" do
-    url "https://files.pythonhosted.org/packages/00/2b/8d082ddfed935f3608cc61140df6dcbf0edea1bc3ab52fb6c29ae3e81e85/future-0.16.0.tar.gz"
-    sha256 "e39ced1ab767b5936646cedba8bcce582398233d6a627067d4c6a454c90cfedb"
-  end
-
-  resource "html5lib" do
-    url "https://files.pythonhosted.org/packages/85/3e/cf449cf1b5004e87510b9368e7a5f1acd8831c2d6691edd3c62a0823f98f/html5lib-1.0.1.tar.gz"
-    sha256 "66cb0dcfdbbc4f9c3ba1a63fdb511ffdbd4f513b2b6d81b80cd26ce6b3fb3736"
-  end
-
-  resource "pycparser" do
-    url "https://files.pythonhosted.org/packages/8c/2d/aad7f16146f4197a11f8e91fb81df177adcc2073d36a17b1491fd09df6ed/pycparser-2.18.tar.gz"
-    sha256 "99a8ca03e29851d96616ad0404b4aad7d9ee16f25c9f9708a11faf2810f7b226"
+  resource "packaging" do
+    url "https://files.pythonhosted.org/packages/df/9e/d1a7217f69310c1db8fdf8ab396229f55a699ce34a203691794c5d1cad0c/packaging-21.3.tar.gz"
+    sha256 "dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"
   end
 
   resource "Pygments" do
-    url "https://files.pythonhosted.org/packages/71/2a/2e4e77803a8bd6408a2903340ac498cb0a2181811af7c9ec92cb70b0308a/Pygments-2.2.0.tar.gz"
-    sha256 "dbae1046def0efb574852fab9e90209b23f556367b5a320c0bcb871c77c3e8cc"
+    url "https://files.pythonhosted.org/packages/94/9c/cb656d06950268155f46d4f6ce25d7ffc51a0da47eadf1b164bbf23b718b/Pygments-2.11.2.tar.gz"
+    sha256 "4e426f72023d88d03b2fa258de560726ce890ff3b630f88c21cbb8b2503b8c6a"
   end
 
-  resource "readme_renderer" do
-    url "https://files.pythonhosted.org/packages/c8/aa/4b98370d8a5af38d2f9b75660e1240fa6f686fac4daae22a4172467d5574/readme_renderer-20.0.tar.gz"
-    sha256 "bde909eaa84d65b7942f7e6998c8b427b90b568b2630ff0306f4ca75f6d2a909"
+  resource "pyparsing" do
+    url "https://files.pythonhosted.org/packages/ab/61/1a1613e3dcca483a7aa9d446cb4614e6425eb853b90db131c305bd9674cb/pyparsing-3.0.6.tar.gz"
+    sha256 "d9bdec0013ef1eb5a84ab39a3b3868911598afa494f5faa038647101504e2b81"
   end
 
-  resource "six" do
-    url "https://files.pythonhosted.org/packages/16/d8/bc6316cf98419719bd59c91742194c111b6f2e85abac88e496adefaf7afe/six-1.11.0.tar.gz"
-    sha256 "70e8a77beed4562e7f14fe23a786b54f6296e34344c23bc42f07b15018ff98e9"
+  resource "readme-renderer" do
+    url "https://files.pythonhosted.org/packages/5a/3e/e368a390fe7ffcfd0bfd2ec5220ece8907b4b79d0e9f1356c7ae27f03e54/readme_renderer-32.0.tar.gz"
+    sha256 "b512beafa6798260c7d5af3e1b1f097e58bfcd9a575da7c4ddd5e037490a5b85"
   end
 
   resource "webencodings" do
@@ -68,46 +54,31 @@ class Restview < Formula
     sha256 "b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923"
   end
 
-  resource "sample" do
-    url "https://raw.githubusercontent.com/mgedmin/restview/140e23ad6604d52604bc11978fd13d3199150862/sample.rst"
-    sha256 "5a15b5f11adfdd5f895aa2e1da377c8d8d0b73565fe68f51e01399af05612ea3"
-  end
-
   def install
-    xy = Language::Python.major_minor_version "python3"
-    ENV.prepend_create_path "PYTHONPATH", libexec/"vendor/lib/python#{xy}/site-packages"
-
-    res = resources.reject { |r| r.name == "sample" }
-
-    res.each do |r|
-      r.stage do
-        system "python3", *Language::Python.setup_install_args(libexec/"vendor")
-      end
-    end
-
-    ENV.prepend_create_path "PYTHONPATH", libexec/"lib/python#{xy}/site-packages"
-    system "python3", *Language::Python.setup_install_args(libexec)
-
-    bin.install Dir[libexec/"bin/*"]
-    bin.env_script_all_files(libexec/"bin", :PYTHONPATH => ENV["PYTHONPATH"])
+    virtualenv_install_with_resources
   end
 
   test do
-    require "socket"
+    (testpath/"sample.rst").write <<~EOS
+      Lists
+      -----
 
-    server = TCPServer.new(0)
-    port = server.addr[1]
-    server.close
+      Here we have a numbered list
 
-    testpath.install resource("sample")
+      1. Four
+      2. Five
+      3. Six
+    EOS
 
+    port = free_port
     begin
       pid = fork do
         exec bin/"restview", "--listen=#{port}", "--no-browser", "sample.rst"
       end
-      sleep 1
+      sleep 3
       output = shell_output("curl -s 127.0.0.1:#{port}")
       assert_match "<p>Here we have a numbered list</p>", output
+      assert_match "<li>Four</li>", output
     ensure
       Process.kill("TERM", pid)
     end

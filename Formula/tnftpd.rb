@@ -1,34 +1,37 @@
 class Tnftpd < Formula
-  desc "NetBSD's FTP server (built from macOS Sierra sources)"
-  homepage "https://opensource.apple.com/"
-  url "https://opensource.apple.com/tarballs/lukemftpd/lukemftpd-51.tar.gz"
-  version "20100324"
-  sha256 "969b8a35fabcc82759da2433973b9606b7b62f73527e76ac8f18d0a19f473c2a"
+  desc "NetBSD's FTP server"
+  homepage "https://cdn.netbsd.org/pub/NetBSD/misc/tnftp/"
+  url "https://cdn.netbsd.org/pub/NetBSD/misc/tnftp/tnftpd-20200704.tar.gz"
+  mirror "https://www.mirrorservice.org/sites/ftp.netbsd.org/pub/NetBSD/misc/tnftp/tnftpd-20200704.tar.gz"
+  sha256 "92de915e1b4b7e4bd403daac5d89ce67fa73e49e8dda18e230fa86ee98e26ab7"
 
-  bottle do
-    sha256 "ce27ec83c1e3000355b624f25f8f0f6efbc14bda6436374c74c0ddeb2d67902b" => :mojave
-    sha256 "ee9f7bc91071b5a4c625621593b78cf34cc01ee06b828c942afc6aa30cbee5ff" => :high_sierra
-    sha256 "64d040373d1378a529947ad70460044013716d0e9fb0cbd2b5c81475caead3c7" => :sierra
-    sha256 "4ef4b7c1a35307c4a3e6b70dad1ba193aceda75920da79b0a2bd135446863d5e" => :el_capitan
+  livecheck do
+    url :homepage
+    regex(/href=.*?tnftpd[._-]v?(\d+(?:\.\d+)*)\.t/i)
   end
 
-  depends_on :xcode => :build
+  bottle do
+    sha256 cellar: :any_skip_relocation, arm64_big_sur: "da16904f59892ebef30355ea2dbaf1a0d5d6fe890d30c65b7d7f82992e4bc0de"
+    sha256 cellar: :any_skip_relocation, big_sur:       "05728c1edd46c07fe6e19d54094d53dc78614cae7b04320794a9e4ba43dad099"
+    sha256 cellar: :any_skip_relocation, catalina:      "cbc7f23e857584e25c7d2d043a3971841febe99f12830d82cf28fe47a2e9e254"
+    sha256 cellar: :any_skip_relocation, mojave:        "3e8848729081c09a247e0326ede175db12111360905f69cc339dea3ba0213e62"
+    sha256 cellar: :any_skip_relocation, high_sierra:   "18a15c1572f7f5b33b7678d9a322de20efcd0c1b1c5c98d8cb00e13a80bfa518"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:  "00a3f41077529f1428dcc9c99c4500c9d043032d174baa9ee1b735c91eb06dc3"
+  end
+
+  uses_from_macos "bison" => :build
 
   def install
-    system "tar", "zxvf", "tnftpd-20100324.tar.gz"
+    system "./configure", "--prefix=#{prefix}"
+    system "make"
 
-    cd "tnftpd-20100324" do
-      system "./configure"
-      system "make"
-
-      sbin.install "src/tnftpd" => "ftpd"
-      man8.install "src/tnftpd.man" => "ftpd.8"
-      man5.install "src/ftpusers.man" => "ftpusers.5"
-      man5.install "src/ftpd.conf.man" => "ftpd.conf.5"
-      etc.install "examples/ftpd.conf"
-      etc.install "examples/ftpusers"
-      prefix.install_metafiles
-    end
+    sbin.install "src/tnftpd" => "ftpd"
+    man8.install "src/tnftpd.man" => "ftpd.8"
+    man5.install "src/ftpusers.man" => "ftpusers.5"
+    man5.install "src/ftpd.conf.man" => "ftpd.conf.5"
+    etc.install "examples/ftpd.conf"
+    etc.install "examples/ftpusers"
+    prefix.install_metafiles
   end
 
   def caveats
@@ -39,6 +42,9 @@ class Tnftpd < Formula
   end
 
   test do
+    # Errno::EIO: Input/output error @ io_fillbuf - fd:5 /dev/pts/0
+    return if OS.linux? && ENV["HOMEBREW_GITHUB_ACTIONS"]
+
     # running a whole server, connecting, and so forth is a bit clunky and hard
     # to write properly so...
     require "pty"

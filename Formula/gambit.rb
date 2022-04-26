@@ -1,28 +1,35 @@
 class Gambit < Formula
   desc "Software tools for game theory"
   homepage "http://www.gambit-project.org"
-  url "https://github.com/gambitproject/gambit/archive/v15.1.1.tar.gz"
-  sha256 "fb4dce2f386e46bbfc72cb75471f43716535937c96ad5a730cad22f97c6a65e6"
+  url "https://github.com/gambitproject/gambit/archive/v16.0.2.tar.gz"
+  sha256 "49837f2ccb9bb65dad2f3bba9c436c7a7df8711887e25f6bf54b074508a682d4"
+  license "Apache-2.0"
+  revision 1
 
   bottle do
-    cellar :any
-    sha256 "697370ba59d7b4a8e7f35e5bbfc3535ed6fef6d0a80a39e9e0583e7496865fbf" => :mojave
-    sha256 "8419c4b938c3ee82df324d4e4fbc0de03302a973ebeb82b917c90be04fa10569" => :high_sierra
-    sha256 "1d0324bc5c27cfe5660be48a8d2e7c9d01ac342e5d3ee1ee6d89f30b9c149afa" => :sierra
-    sha256 "86626efb984f8bb90daca5421cfdb2cbb2b9669ac26b271d0381219e1374e1b2" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "41bbabeace9094509b989c0c9927766bf9152ac536141af8a9192cecc28fad48"
+    sha256 cellar: :any,                 arm64_big_sur:  "e7ad1df8904644a889496a9080ff1b988521daee6e39b701584ac78a9be70408"
+    sha256 cellar: :any,                 monterey:       "20a9da764deb1412b480a02594f73f11f3ea30096e00532550b31d1b7097aeed"
+    sha256 cellar: :any,                 big_sur:        "48efe04b8b27733e94777c0a1f0d87474718075b8591ff08913a475070cb9ec9"
+    sha256 cellar: :any,                 catalina:       "1ed09ec20d96eb987aa568a26cf2203386d99b01ff3603de632ad20ef6948b24"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "95e129d1fdcd1a734e96c5c73517760465e35b178895081f09c9d172524f2fbf"
   end
 
   depends_on "autoconf" => :build
   depends_on "automake" => :build
   depends_on "libtool" => :build
-  depends_on "wxmac"
+  depends_on "wxwidgets"
 
   def install
-    system "autoreconf", "-fvi"
+    system "autoreconf", "--force", "--install", "--verbose"
     system "./configure", "--disable-dependency-tracking",
                           "--disable-silent-rules",
-                          "--prefix=#{prefix}"
+                          "--prefix=#{prefix}",
+                          "--with-wx-prefix=#{Formula["wxwidgets"].opt_prefix}"
     system "make", "install"
+
+    # Sanitise references to Homebrew shims
+    rm Dir["contrib/**/Makefile*"]
     pkgshare.install "contrib"
   end
 

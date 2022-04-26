@@ -2,53 +2,55 @@ class Pyinstaller < Formula
   include Language::Python::Virtualenv
 
   desc "Bundle a Python application and all its dependencies"
-  homepage "https://www.pyinstaller.org"
-  url "https://files.pythonhosted.org/packages/03/32/0e0de593f129bf1d1e77eed562496d154ef4460fd5cecfd78612ef39a0cc/PyInstaller-3.4.tar.gz"
-  sha256 "a5a6e04a66abfcf8761e89a2ebad937919c6be33a7b8963e1a961b55cb35986b"
-
-  head "https://github.com/pyinstaller/pyinstaller.git", :branch => "develop"
+  homepage "https://pyinstaller.org/"
+  url "https://files.pythonhosted.org/packages/cf/b0/69585629b023056e801a99ee4d669e2d3b85fb5a68fe461c1660af9ea514/pyinstaller-5.0.tar.gz"
+  sha256 "0b7f1a09e1ae617867d4e9b56285dd670bcf0b1362b272c96a933b0195fce226"
+  license "GPL-2.0-or-later"
+  head "https://github.com/pyinstaller/pyinstaller.git", branch: "develop"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "812b3300c586b888ed5154504c435854229169e4804d4c0ff0b767a05cfb82f8" => :mojave
-    sha256 "77034c4dc8c1a15687181119713d74e4c1ac09a8c35666c322ded2e6d0a2e23a" => :high_sierra
-    sha256 "32eb622d3f35d8d0f497a4d6a6ef746d56a234d48719e8c9044b13f83e5ea65c" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "2b4a57c11f0293d463a0d64c976b00c2df39e63debbc270c8c4ea334cadd3951"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "0f8b8ab1dc05160a9cc4b6a05627f006c57be547cd099b993331991e63ffa189"
+    sha256 cellar: :any_skip_relocation, monterey:       "266d9edbb579b9fd8cbba4f641e46b22141bddf4add0a3ab041ce6f742f468dd"
+    sha256 cellar: :any_skip_relocation, big_sur:        "262c1a6b845b44fc2890b2867698b8046f8885dfa9344500de0f1b1066865c81"
+    sha256 cellar: :any_skip_relocation, catalina:       "b90761191a19ae6c21fe93dfb271db266f1a2861de5324b1a2e59d666a2434b7"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "9285891f326507626892d05b624fc198ded86ff35e44777370d97ff567e2510e"
   end
 
-  depends_on "python"
+  depends_on "python@3.10"
 
   resource "altgraph" do
-    url "https://files.pythonhosted.org/packages/da/a4/6c508ac94d7a65859a7a47e6fbde4aa6b81d0f0863aa45861241e782391c/altgraph-0.16.1.tar.gz"
-    sha256 "ddf5320017147ba7b810198e0b6619bd7b5563aa034da388cea8546b877f9b0c"
-  end
-
-  resource "altgraph" do
-    url "https://files.pythonhosted.org/packages/da/a4/6c508ac94d7a65859a7a47e6fbde4aa6b81d0f0863aa45861241e782391c/altgraph-0.16.1.tar.gz"
-    sha256 "ddf5320017147ba7b810198e0b6619bd7b5563aa034da388cea8546b877f9b0c"
+    url "https://files.pythonhosted.org/packages/a9/f1/62830c4915178dbc6948687916603f1cd37c2c299634e4a8ee0efc9977e7/altgraph-0.17.2.tar.gz"
+    sha256 "ebf2269361b47d97b3b88e696439f6e4cbc607c17c51feb1754f90fb79839158"
   end
 
   resource "macholib" do
-    url "https://files.pythonhosted.org/packages/72/60/2b22bef6edfb2864f7c0dc1d55b75e70ba1c3670899bead37e059e29b738/macholib-1.11.tar.gz"
-    sha256 "c4180ffc6f909bf8db6cd81cff4b6f601d575568f4d5dee148c830e9851eb9db"
+    url "https://files.pythonhosted.org/packages/16/1b/85fd523a1d5507e9a5b63e25365e0a26410d5b6ee89082426e6ffff30792/macholib-1.16.tar.gz"
+    sha256 "001bf281279b986a66d7821790d734e61150d52f40c080899df8fefae056e9f7"
   end
 
-  resource "future" do
-    url "https://files.pythonhosted.org/packages/90/52/e20466b85000a181e1e144fd8305caf2cf475e2f9674e797b222f8105f5f/future-0.17.1.tar.gz"
-    sha256 "67045236dcfd6816dc439556d009594abf643e5eb48992e36beac09c2ca659b8"
-  end
-
-  resource "pefile" do
-    url "https://files.pythonhosted.org/packages/ed/cc/157f20038a80b6a9988abc06c11a4959be8305a0d33b6d21a134127092d4/pefile-2018.8.8.tar.gz"
-    sha256 "4c5b7e2de0c8cb6c504592167acf83115cbbde01fe4a507c16a1422850e86cd6"
+  resource "pyinstaller-hooks-contrib" do
+    url "https://files.pythonhosted.org/packages/4c/c9/065f97b7e89dcb438ce3e270f3f28af5cba759f4127afe14ce6038701270/pyinstaller-hooks-contrib-2022.4.tar.gz"
+    sha256 "b7f7da20e5b83c22219a21b8f849525e5f735197975313208f4e07ff9549cdaf"
   end
 
   def install
+    cd "bootloader" do
+      system "python3", "./waf", "all", "--no-universal2", "STRIP=/usr/bin/strip"
+    end
     virtualenv_install_with_resources
   end
 
   test do
-    xy = Language::Python.major_minor_version "python3"
-    system bin/"pyinstaller", "-F", "--distpath=#{testpath}/dist", "--workpath=#{testpath}/build", libexec/"lib/python#{xy}/site-packages/easy_install.py"
+    (testpath/"easy_install.py").write <<~EOS
+      """Run the EasyInstall command"""
+
+      if __name__ == '__main__':
+          from setuptools.command.easy_install import main
+          main()
+    EOS
+    system bin/"pyinstaller", "-F", "--distpath=#{testpath}/dist", "--workpath=#{testpath}/build",
+                              "#{testpath}/easy_install.py"
     assert_predicate testpath/"dist/easy_install", :exist?
   end
 end

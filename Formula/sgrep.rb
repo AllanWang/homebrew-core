@@ -1,20 +1,30 @@
 class Sgrep < Formula
   desc "Search SGML, XML, and HTML"
   homepage "https://www.cs.helsinki.fi/u/jjaakkol/sgrep.html"
-  # curl: (9) Server denied you to change to the given directory
-  # ftp://ftp.cs.helsinki.fi/pub/Software/Local/Sgrep/sgrep-1.94a.tar.gz
-  url "https://www.mirrorservice.org/sites/distfiles.macports.org/sgrep2/sgrep-1.94a.tar.gz"
+  url "https://www.cs.helsinki.fi/pub/Software/Local/Sgrep/sgrep-1.94a.tar.gz"
   mirror "https://fossies.org/linux/misc/old/sgrep-1.94a.tar.gz"
   sha256 "d5b16478e3ab44735e24283d2d895d2c9c80139c95228df3bdb2ac446395faf9"
 
-  bottle do
-    sha256 "a9035c893dcfb8a82a7e2976774645af26dc4f1ade1f2af225264a35695ebda4" => :mojave
-    sha256 "0e46d1884c4ad14911e32952b3f1e2df1457b455a30ed06ee67dfb5e33efd469" => :high_sierra
-    sha256 "c698f6a657fd7edd7bb8e7d717dc09ac73b1042e93b79555152626f71388b275" => :sierra
-    sha256 "089890a739b047b429b88a583f71832fbfbd3c8f7abc067531424c14e8463df4" => :el_capitan
-    sha256 "a4228a3f40db355cbd6b3feedd4cbdaf8c9b582b24f188982f296b17ac14590f" => :yosemite
-    sha256 "f582b8ae918c1f279e1e3c362d016ad91aeb4accc229cfe9f6ccac8c991ce4a6" => :mavericks
+  # The current formula version (1.94a) is an alpha version, so this regex
+  # has to allow for unstable versions. If/when a new stable version after 0.99
+  # ever appears, the optional `[a-z]?` part of this regex should be removed,
+  # so it will only match stable versions.
+  livecheck do
+    url "https://www.cs.helsinki.fi/pub/Software/Local/Sgrep/"
+    regex(/href=.*?sgrep[._-]v?(\d+(?:\.\d+)+[a-z]?)\.t/i)
   end
+
+  bottle do
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, monterey:     "192436239783803b977e5804d989dc67f7760d87ed7831bb3c30dae5146204cf"
+    sha256 cellar: :any_skip_relocation, big_sur:      "fedcff86ec032617015882c5729298bbe1f1fcbda14cdde6167b00ae2af586b8"
+    sha256 cellar: :any_skip_relocation, catalina:     "29e528a52ae36131ded52bb08d9cf9b12b1455fbc715f7b7bbd3b97f637862e5"
+    sha256 cellar: :any_skip_relocation, mojave:       "bfb1f484dd474727fec463b1b90ffe7250f5c82e0e65bec96903e38f6e0a8e48"
+    sha256 cellar: :any_skip_relocation, high_sierra:  "a243589e79a4cde4f7bba21ec618e3c323c049589707bde6e2c20c4bf1014464"
+    sha256 cellar: :any_skip_relocation, x86_64_linux: "4b9d7e430b35750659c93cfd9308b5cf32211eb19b79a8ee3bf0c0b62ef2712b"
+  end
+
+  uses_from_macos "m4"
 
   def install
     system "./configure", "--prefix=#{prefix}",

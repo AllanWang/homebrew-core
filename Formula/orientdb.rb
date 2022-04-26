@@ -1,15 +1,24 @@
 class Orientdb < Formula
   desc "Graph database"
-  homepage "https://orientdb.com/"
-  url "https://orientdb.com/download.php?file=orientdb-community-importers-2.2.29.tar.gz"
-  sha256 "ed6e65b18fed70ace3afa780a125100a19899e9b18f4d6e9bc1111e7ee88d752"
+  homepage "https://orientdb.org/"
+  url "https://search.maven.org/remotecontent?filepath=com/orientechnologies/orientdb-community/3.2.5/orientdb-community-3.2.5.zip"
+  sha256 "4391ec4a538a365775549a4ca425de060c2f34777d69e958f1cb5e06c8b389ad"
+  license "Apache-2.0"
 
-  bottle :unneeded
+  livecheck do
+    url "https://orientdb.org/download"
+    regex(/href=.*?orientdb(?:-community)?[._-]v?(\d+(?:\.\d+)+)\.zip/i)
+  end
 
-  depends_on :java => "1.6+"
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "dacc1c5eebf7ec4aea5b9c64775071061e96b6d03d1d46bfbe70ae2726d9d814"
+  end
+
+  depends_on "maven" => :build
+  depends_on "openjdk"
 
   def install
-    rm_rf Dir["{bin,benchmarks}/*.{bat,exe}"]
+    rm_rf Dir["bin/*.bat"]
 
     chmod 0755, Dir["bin/*"]
     libexec.install Dir["*"]
@@ -27,9 +36,9 @@ class Orientdb < Formula
     inreplace "#{libexec}/bin/orientdb.sh", 'su $ORIENTDB_USER -c "cd \"$ORIENTDB_DIR/bin\";', ""
     inreplace "#{libexec}/bin/orientdb.sh", '&"', "&"
 
-    bin.install_symlink "#{libexec}/bin/orientdb.sh" => "orientdb"
-    bin.install_symlink "#{libexec}/bin/console.sh" => "orientdb-console"
-    bin.install_symlink "#{libexec}/bin/gremlin.sh" => "orientdb-gremlin"
+    (bin/"orientdb").write_env_script "#{libexec}/bin/orientdb.sh", JAVA_HOME: Formula["openjdk"].opt_prefix
+    (bin/"orientdb-console").write_env_script "#{libexec}/bin/console.sh", JAVA_HOME: Formula["openjdk"].opt_prefix
+    (bin/"orientdb-gremlin").write_env_script "#{libexec}/bin/gremlin.sh", JAVA_HOME: Formula["openjdk"].opt_prefix
   end
 
   def post_install
@@ -48,41 +57,19 @@ class Orientdb < Formula
     system "#{bin}/orientdb", "stop"
   end
 
-  def caveats; <<~EOS
-    The OrientDB root password was set to 'orientdb'. To reset it:
-      https://orientdb.com/docs/2.2/Server-Security.html#restoring-the-servers-user-root
-  EOS
+  def caveats
+    <<~EOS
+      The OrientDB root password was set to 'orientdb'. To reset it:
+        https://orientdb.org/docs/3.1.x/security/Server-Security.html#restoring-the-servers-user-root
+    EOS
   end
 
-  plist_options :manual => "orientdb start"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>KeepAlive</key>
-          <dict>
-            <key>SuccessfulExit</key>
-            <false/>
-          </dict>
-        <key>Label</key>
-        <string>homebrew.mxcl.orientdb</string>
-        <key>ProgramArguments</key>
-        <array>
-          <string>/usr/local/opt/orientdb/libexec/bin/server.sh</string>
-        </array>
-        <key>RunAtLoad</key>
-        <true/>
-        <key>WorkingDirectory</key>
-        <string>/usr/local/var</string>
-        <key>StandardErrorPath</key>
-        <string>/usr/local/var/log/orientdb/serror.log</string>
-        <key>StandardOutPath</key>
-        <string>/usr/local/var/log/orientdb/sout.log</string>
-      </dict>
-    </plist>
-  EOS
+  service do
+    run opt_libexec/"bin/server.sh"
+    keep_alive true
+    working_dir var
+    log_path var/"log/orientdb/sout.log"
+    error_log_path var/"log/orientdb/serror.log"
   end
 
   test do
@@ -93,8 +80,6 @@ class Orientdb < Formula
     inreplace "#{testpath}/orientdb-server-config.xml", "</properties>",
       "  <entry name=\"server.database.path\" value=\"#{testpath}\" />\n    </properties>"
 
-    begin
-      assert_match "OrientDB console v.#{version}", pipe_output("#{bin}/orientdb-console \"exit;\"")
-    end
+    assert_match "OrientDB console v.#{version}", pipe_output("#{bin}/orientdb-console \"exit;\"")
   end
 end

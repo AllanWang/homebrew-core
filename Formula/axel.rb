@@ -1,15 +1,18 @@
 class Axel < Formula
   desc "Light UNIX download accelerator"
   homepage "https://github.com/eribertomota/axel"
-  url "https://github.com/axel-download-accelerator/axel/archive/v2.17.3.tar.gz"
-  sha256 "13cc30194a2d52cdb87b0deca6e472ac75fbb2d8af72d554ba3936f1e2a416a7"
-  revision 1
-  head "https://github.com/eribertomota/axel.git"
+  url "https://github.com/axel-download-accelerator/axel/releases/download/v2.17.11/axel-2.17.11.tar.xz"
+  sha256 "580b2c18692482fd7f1e2b2819159484311ffc50f6d18924dceb80fd41d4ccf9"
+  license "GPL-2.0-or-later"
+  head "https://github.com/eribertomota/axel.git", branch: "master"
 
   bottle do
-    sha256 "8fe00eb038cef32171dc01872a2e5b39f23c26cab473f07a2abf8a2687b6db91" => :mojave
-    sha256 "bfbf134d645d02caa73b768eec3aa0fe70fb571a30f6614dba551727101fbf74" => :high_sierra
-    sha256 "aef5edb4248938590426081822d6e6f996c0e463c3b860a88b3a8943e678a84e" => :sierra
+    sha256 cellar: :any, arm64_monterey: "483732a5fda41e8592d78ce2d4df86362e60f61bbeb41081beaf382f211edea3"
+    sha256 cellar: :any, arm64_big_sur:  "8eeafff7031764fcc18d94121c6889a7bc3224ecf3f20225ef5cd96f09c6bfb3"
+    sha256 cellar: :any, monterey:       "c5e9ea169ba1985bb10ce39e1c11237bbe4d2c9a1f14b62f38756dcb87456cb9"
+    sha256 cellar: :any, big_sur:        "7ce859bfaebd9429851f7b8fcdaf8983c542c91bbcaec2e2d789e8c0e496306f"
+    sha256 cellar: :any, catalina:       "a9938c2a4753dcc84631739c7ddba105933ab110995b296c7e4a6da2bd9207fc"
+    sha256               x86_64_linux:   "145f3f4fec5782251254a8dd1adbd989118d1be0fe3d4808dce962a586f68119"
   end
 
   depends_on "autoconf" => :build
@@ -17,15 +20,9 @@ class Axel < Formula
   depends_on "automake" => :build
   depends_on "pkg-config" => :build
   depends_on "gettext"
-  depends_on "openssl"
+  depends_on "openssl@1.1"
 
   def install
-    # Fixes the macOS build by esuring some _POSIX_C_SOURCE
-    # features are available:
-    # https://github.com/axel-download-accelerator/axel/pull/196
-    ENV.append_to_cflags "-D_DARWIN_C_SOURCE"
-
-    system "./autogen.sh"
     system "./configure", "--disable-dependency-tracking",
                           "--prefix=#{prefix}",
                           "--sysconfdir=#{etc}"

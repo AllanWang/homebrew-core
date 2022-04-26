@@ -1,25 +1,43 @@
 class S3Backer < Formula
   desc "FUSE-based single file backing store via Amazon S3"
   homepage "https://github.com/archiecobbs/s3backer"
-  url "https://archie-public.s3.amazonaws.com/s3backer/s3backer-1.5.0.tar.gz"
-  sha256 "82d93c54acb1e85828b6b80a06e69a99c7e06bf6ee025dac720e980590d220d2"
+  url "https://archie-public.s3.amazonaws.com/s3backer/s3backer-1.5.6.tar.gz"
+  sha256 "deea48205347b24d1298fa16bf3252d9348d0fe81dde9cb20f40071b8de60519"
+  license "GPL-2.0-or-later"
 
   bottle do
-    cellar :any
-    sha256 "f75e20c85f2604d4f607628a0fe166e687d2d17b120b14a417b8ad47a9523531" => :mojave
-    sha256 "2f3c95347ce448161e36012c2ec08c2ac3b2f4fcabb683b5018f0f8088560bdb" => :high_sierra
-    sha256 "aa290ecca1c6d57252b80669f112eed4386f6b679ad92de4f3b7c5a0a575f54a" => :sierra
-    sha256 "2c0b02a7f3d7bfd5902dafc64d54aba03dd2ab5f07441ad14089033146563793" => :el_capitan
+    sha256 cellar: :any, catalina:    "f54a33c549b57b056808803b4cc722596a89bb9413d135161952903de975a3f5"
+    sha256 cellar: :any, mojave:      "346fe1b085490959e17acf9930878b46b8224bf20b7aada21a1a48ab963c0da3"
+    sha256 cellar: :any, high_sierra: "4d23cfd2c126c5f3efa1023e7c061830de6f1fdda69760bbd3ed70a169def288"
   end
 
   depends_on "pkg-config" => :build
-  depends_on "openssl"
-  depends_on :osxfuse
+  depends_on "openssl@1.1"
+
+  on_macos do
+    disable! date: "2021-04-08", because: "requires closed-source macFUSE"
+  end
+
+  on_linux do
+    depends_on "libfuse"
+  end
 
   def install
     inreplace "configure", "-lfuse", "-losxfuse"
     system "./configure", "--prefix=#{prefix}"
     system "make", "install"
+  end
+
+  def caveats
+    on_macos do
+      <<~EOS
+        The reasons for disabling this formula can be found here:
+          https://github.com/Homebrew/homebrew-core/pull/64491
+
+        An external tap may provide a replacement formula. See:
+          https://docs.brew.sh/Interesting-Taps-and-Forks
+      EOS
+    end
   end
 
   test do

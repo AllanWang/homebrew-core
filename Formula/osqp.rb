@@ -1,21 +1,25 @@
 class Osqp < Formula
   desc "Operator splitting QP solver"
   homepage "https://osqp.org/"
-  url "https://github.com/oxfordcontrol/osqp/archive/v0.5.0.tar.gz"
-  sha256 "e0932d1f7bc56dbe526bee4a81331c1694d94c570f8ac6a6cb413f38904e0f64"
+  url "https://github.com/oxfordcontrol/osqp/archive/v0.6.2.tar.gz"
+  sha256 "d973c33c3164caa381ed7387375347a46f7522523350a4e51989479b9d3b59c7"
+  license "Apache-2.0"
 
   bottle do
-    cellar :any
-    sha256 "02787f8c20cbfa8f8c36cdead8e7a14bc32512bce34cc4c3e7d8c4961e2c9c68" => :mojave
-    sha256 "563a972e1ba486955b23830bfa9c19772f73fa71cfbf7022dc846e0e55681243" => :high_sierra
-    sha256 "1f647ffcc9b71eac3f9db3d2221af3da0a5f31c06b90f731d4dcf2e015281df5" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "ec80a9667887ae925ed2951fc41bee5dc39e9c7ee5f37009ed902b3c4d67d63c"
+    sha256 cellar: :any,                 arm64_big_sur:  "e632fa361ed8e194da854c8caff4b015482015fda56af0bd6f0ca76bbadecc74"
+    sha256 cellar: :any,                 monterey:       "58ed571c455f3e77caca3db8b5862a04b29842ab98f5fa55ad415cf2784e6f45"
+    sha256 cellar: :any,                 big_sur:        "875d53798462ef836a86415604f94d903ef6b6974732292aaf6bed3d37f69e5f"
+    sha256 cellar: :any,                 catalina:       "2f78c81c56d6f153e55f6e6ce4524eec62cf806b7834ef48337d08aefb2643ec"
+    sha256 cellar: :any,                 mojave:         "2f15d564ee6028766215aa931f0ee0c65af87da9fe4697662354a6b9c53e1a30"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "b135456e8959fb3417d10dba3924fe6f78510b67eaea4a020a231f4f821c9bd0"
   end
 
   depends_on "cmake" => [:build, :test]
 
   resource "qdldl" do
-    url "https://github.com/oxfordcontrol/qdldl/archive/v0.1.3.tar.gz"
-    sha256 "a2c3a7d0c6a48b2fab7400fa8ca72a34fb1e3a19964b281c73564178f97afe54"
+    url "https://github.com/oxfordcontrol/qdldl/archive/v0.1.5.tar.gz"
+    sha256 "2868b0e61b7424174e9adef3cb87478329f8ab2075211ef28fe477f29e0e5c99"
   end
 
   def install
@@ -36,7 +40,7 @@ class Osqp < Formula
     rm_rf include/"qdldl"
     rm_rf lib/"cmake/qdldl"
     rm lib/"libqdldl.a"
-    rm lib/"libqdldl.dylib"
+    rm lib/shared_library("libqdldl")
   end
 
   test do
@@ -45,29 +49,31 @@ class Osqp < Formula
       project(osqp_demo LANGUAGES C)
       find_package(osqp CONFIG REQUIRED)
       add_executable(osqp_demo osqp_demo.c)
-      target_link_libraries(osqp_demo PRIVATE osqp::osqp)
+      target_link_libraries(osqp_demo PRIVATE osqp::osqp -lm)
       add_executable(osqp_demo_static osqp_demo.c)
-      target_link_libraries(osqp_demo_static PRIVATE osqp::osqpstatic)
+      target_link_libraries(osqp_demo_static PRIVATE osqp::osqpstatic -lm)
     EOS
+    # from https://github.com/oxfordcontrol/osqp/blob/HEAD/tests/demo/test_demo.h
     (testpath/"osqp_demo.c").write <<~EOS
       #include <assert.h>
       #include <osqp.h>
       int main() {
-        c_float P_x[4] = {4.0, 1.0, 1.0, 2.0};
-        c_int P_nnz = 4;
-        c_int P_i[4] = {0, 1, 0, 1};
-        c_int P_p[3] = {0, 2, 4};
-        c_float q[2] = {1.0, 1.0};
-        c_float A_x[4] = {1.0, 1.0, 1.0, 1.0};
-        c_int A_nnz = 4;
-        c_int A_i[4] = {0, 1, 0, 2};
-        c_int A_p[3] = {0, 2, 4};
-        c_float l[3] = {1.0, 0.0, 0.0};
-        c_float u[3] = {1.0, 0.69999999999999995559, 0.69999999999999995559};
+        c_float P_x[3] = { 4.0, 1.0, 2.0, };
+        c_int   P_nnz  = 3;
+        c_int   P_i[3] = { 0, 0, 1, };
+        c_int   P_p[3] = { 0, 1, 3, };
+        c_float q[2]   = { 1.0, 1.0, };
+        c_float A_x[4] = { 1.0, 1.0, 1.0, 1.0, };
+        c_int   A_nnz  = 4;
+        c_int   A_i[4] = { 0, 1, 0, 2, };
+        c_int   A_p[3] = { 0, 2, 4, };
+        c_float l[3]   = { 1.0, 0.0, 0.0, };
+        c_float u[3]   = { 1.0, 0.7, 0.7, };
         c_int n = 2;
         c_int m = 3;
+        c_int exitflag;
         OSQPSettings *settings = (OSQPSettings *)c_malloc(sizeof(OSQPSettings));
-        OSQPWorkspace *workspace;
+        OSQPWorkspace *work;
         OSQPData *data;
         data = (OSQPData *)c_malloc(sizeof(OSQPData));
         data->n = n;
@@ -78,11 +84,11 @@ class Osqp < Formula
         data->l = l;
         data->u = u;
         osqp_set_default_settings(settings);
-        workspace = osqp_setup(data, settings);
-        assert(workspace != OSQP_NULL);
-        osqp_solve(workspace);
-        assert(workspace->info->status_val == OSQP_SOLVED);
-        osqp_cleanup(workspace);
+        exitflag = osqp_setup(&work, data, settings);
+        assert(exitflag == 0);
+        osqp_solve(work);
+        assert(work->info->status_val == OSQP_SOLVED);
+        osqp_cleanup(work);
         c_free(data->A);
         c_free(data->P);
         c_free(data);

@@ -1,18 +1,24 @@
 class Screenfetch < Formula
   desc "Generate ASCII art with terminal, shell, and OS info"
   homepage "https://github.com/KittyKatt/screenFetch"
-  url "https://github.com/KittyKatt/screenFetch/archive/v3.8.0.tar.gz"
-  sha256 "248283ee3c24b0dbffb79ed685bdd518554073090c1c167d07ad2a729db26633"
-  head "https://github.com/KittyKatt/screenFetch.git", :shallow => false
+  url "https://github.com/KittyKatt/screenFetch/archive/v3.9.1.tar.gz"
+  sha256 "aa97dcd2a8576ae18de6c16c19744aae1573a3da7541af4b98a91930a30a3178"
+  license "GPL-3.0"
+  head "https://github.com/KittyKatt/screenFetch.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "3e69c6119f9b9b4133817ce2d06de71317866c0b4aa08773aec038abef2d31ef" => :mojave
-    sha256 "8e0571c592a9ae4b20d7e88e12dcbde9b722856721c3227d3334800cfd8445f5" => :high_sierra
-    sha256 "62441999c591325de600f4cbd5d46e4157c443cfb514a3b1dfce8764c911785d" => :sierra
-    sha256 "62441999c591325de600f4cbd5d46e4157c443cfb514a3b1dfce8764c911785d" => :el_capitan
-    sha256 "62441999c591325de600f4cbd5d46e4157c443cfb514a3b1dfce8764c911785d" => :yosemite
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "7a8a196b1d61f4515270b2009a878dd0ca86052333ef1fea478f085c53b9b042"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "6f7e61ea4717eef72e68b006bcef5d6ff1aab08f7ba25f0a5c6b8e014ffb530b"
+    sha256 cellar: :any_skip_relocation, monterey:       "64f48b67bd19de55e86169870401c92fc53229b0dfb72d7fb82a266569cf6b1e"
+    sha256 cellar: :any_skip_relocation, big_sur:        "ab904d997e7f65041ea053d21da1b9acc385913f7d4051c7338bea85353a390b"
+    sha256 cellar: :any_skip_relocation, catalina:       "ab904d997e7f65041ea053d21da1b9acc385913f7d4051c7338bea85353a390b"
+    sha256 cellar: :any_skip_relocation, mojave:         "ab904d997e7f65041ea053d21da1b9acc385913f7d4051c7338bea85353a390b"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "6f7e61ea4717eef72e68b006bcef5d6ff1aab08f7ba25f0a5c6b8e014ffb530b"
   end
+
+  # `screenfetch` contains references to `/usr/local` that
+  # are erronously relocated in non-default prefixes.
+  pour_bottle? only_if: :default_prefix
 
   def install
     bin.install "screenfetch-dev" => "screenfetch"

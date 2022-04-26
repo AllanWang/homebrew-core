@@ -1,30 +1,27 @@
 class Daemon < Formula
   desc "Turn other processes into daemons"
-  homepage "http://libslack.org/daemon/"
-  url "http://libslack.org/daemon/download/daemon-0.6.4.tar.gz"
-  sha256 "c4b9ea4aa74d55ea618c34f1e02c080ddf368549037cb239ee60c83191035ca1"
+  homepage "https://libslack.org/daemon/"
+  url "https://libslack.org/daemon/download/daemon-0.8.tar.gz"
+  sha256 "74f12e6d4b3c85632489bd08431d3d997bc17264bf57b7202384f2e809cff596"
+  license "GPL-2.0-or-later"
 
-  bottle do
-    cellar :any_skip_relocation
-    sha256 "0fd225e226dd07c3f51836f47bf9829dd095a46a13a5b78c3a0e9df3c5820683" => :mojave
-    sha256 "ca2b1016c1bbe48002f70b7beb86063943dadabcb670db9f90f1c259cb34d623" => :high_sierra
-    sha256 "bfc116e8f0853cdf5b4abc38b1f000c90708823bf49c5237f8ec453400a5d606" => :sierra
-    sha256 "ad4f8ad9e7deeb0039c6c603b0108fb6733abe425c49fa6344f762e26b49cf2d" => :el_capitan
-    sha256 "f48000af3631f28d47d01d3d89a1f03e7c4f7eac4a81ab7db9c38a1ce9ff66cd" => :yosemite
-    sha256 "09a420b59d2e5cbaf3073b2daf81d57d01c733b79a928bb58da6418de7f5bd3a" => :mavericks
+  livecheck do
+    url :homepage
+    regex(/href=.*?daemon[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
-  # fixes for strlcpy/strlcat: https://trac.macports.org/ticket/42845
-  patch do
-    url "https://raw.githubusercontent.com/Homebrew/formula-patches/3323958/daemon/daemon-0.6.4-ignore-strlcpy-strlcat.patch"
-    sha256 "a56e16b0801a13045d388ce7e755b2b4e40288c3731ce0f92ea879d0871782c0"
+  bottle do
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "900d4305256eb376e8e0211bda4d08984dd822bd60a7ee0a03758d3ed7e7287d"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "c41545411b2f4b31dc059df14eb622bfd30586c1f2bd3af7f4e0514bb5001277"
+    sha256 cellar: :any_skip_relocation, monterey:       "78ea338beb10906494268d771002b4fc246297019637746095a1657f782dca04"
+    sha256 cellar: :any_skip_relocation, big_sur:        "224349f2fd389edc70b78ef94b2df74251da1c659792b0dea21b9955fb57efae"
+    sha256 cellar: :any_skip_relocation, catalina:       "e631aea609e5e1b623b39b735c0a76e391ba117c920ff5fc9d185ff8e9ea332f"
+    sha256 cellar: :any_skip_relocation, mojave:         "df18db1a4c13107967c7e78e398b658823036279e4baf0c94ea5504d298f2d0c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "c45d4005b1fe715ad381a458c256af3cf5dd0d0575a2067f6535875d048f7e88"
   end
 
   def install
-    # Parallel build failure reported to raf@raf.org 27th Feb 2016
-    ENV.deparallelize
-
-    system "./config"
+    system "./configure"
     system "make"
     system "make", "PREFIX=#{prefix}", "install"
   end

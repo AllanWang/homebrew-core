@@ -3,11 +3,19 @@ class Javarepl < Formula
   homepage "https://github.com/albertlatacz/java-repl"
   url "https://github.com/albertlatacz/java-repl/releases/download/428/javarepl-428.jar"
   sha256 "d42de9405aa69ea6c4eb0e28a6b3cb09e3bd008649d9ac6c55a4aa798e284734"
-  revision 1
+  license "Apache-2.0"
+  revision 2
 
-  bottle :unneeded
+  bottle do
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, all: "fb7f0cc6ad4aa7b39635b74969d7eafd2e665085d0b4bb58f63598806b050a8f"
+  end
 
-  depends_on :java => "1.8"
+  # The GitHub README.md says: NOT MAINTAINED: Since Java is now
+  # released with REPL this project will no longer be maintained.
+  deprecate! date: "2022-03-08", because: :unmaintained
+
+  depends_on "openjdk@8"
 
   def install
     libexec.install "javarepl-#{version}.jar"

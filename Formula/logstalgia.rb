@@ -3,12 +3,18 @@ class Logstalgia < Formula
   homepage "https://logstalgia.io/"
   url "https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.1.2/logstalgia-1.1.2.tar.gz"
   sha256 "ed3f4081e401f4a509761a7204bdbd7c34f8f1aff9dcb030348885fb3995fca9"
+  license "GPL-3.0"
+  revision 1
 
   bottle do
-    sha256 "f5f0829a847376d5d5ae691c53de7b850c26d187631b8bfae8d5cecaf69d935b" => :mojave
-    sha256 "3c70aaf704c6486a0820ad416e9b71be4ee80492fdfec509da494d95657ddc6d" => :high_sierra
-    sha256 "bf1761008179e17ff019777b60dd498174532e8feb1d7044c78d84bddbec9864" => :sierra
-    sha256 "98fd439fb47a282ef86a45568f337ff3195418d32459c6e16718d1748e5f23f7" => :el_capitan
+    sha256 arm64_monterey: "613467e1f9bd7b051fbb6c31370f8e7a39c0889037d545a303d88ecac5a59fa3"
+    sha256 arm64_big_sur:  "9c8e8ae7c6d2fecce41f7ee986b0070c00abcc26a9ede7c0a89710e3921e73e9"
+    sha256 monterey:       "ae779187ec2efaea84f01a3602ce99876d75e6fefcfa64825a6a43f3cc4bae07"
+    sha256 big_sur:        "8317c3e8cc8d1ae6d10457ccb7b2fb4d9add7b7b8b208dc70fccd49c556213d8"
+    sha256 catalina:       "e292916be0cc939d985c4f42930d5217cf06d1e57fa2a3e376d55a44c4b21fd9"
+    sha256 mojave:         "ecc61da046585777d74c682a14f6e3963570603188d2d447d3fbc4c5f87895dd"
+    sha256 high_sierra:    "c0411062c997c5ca8aaf27726d2205601438a50ccbecc9a166c26c30bd3c08aa"
+    sha256 x86_64_linux:   "c21a106cfe8e3cb7538c31f7bbfebb571765ae0265f401070dfb8a69609c2877"
   end
 
   head do

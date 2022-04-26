@@ -1,17 +1,23 @@
 class Robodoc < Formula
   desc "Source code documentation tool"
-  homepage "https://www.xs4all.nl/~rfsber/Robo/index.html"
-  url "https://rfsber.home.xs4all.nl/Robo/archives/robodoc-4.99.43.tar.bz2"
-  sha256 "3d826424a3957502caacf39951f7805f1d72bb374c0533de7ca1036f306afdc7"
+  homepage "https://rfsber.home.xs4all.nl/Robo/index.html"
+  url "https://rfsber.home.xs4all.nl/Robo/archives/robodoc-4.99.44.tar.bz2"
+  sha256 "3721c3be9668a1503454618ed807ae0fba5068b15bc0ea63846787d7e9e78c0f"
+  license "GPL-3.0-or-later"
+
+  livecheck do
+    url "https://rfsber.home.xs4all.nl/Robo/archives/"
+    regex(/href=.*?robodoc[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    rebuild 1
-    sha256 "338eaad16a1962befefcac8adff0f501409fdaee709b42b93a19221a4bc79728" => :mojave
-    sha256 "0fa779e5f937f0e7a4c17a2bbe86ea84178bd5d0739ba3f8429ced46f3c10435" => :high_sierra
-    sha256 "230f593f9fadd10d98868593e273ad40dfee6ad877b396073042a187f19c60b8" => :sierra
-    sha256 "54532e8e7629f4eeedbdef400f40997c25558b692755b816f6facc37a4975d4d" => :el_capitan
-    sha256 "a5c2794eb7e02c27707aad1bbea593ddc0d21fbf197f6b4313f8d0ba84fb34a5" => :yosemite
-    sha256 "cea580dd90f87075879dc722262668deac629673ed22dc1e2e5a6cb52e2439ca" => :mavericks
+    sha256 arm64_monterey: "228f269b8f73406ae0386c01329c95ff14e4a395344e59f93abbfb079fc8cfa4"
+    sha256 arm64_big_sur:  "4dddc1a534d6c0e60601403b9272f84cb14ce2e665e6882b9609b6f7db27d981"
+    sha256 monterey:       "429855c906311ee18428eaaa31cafc1c51384f1651fdb010c1678aa24a08b883"
+    sha256 big_sur:        "72127c3a10a58f3a4d1c5eaaae50c33944063d3fe10eb71a95f17c7c32635d44"
+    sha256 catalina:       "8c02f006c5ef0639855d20c284bdc9ce03f2e4ad11e6d4659a75f3080e815abf"
+    sha256 mojave:         "f6cf96a433e670f0e92079848d45062fc93da258c3bda2749464aedb9bffc1f9"
+    sha256 x86_64_linux:   "7664b1da3c0a3d949f7c77cc7307cd16b7ee8c1e6af275e9a4f4d2c229dc2125"
   end
 
   head do

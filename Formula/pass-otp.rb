@@ -1,16 +1,23 @@
 class PassOtp < Formula
-  desc "The Pass extension for managing one-time-password (OTP) tokens"
+  desc "Pass extension for managing one-time-password tokens"
   homepage "https://github.com/tadfisher/pass-otp#readme"
   url "https://github.com/tadfisher/pass-otp/releases/download/v1.2.0/pass-otp-1.2.0.tar.gz"
   sha256 "5720a649267a240a4f7ba5a6445193481070049c1d08ba38b00d20fc551c3a67"
+  license "GPL-3.0"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "74b97a3e1331e84067eee707a6242d30e9f215befc563e79b86102f6995ce374" => :mojave
-    sha256 "4b123f03ae8a1237e7b04731d3d39e66e9acf031924f757becf889c8b12f1efc" => :high_sierra
-    sha256 "4b123f03ae8a1237e7b04731d3d39e66e9acf031924f757becf889c8b12f1efc" => :sierra
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, arm64_big_sur: "0708c1697aa6a8a453b0fa2141aa5654a330c483979278f0917922589d490103"
+    sha256 cellar: :any_skip_relocation, big_sur:       "5bd301d324d702618b91ad03ffae899e087ab225450c0a24eb40f4cec0b5cbe1"
+    sha256 cellar: :any_skip_relocation, catalina:      "515eb09606a7e6d384d81a2cb045189b0f1dbda605f4743cd06f9bdb665ff0db"
+    sha256 cellar: :any_skip_relocation, mojave:        "4fd5893adc28693cf5b532d0ad1d469d58842e355d676cb3371c4832ed1e7a0c"
+    sha256 cellar: :any_skip_relocation, high_sierra:   "4fd5893adc28693cf5b532d0ad1d469d58842e355d676cb3371c4832ed1e7a0c"
+    sha256 cellar: :any_skip_relocation, sierra:        "bd30d129efb90973ffa102df943b0b3f07c47f28cb70027bec07a75d66bfd145"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:  "b0a96216fb3d12ceda70804c9995aea916716d476bcf9e18863cc84e78558198"
+    sha256 cellar: :any_skip_relocation, all:           "b0a96216fb3d12ceda70804c9995aea916716d476bcf9e18863cc84e78558198"
   end
 
+  depends_on "gnupg" => :test
   depends_on "oath-toolkit"
   depends_on "pass"
 

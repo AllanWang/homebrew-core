@@ -1,30 +1,35 @@
 class Giflib < Formula
   desc "Library and utilities for processing GIFs"
   homepage "https://giflib.sourceforge.io/"
-  url "https://downloads.sourceforge.net/project/giflib/giflib-5.1.4.tar.bz2"
-  sha256 "df27ec3ff24671f80b29e6ab1c4971059c14ac3db95406884fc26574631ba8d5"
-  revision 1
+  url "https://downloads.sourceforge.net/project/giflib/giflib-5.2.1.tar.gz"
+  sha256 "31da5562f44c5f15d63340a09a4fd62b48c45620cd302f77a6d9acf0077879bd"
 
-  bottle do
-    cellar :any
-    sha256 "8b928fd9ce46279d60a9ac73f795f3e068cc1478fcae4aabc8f7231d972820ec" => :mojave
-    sha256 "0c9517138125951ae8fd38f026aa970bb877f1ae7564e47863cdf64a2adebb2e" => :high_sierra
-    sha256 "a298e371464c6bcbe67c5f0c8b23de398980ad3a5ac3e8507f0ee29fef0c9e13" => :sierra
-    sha256 "91161dd227491e058a9ca79ca89bb647d2bac5e368bed5457fc80a30d383ff2d" => :el_capitan
+  livecheck do
+    url :stable
+    regex(%r{url=.*?/giflib[._-]v?(\d+(?:\.\d+)+)\.t}i)
   end
 
-  # CVE-2016-3977
-  # https://sourceforge.net/p/giflib/bugs/102/
-  # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=820526
-  patch do
-    url "https://deb.debian.org/debian/pool/main/g/giflib/giflib_5.1.4-3.debian.tar.xz"
-    sha256 "767ea03c1948fa203626107ead3d8b08687a3478d6fbe4690986d545fb1d60bf"
-    apply "patches/CVE-2016-3977.patch"
+  bottle do
+    sha256 cellar: :any,                 arm64_monterey: "6a1194d7b2d991583e3b5d46782ac8d0cecfc35bc28a5b4daf86ec4311cc7cdc"
+    sha256 cellar: :any,                 arm64_big_sur:  "e9a78b55a43f68f2552f845fff27d1c247ed865b1dd653f4c8ab259594411f86"
+    sha256 cellar: :any,                 monterey:       "fa6adb4afc1abd76f8a80afd8c25572f7c990cbfc88a43496350e8c363048217"
+    sha256 cellar: :any,                 big_sur:        "dc23500f50d599c4dbfcea0107b643bef41538c2f5fd162b049f82d21e3d32d5"
+    sha256 cellar: :any,                 catalina:       "ad97d175fa77f7afb4a1c215538d8ae9eff30435de7feaa6a5d2e29fca7fef4d"
+    sha256 cellar: :any,                 mojave:         "42d2f8a6e9dbf9d4c22a2e64581c7170cc7dcb2a0e66df383efc67b7bc96238d"
+    sha256 cellar: :any,                 high_sierra:    "e1a30a20ad93cd9ec003027d7fba43a7e04ced0bff4156614818cccfc9dec6c9"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d753208ed3a4bbd60b59e3ca4466196e4b935d4f434935b540fc6bfb5f3e0385"
+  end
+
+  # Upstream has stripped out the previous autotools-based build system and their
+  # Makefile doesn't work on macOS. See https://sourceforge.net/p/giflib/bugs/133/
+  patch :p0 do
+    url "https://sourceforge.net/p/giflib/bugs/_discuss/thread/4e811ad29b/c323/attachment/Makefile.patch"
+    sha256 "a94e7bdd8840a31cecacc301684dfdbf7b98773ad824aeaab611fabfdc513036"
   end
 
   def install
-    system "./configure", "--prefix=#{prefix}", "--disable-dependency-tracking"
-    system "make", "install"
+    system "make", "all"
+    system "make", "install", "PREFIX=#{prefix}"
   end
 
   test do

@@ -1,18 +1,33 @@
 class Libstatgrab < Formula
   desc "Provides cross-platform access to statistics about the system"
-  homepage "https://www.i-scream.org/libstatgrab/"
-  url "https://ftp.i-scream.org/pub/i-scream/libstatgrab/libstatgrab-0.91.tar.gz"
-  mirror "https://www.mirrorservice.org/pub/i-scream/libstatgrab/libstatgrab-0.91.tar.gz"
-  sha256 "03e9328e4857c2c9dcc1b0347724ae4cd741a72ee11acc991784e8ef45b7f1ab"
+  homepage "https://libstatgrab.org/"
+  url "https://github.com/libstatgrab/libstatgrab/releases/download/LIBSTATGRAB_0_92_1/libstatgrab-0.92.1.tar.gz"
+  mirror "https://www.mirrorservice.org/pub/i-scream/libstatgrab/libstatgrab-0.92.1.tar.gz"
+  sha256 "5688aa4a685547d7174a8a373ea9d8ee927e766e3cc302bdee34523c2c5d6c11"
+  license all_of: ["GPL-2.0-or-later", "LGPL-2.1-or-later"]
+
+  livecheck do
+    url :stable
+    regex(/^LIBSTATGRAB[._-]v?(\d+(?:[._]\d+)+)$/i)
+    strategy :git do |tags, regex|
+      tags.map { |tag| tag[regex, 1]&.tr("_", ".") }
+    end
+  end
 
   bottle do
-    cellar :any
-    sha256 "c8326d6713914ba30322309ed22bf7b43a602a052d3512c77d1ddf32a05c1655" => :mojave
-    sha256 "100b7116b96c56d4643954b0bb9558b77480ee03f639239b32ed331f3b51d720" => :high_sierra
-    sha256 "00a91b891f940b01a5ca5d341fb6c9248da6c87312b9ecefbd0aae9cc49b62c3" => :sierra
-    sha256 "5cb49282a895e5b5229a59eedaae8a7ce7517ff6d56dc4837ddbd1601b72eaa9" => :el_capitan
-    sha256 "a2175221c61a952b2ed4590c1b5496dcb10d4e9547db4bba8ac69968c2c2a586" => :yosemite
-    sha256 "611bd2051960ea32dcc1a814ec93638bd2feb83e76141b715cb47b28d1cc0c92" => :mavericks
+    sha256 cellar: :any,                 arm64_monterey: "d8fe01051dd20bebd918d8d4e0634218121d1a9b3b0be2e5830cdf24bc1d9fd5"
+    sha256 cellar: :any,                 arm64_big_sur:  "ce70f4a494445f8afde960c4ceea838e48b98fcf4c4d9513f705afae83193433"
+    sha256 cellar: :any,                 monterey:       "5154065582dbae8bf645834ccabc9b878a77dc21d5a85d307366d78b6ee7ed91"
+    sha256 cellar: :any,                 big_sur:        "08aba9012402bf7611ddc2fb0f6e0dfcb31c97ce067dd83d6ae73830b5d30aeb"
+    sha256 cellar: :any,                 catalina:       "802d07a3f0948bf0f3a60bb174b1ee56e028b4b24f9eb121e9f90e5926e689c0"
+    sha256 cellar: :any,                 mojave:         "8ce7e1320ee7e3d10764ace6801eecb28cac49dadef648de79258e1d254da06c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "8984abcb585701a695fedbebd0c13cd61b08b95240c22485c75e2aac1575c57a"
+  end
+
+  # Fix -flat_namespace being used on Big Sur and later.
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+    sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
   end
 
   def install

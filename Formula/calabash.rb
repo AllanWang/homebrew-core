@@ -1,11 +1,16 @@
 class Calabash < Formula
   desc "XProc (XML Pipeline Language) implementation"
   homepage "https://xmlcalabash.com/"
-  url "https://github.com/ndw/xmlcalabash1/releases/download/1.1.24-98/xmlcalabash-1.1.24-98.zip"
-  sha256 "e80bca50cf7e32bf4fd3ae4c2e426b781224fc726ecdb55f9251c2be0ee53a64"
+  url "https://github.com/ndw/xmlcalabash1/releases/download/1.3.2-100/xmlcalabash-1.3.2-100.zip"
+  sha256 "a445405c30be8441b687442ad93578e909e16bc895eb05b14830629014eaa07f"
+  license "GPL-2.0"
 
-  bottle :unneeded
+  bottle do
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, all: "cd295681a34a6573d1da7cd21c3feefcf57e0fa8f44e8cc925261b4b209dcf51"
+  end
 
+  depends_on "openjdk"
   depends_on "saxon"
 
   def install

@@ -1,16 +1,22 @@
 class Yazpp < Formula
   desc "C++ API for the Yaz toolkit"
-  homepage "https://www.indexdata.com/yazpp"
-  url "http://ftp.indexdata.dk/pub/yazpp/yazpp-1.6.5.tar.gz"
-  sha256 "802537484d4247706f31c121df78b29fc2f26126995963102e19ef378f3c39d2"
+  homepage "https://www.indexdata.com/resources/software/yazpp/"
+  url "https://ftp.indexdata.com/pub/yazpp/yazpp-1.8.0.tar.gz"
+  sha256 "e6c32c90fa83241e44e506a720aff70460dfbd0a73252324b90b9489eaeb050d"
+  license "BSD-3-Clause"
+
+  livecheck do
+    url "https://ftp.indexdata.com/pub/yazpp/"
+    regex(/href=.*?yazpp[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "ad3ae23deb4f16249fbfc8794a30116911a211c76adbc024948cf9b8842a55b4" => :mojave
-    sha256 "870f730cc4ee76700749f4091d111cb0e9a529d43c1ba7cb40b36807e49d9b76" => :high_sierra
-    sha256 "794e2e265413005b3c26a0fa38e1ab8957bd1ec13cf4abb63730070181d9beb4" => :sierra
-    sha256 "292447a86953bb10361130542d2db9e0c0fc410e9be3b13b8c80891fbfaeec20" => :el_capitan
-    sha256 "6f769c30797af9cb98bf02491706f96b7085eed2d5d05c377e51ca5e0bf8541a" => :yosemite
+    sha256 cellar: :any, arm64_monterey: "577457aa710814861f42b783fcc32c4f51f2df56b0c0b2834ea7bea916a2556a"
+    sha256 cellar: :any, arm64_big_sur:  "beb0688e992377551877a54479486d836833702ea540c6a7d8a60220409c046d"
+    sha256 cellar: :any, monterey:       "239c72f8472b69f74c4016818000810833480ab03d710c4c788b514ec78a22c4"
+    sha256 cellar: :any, big_sur:        "d4676891be7edf41fbcccc88888a18703861c9db257cf65e8ef1b0cb7662dc9f"
+    sha256 cellar: :any, catalina:       "71a7193513c4928805d0d7a55e7e8892adb7779b11da5584b06fd7329640a8bb"
+    sha256 cellar: :any, mojave:         "a578d82eb791139b8dd98093d7e150ebbe92565beec2fa8d218be39498ae0baf"
   end
 
   depends_on "yaz"
@@ -19,5 +25,31 @@ class Yazpp < Formula
     system "./configure", "--disable-dependency-tracking",
                           "--prefix=#{prefix}"
     system "make", "install"
+  end
+
+  test do
+    (testpath/"test.cpp").write <<~EOS
+      #include <iostream>
+      #include <yazpp/zoom.h>
+
+      using namespace ZOOM;
+
+      int main(int argc, char **argv){
+        try
+        {
+          connection conn("wrong-example.xyz", 210);
+        }
+        catch (exception &e)
+        {
+          std::cout << "Exception caught";
+        }
+        return 0;
+      }
+    EOS
+
+    system ENV.cxx, "-std=c++11", "-I#{include}/src", "-L#{lib}",
+           "-lzoompp", "test.cpp", "-o", "test"
+    output = shell_output("./test")
+    assert_match "Exception caught", output
   end
 end

@@ -1,16 +1,19 @@
 require "language/node"
 
 class Ungit < Formula
-  desc "The easiest way to use git. On any platform. Anywhere"
+  desc "Easiest way to use Git. On any platform. Anywhere"
   homepage "https://github.com/FredrikNoren/ungit"
-  url "https://registry.npmjs.org/ungit/-/ungit-1.4.44.tgz"
-  sha256 "11f17f108dae85332d81e63efcb47517e0bddce64b3f97b9eff80dd9f80278b6"
+  url "https://registry.npmjs.org/ungit/-/ungit-1.5.20.tgz"
+  sha256 "3a2f8cdf672442b4a833735e59b69b5b2892d377fa117f0c2249dc8e4e5e0e9d"
+  license "MIT"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "6c6e00aef5a25f4c9749bcc2448aee9f7b14726f55bc6a57dc708660e029b923" => :mojave
-    sha256 "01c84b92d9b28e98e4ed1a842eeece5698283a394b9ee0d12acbae42b829843b" => :high_sierra
-    sha256 "cb7474b30a4c5bce09262eade9a8cd3434bfc9cf770c49f4b5828c4ad63e3e27" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "9a36352a7822196ef8cb0d30dc071da7442462d550d1e92394e7caa9600a5960"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "9a36352a7822196ef8cb0d30dc071da7442462d550d1e92394e7caa9600a5960"
+    sha256 cellar: :any_skip_relocation, monterey:       "3a45be1454281a8a30218e5ad8196ff8607b19d3321ab0e9fe7e085a77d8330c"
+    sha256 cellar: :any_skip_relocation, big_sur:        "3a45be1454281a8a30218e5ad8196ff8607b19d3321ab0e9fe7e085a77d8330c"
+    sha256 cellar: :any_skip_relocation, catalina:       "3a45be1454281a8a30218e5ad8196ff8607b19d3321ab0e9fe7e085a77d8330c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "9a36352a7822196ef8cb0d30dc071da7442462d550d1e92394e7caa9600a5960"
   end
 
   depends_on "node"
@@ -21,17 +24,13 @@ class Ungit < Formula
   end
 
   test do
-    begin
-      require "nokogiri"
+    port = free_port
 
-      pid = fork do
-        exec bin/"ungit", "--no-launchBrowser", "--autoShutdownTimeout", "5000" # give it an idle timeout to make it exit
-      end
-      sleep 3
-      assert_match "ungit", Nokogiri::HTML(shell_output("curl -s 127.0.0.1:8448/")).at_css("title").text
-    ensure
-      Process.kill("TERM", pid)
-      Process.wait(pid)
+    fork do
+      exec bin/"ungit", "--no-launchBrowser", "--port=#{port}"
     end
+    sleep 8
+
+    assert_includes shell_output("curl -s 127.0.0.1:#{port}/"), "<title>ungit</title>"
   end
 end

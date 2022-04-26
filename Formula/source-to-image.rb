@@ -2,26 +2,29 @@ class SourceToImage < Formula
   desc "Tool for building source and injecting into docker images"
   homepage "https://github.com/openshift/source-to-image"
   url "https://github.com/openshift/source-to-image.git",
-      :tag      => "v1.1.14",
-      :revision => "874754dea69fbcf38d1441e4e5ee002704ab50c6"
-  head "https://github.com/openshift/source-to-image.git"
+      tag:      "v1.3.1",
+      revision: "a5a771479f73be6be4207aadc730351e515aedfb"
+  license "Apache-2.0"
+  head "https://github.com/openshift/source-to-image.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "179ed06aa8cee8c8c7c6b8658eed696359170116c2ac366dadfaf086d533b033" => :mojave
-    sha256 "a315100e844a70c78cf11eae24c70ff663f239fe79274da5b99223fbe6081a87" => :high_sierra
-    sha256 "02ffcf2849f2051b0a7355b626ca06b2b2560ce09f68fff64f6b7a79966c750b" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "74166e13a4f985cda0ac187183912db38a5ab90e6451f0df88272c6013833568"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "b5ac084c3947f1729b436f7928760e3b33e26d1929dde39a6f53baee93103b38"
+    sha256 cellar: :any_skip_relocation, monterey:       "ad7b00042172816928eefa48fd80e4eb01a6f8ee68689e304addccbe98b49eb3"
+    sha256 cellar: :any_skip_relocation, big_sur:        "885c70eb74a6c0faf5cebdf1468820a26ce8ac08a555821c3d419c7725e09256"
+    sha256 cellar: :any_skip_relocation, catalina:       "3fbf3469cf68fa605bbac9b3cb726ffc5c1f485d27dcacd4b9310e24e8d165e4"
+    sha256 cellar: :any_skip_relocation, mojave:         "c576266fcc9e09cfae7ea91d9bc6f76b4aad025d087cf11acfe94218cdfe1774"
+    sha256 cellar: :any_skip_relocation, high_sierra:    "29fb2fc7a031e904e743264878f9a4010e7c5d6aa0a3091ea0ec1038f312a5ca"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "bcecc2baa3cde24a76d98e4771268feff6c28f91f8e0b4260c3d355027c1988f"
   end
 
-  depends_on "go" => :build
+  # Bump to 1.18 on the next release, if possible.
+  depends_on "go@1.17" => :build
 
   def install
-    # Upstream issue from 28 Feb 2018 "Go 1.10 failure due to version comparison bug"
-    # See https://github.com/openshift/source-to-image/issues/851
-    inreplace "hack/common.sh", "go1.4", "go1.0"
-
     system "hack/build-go.sh"
-    bin.install "_output/local/bin/darwin/amd64/s2i"
+    arch = Hardware::CPU.intel? ? "amd64" : Hardware::CPU.arch.to_s
+    bin.install "_output/local/bin/#{OS.kernel_name.downcase}/#{arch}/s2i"
   end
 
   test do

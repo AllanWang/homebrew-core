@@ -1,27 +1,41 @@
 class Chicken < Formula
   desc "Compiler for the Scheme programming language"
   homepage "https://www.call-cc.org/"
-  url "https://code.call-cc.org/releases/5.1.0/chicken-5.1.0.tar.gz"
-  sha256 "5c1101a8d8faabfd500ad69101e0c7c8bd826c68970f89c270640470e7b84b4b"
-  head "https://code.call-cc.org/git/chicken-core.git"
+  url "https://code.call-cc.org/releases/5.3.0/chicken-5.3.0.tar.gz"
+  sha256 "c3ad99d8f9e17ed810912ef981ac3b0c2e2f46fb0ecc033b5c3b6dca1bdb0d76"
+  license "BSD-3-Clause"
+  head "https://code.call-cc.org/git/chicken-core.git", branch: "master"
+
+  livecheck do
+    url "https://code.call-cc.org/releases/current/"
+    regex(/href=.*?chicken[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    sha256 "f08f36b85d0a45fae786647581714722d8aaff881ce57f0504548fe1b7c76a5b" => :mojave
-    sha256 "7700eba9ea0485079f542114f81109f6951908aba573b3aafa020574614bf700" => :high_sierra
-    sha256 "7c79e7ec3d377cf3cc4aacae7c997859d6d11d8e081d609d3423b4cffcb48e22" => :sierra
+    sha256 arm64_monterey: "e09430040963225492897d7609406819e86fb849d13845ad8087d5d61e31eaca"
+    sha256 arm64_big_sur:  "61ae526015573afb8c25f406a65cdd4b7de3f8eb937e4f7fa6e7348323d89898"
+    sha256 monterey:       "049d9b3aa4cd14369f60989ab423da0b73a1aeab96b15e3c238f904de0293fb0"
+    sha256 big_sur:        "86b3c43930711b19e3270bda4701c3472da23eed410ca33203426e155f7098ff"
+    sha256 catalina:       "6cc05c82270f15d1013cd4d3d63ed7b82ae891c29ff6fc3156be89c3d64973f1"
+    sha256 x86_64_linux:   "cb961e4d3aadeca9ffff40761b866ba766234d9b4ffe87cf4daae445435f5e4d"
   end
 
   def install
     ENV.deparallelize
 
     args = %W[
-      PLATFORM=macosx
       PREFIX=#{prefix}
       C_COMPILER=#{ENV.cc}
       LIBRARIAN=ar
-      POSTINSTALL_PROGRAM=install_name_tool
       ARCH=x86-64
     ]
+
+    if OS.mac?
+      args << "POSTINSTALL_PROGRAM=install_name_tool"
+      args << "PLATFORM=macosx"
+    else
+      args << "PLATFORM=linux"
+    end
 
     system "make", *args
     system "make", "install", *args

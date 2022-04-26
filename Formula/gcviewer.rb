@@ -1,12 +1,21 @@
 class Gcviewer < Formula
   desc "Java garbage collection visualization tool"
   homepage "https://github.com/chewiebug/GCViewer"
-  url "https://downloads.sourceforge.net/project/gcviewer/gcviewer-1.35.jar"
-  sha256 "35d359a0aae175871f8d554ef1097e7f175e9f455980f6d59659f0e8d54e93f2"
+  url "https://downloads.sourceforge.net/project/gcviewer/gcviewer-1.36.jar"
+  sha256 "5e6757735903d1d3b8359ae8fabc66cdc2ac6646725e820a18e55b85b3bc00f4"
+  license "LGPL-2.1"
+  revision 1
 
-  bottle :unneeded
+  livecheck do
+    url :stable
+    regex(%r{url=.*?/gcviewer[._-]v?(\d+(?:\.\d+)+)\.jar}i)
+  end
 
-  depends_on :java
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "7d865411895953fdfe7f5bd70c844a93bb1c24470e36e0904aedef305e79ab7a"
+  end
+
+  depends_on "openjdk"
 
   def install
     libexec.install Dir["*"]

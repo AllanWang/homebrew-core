@@ -1,30 +1,44 @@
 class Alpine < Formula
   desc "News and email agent"
-  homepage "https://repo.or.cz/alpine.git"
-  url "https://ftp.osuosl.org/pub/blfs/conglomeration/alpine/alpine-2.21.tar.xz"
-  mirror "https://fossies.org/linux/misc/alpine-2.21.tar.xz"
-  sha256 "6030b6881b8168546756ab3a5e43628d8d564539b0476578e287775573a77438"
+  homepage "https://alpine.x10host.com/alpine/release/"
+  url "https://alpine.x10host.com/alpine/release/src/alpine-2.25.tar.xz"
+  sha256 "658a150982f6740bb4128e6dd81188eaa1212ca0bf689b83c2093bb518ecf776"
+  license "Apache-2.0"
+  revision 1
+  head "https://repo.or.cz/alpine.git", branch: "master"
 
-  bottle do
-    rebuild 1
-    sha256 "df710f2b8178a350e992b53f1ceeda2a2624bacadbf3a5d1d237f6efce66cf76" => :mojave
-    sha256 "86c4bb588e6c99a856b665d7643cf8ad699c9add68f7301db804085533480cd8" => :high_sierra
-    sha256 "8d0c2b6cd5b91cb904f1ddebe8b5ba27f1c2db50fe26db9a40a8131943abe2b5" => :sierra
-    sha256 "a3385e12f96372323504cf50f32b7a045a24e90d0b767ed9be98fdf705d4d65b" => :el_capitan
-    sha256 "5b57214d7c4603dea4081f4aa8edee42c148a7daad1ed1fd881d4fb01a28d778" => :yosemite
+  livecheck do
+    url :homepage
+    regex(/href=.*?alpine[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
-  depends_on "openssl"
+  bottle do
+    sha256 arm64_monterey: "3a621168a6ff0929d1c7b96f90dc615d7b2c660ed2265610909d4d9d2936c4d6"
+    sha256 arm64_big_sur:  "5e75a022adadeb7ee0dd88e659d942b3b7f0bafcad8187f047003bfb890b4f57"
+    sha256 monterey:       "eed2a5fd405f54e9a21d46a47420a958ff39ba766b0dccfa943a1539b91b8161"
+    sha256 big_sur:        "05dacac37d8b60fbc1fa0948616ee1d60217d5f875cd565760c8ab15527bad15"
+    sha256 catalina:       "d25bcb132a6750abd2f584c19b8297b57e4439cb4f72f9b38678c499e3346096"
+    sha256 x86_64_linux:   "e3116ae644715c257f63dc8ce743a0a4b7b79de5375c349db0a9e942b8c1cb5f"
+  end
+
+  depends_on "openssl@1.1"
+
+  uses_from_macos "ncurses"
+  uses_from_macos "openldap"
+
+  on_linux do
+    depends_on "linux-pam"
+  end
 
   def install
     ENV.deparallelize
 
     args = %W[
       --disable-debug
-      --with-ssl-dir=#{Formula["openssl"].opt_prefix}
-      --with-ssl-certs-dir=#{etc}/openssl
+      --with-ssl-dir=#{Formula["openssl@1.1"].opt_prefix}
+      --with-ssl-certs-dir=#{etc}/openssl@1.1
       --prefix=#{prefix}
-      --with-passfile=.pine-passfile
+      --with-bundled-tools
     ]
 
     system "./configure", *args
@@ -32,6 +46,6 @@ class Alpine < Formula
   end
 
   test do
-    system "#{bin}/alpine", "-supported"
+    system "#{bin}/alpine", "-conf"
   end
 end

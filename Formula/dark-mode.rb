@@ -1,27 +1,38 @@
 class DarkMode < Formula
   desc "Control the macOS dark mode from the command-line"
   homepage "https://github.com/sindresorhus/dark-mode"
-  url "https://github.com/sindresorhus/dark-mode/archive/2.0.1.tar.gz"
-  sha256 "edea2a21e550194204bc54fe7f68d32dcc517138ac3b12cb17855e61c3260c68"
-  head "https://github.com/sindresorhus/dark-mode.git"
+  url "https://github.com/sindresorhus/dark-mode/archive/v3.0.2.tar.gz"
+  sha256 "fda7d4337fe3f0af92267fb517a17f11a267b5f8f38ec2db0c416526efd42619"
+  license "MIT"
+  head "https://github.com/sindresorhus/dark-mode.git", branch: "main"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "ef437b437412883b2fb50e72e717b30a3866c5f830e0cd07470b1e791244da9c" => :mojave
-    sha256 "fed4e173519d0fdb46694322689ea170c8478b721c045a8f706876d8805aad41" => :high_sierra
-    sha256 "ffc564c30ebfa6b2f90600524beacaf3741147407a9c8167c0f5c7b324e05036" => :sierra
-    sha256 "7557075bff978e306c392f81e713d987147ef8433da753656c8569de17611879" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "e1e6bb2d24e1d8c7e2c8bc07bdfffbe0a9c13136e92066b97a24dcbbda938220"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "dc8e59edc2327ebe14e1b5c1d40a9fe8a7138749ec5ae092ff752c28c83e97aa"
+    sha256 cellar: :any_skip_relocation, monterey:       "312e08579ba705193ec21f3f10f3b52ac69b752d301788846752f3e160105abf"
+    sha256 cellar: :any_skip_relocation, big_sur:        "8ec98a0dfe32ff7933e9f44a4f4933e1e0da4929076e72ed79cbc296240c17dd"
+    sha256 cellar: :any_skip_relocation, catalina:       "5533a6c879d399a84a61b0ee6d03e5baaa23c8d598ebc8c3ad1dbd0db6da8958"
+    sha256 cellar: :any_skip_relocation, mojave:         "692456cb6abf428b487c663b4718147fe4fffa5be956054700857d2d9ddb977f"
   end
 
-  depends_on :xcode => :build
-  depends_on :macos => :el_capitan
+  depends_on xcode: :build
+  depends_on :macos
+  depends_on macos: :mojave
 
   def install
-    system "./build"
-    bin.install "bin/dark-mode"
+    # https://github.com/sindresorhus/dark-mode/blob/main/build
+    Dir.mktmpdir do |tmpdir|
+      xcodebuild "-arch", Hardware::CPU.arch,
+                 "-derivedDataPath", tmpdir,
+                 "-scheme", "dark-mode",
+                 "-configuration", "Release",
+                 "OBJROOT=.build",
+                 "SYMROOT=.build"
+    end
+    bin.install ".build/Release/dark-mode"
   end
 
   test do
-    system "#{bin}/dark-mode", "--version"
+    assert_match(/\A(on|off)\z/, shell_output("#{bin}/dark-mode status").chomp)
   end
 end

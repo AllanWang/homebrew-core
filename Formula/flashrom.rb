@@ -1,45 +1,47 @@
 class Flashrom < Formula
   desc "Identify, read, write, verify, and erase flash chips"
   homepage "https://flashrom.org/"
-  url "https://download.flashrom.org/releases/flashrom-1.0.tar.bz2"
-  sha256 "3702fa215ba5fb5af8e54c852d239899cfa1389194c1e51cb2a170c4dc9dee64"
-  head "https://review.coreboot.org/flashrom.git"
+  url "https://download.flashrom.org/releases/flashrom-v1.2.tar.bz2"
+  sha256 "e1f8d95881f5a4365dfe58776ce821dfcee0f138f75d0f44f8a3cd032d9ea42b"
+  license "GPL-2.0"
+  head "https://review.coreboot.org/flashrom.git", branch: "master"
+
+  livecheck do
+    url "https://download.flashrom.org/releases/"
+    regex(/href=.*?flashrom[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "268fed961b0db79dd20c9d7d0618d80a2b8fb8b81d19b31911bac5b61b89f557" => :mojave
-    sha256 "9b52a8eed203c15987554132d532210c22e97f9a0eab02d842830c7339b544b7" => :high_sierra
-    sha256 "ae6bb14a2a03c1a44515702f01c06e49e2526e831f0fd7e7cee3761a9bdfb6cd" => :sierra
-    sha256 "7a41ea01cb4dfa262082f96f8a20eeccb45117aee72f806643a9783d92b247ef" => :el_capitan
+    rebuild 1
+    sha256 cellar: :any,                 arm64_monterey: "7c862cfd8fe14cccc7ab27cf41c6a0f97ce9ff536209b348014391ad93d45fc9"
+    sha256 cellar: :any,                 arm64_big_sur:  "644f1d260c436590fbab9fbd11f946e57a9c56ee43911c8e1d6ea47f3775a1a0"
+    sha256 cellar: :any,                 monterey:       "3a2da3a282bcd81282d21cb06574ef8ba8b3c258b17c9311363fb0d5434c16a5"
+    sha256 cellar: :any,                 big_sur:        "aa5c0856318732adf6a2bb4b980cef8a21829bd6a606beb357cae3ca71561217"
+    sha256 cellar: :any,                 catalina:       "301d0aafe8b31a53e6ee77217ce2280d1e998ceb7c8bc1a54a85c88afa940a33"
+    sha256 cellar: :any,                 mojave:         "69131a69023cd0336b8c9c9f1a56cafb28509f1e8eb5ada0bd45ff48357df38c"
+    sha256 cellar: :any,                 high_sierra:    "08d74d59cb4a56347de27465cc289b6494199951e2d251fafc328b4dc2f3e1e3"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "6a894f6e3ec7f6eaaf960b53ec6539b6bdd5c778acd9de461e8b787c9f3d4670"
   end
 
   depends_on "pkg-config" => :build
   depends_on "libftdi0"
   depends_on "libusb-compat"
 
+  # Add https://github.com/flashrom/flashrom/pull/212, to allow flashrom to build on Apple Silicon
+  patch do
+    url "https://github.com/areese/flashrom/commit/0c7b279d78f95083b686f6b1d4ce0f7b91bf0fd0.patch?full_index=1"
+    sha256 "9e1f54f7ae4e67b880df069b419835131f72d166b3893870746fff456b0b7225"
+  end
+
   def install
-    ENV["CONFIG_GFXNVIDIA"] = "0"
-    ENV["CONFIG_NIC3COM"] = "0"
-    ENV["CONFIG_NICREALTEK"] = "0"
-    ENV["CONFIG_NICNATSEMI"] = "0"
-    ENV["CONFIG_NICINTEL"] = "0"
-    ENV["CONFIG_NICINTEL_SPI"] = "0"
-    ENV["CONFIG_NICINTEL_EEPROM"] = "0"
-    ENV["CONFIG_OGP_SPI"] = "0"
-    ENV["CONFIG_SATAMV"] = "0"
-    ENV["CONFIG_SATASII"] = "0"
-    ENV["CONFIG_DRKAISER"] = "0"
-    ENV["CONFIG_RAYER_SPI"] = "0"
-    ENV["CONFIG_INTERNAL"] = "0"
-    ENV["CONFIG_IT8212"] = "0"
-    ENV["CONFIG_ATAHPT"] = "0"
-    ENV["CONFIG_ATAVIA"] = "0"
+    ENV["CONFIG_RAYER_SPI"] = "no"
+    ENV["CONFIG_ENABLE_LIBPCI_PROGRAMMERS"] = "no"
 
     system "make", "DESTDIR=#{prefix}", "PREFIX=/", "install"
     mv sbin, bin
   end
 
   test do
-    system "#{bin}/flashrom" " --version"
+    system bin/"flashrom", "--version"
   end
 end

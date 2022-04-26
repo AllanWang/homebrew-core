@@ -1,27 +1,45 @@
 class Libsbol < Formula
   desc "Read and write files in the Synthetic Biology Open Language (SBOL)"
   homepage "https://synbiodex.github.io/libSBOL"
-  url "https://github.com/SynBioDex/libSBOL/archive/v2.3.0.0.tar.gz"
-  sha256 "a8092390b5df1d3dc8df7b403ec4757c55039ccec40ca8088150e27a4a00c41b"
+  url "https://github.com/SynBioDex/libSBOL/archive/v2.3.2.tar.gz"
+  sha256 "c85de13b35dec40c920ff8a848a91c86af6f7c7ee77ed3c750f414bbbbb53924"
+  license "Apache-2.0"
+  revision 2
 
   bottle do
-    cellar :any
-    sha256 "974ce842996ac65fcb31874389e0659451fe6cabc06a1b3c679e6fff9a2a27a0" => :mojave
-    sha256 "ee8e8a563435076bdee91fafe19832750ec91f25d0a32d727cdb505d7c437c3a" => :high_sierra
-    sha256 "cfe93d1e977048c7502a5aa1b43514deca305dc66451aafb386f68a304c12492" => :sierra
-    sha256 "61efb175a5ae38717e9f939c172e9a249e9138bfa3531e71471d6314c7b61b16" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "424c45f889a942cdf2a91db6a0e27fcefed1b6300dfe2715c77971a0bb63ae6f"
+    sha256 cellar: :any,                 arm64_big_sur:  "abe3ed20d3307039f2518d0ada34a5410f808cef2cb7d7f48c0b8547b37bce92"
+    sha256 cellar: :any,                 monterey:       "1b3317cfc73dc8930c89754110b46f33f32c13950bf4e0606bb7d17618808ec1"
+    sha256 cellar: :any,                 big_sur:        "fd852551cf8ecc596eeb82fa82922307d1ea710b96bbe25fd769acb57d6c5db8"
+    sha256 cellar: :any,                 catalina:       "fa4fabe7e100011c6a0d48e6286c509bc66680a631e52ae5dd7a2163d732486b"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "0b6876a8bc254eb892a4def5c2d6c1c4d4875407dbf235b607c675aa9b3aefb4"
   end
 
   depends_on "cmake" => :build
   depends_on "pkg-config" => :build
   depends_on "jsoncpp"
   depends_on "raptor"
+  depends_on "rasqal"
+
+  uses_from_macos "curl"
+  uses_from_macos "libxslt"
 
   def install
-    system "cmake", ".", "-DCMAKE_CXX_FLAGS=-I/System/Library/Frameworks/Python.framework/Headers",
-                         "-DSBOL_BUILD_SHARED=TRUE",
-                         "-DSBOL_BUILD_STATIC=FALSE",
-                         *std_cmake_args
+    # upstream issue: https://github.com/SynBioDex/libSBOL/issues/215
+    inreplace "source/CMakeLists.txt", "measure.h", "measurement.h"
+
+    args = std_cmake_args
+    args << "-DSBOL_BUILD_SHARED=TRUE"
+    args << "-DRAPTOR_INCLUDE_DIR=#{Formula["raptor"].opt_include}/raptor2"
+    args << "-DRASQAL_INCLUDE_DIR=#{Formula["rasqal"].opt_include}"
+
+    if OS.mac? && (sdk = MacOS.sdk_path_if_needed)
+      args << "-DCURL_LIBRARY=#{sdk}/usr/lib/libcurl.tbd"
+      args << "-DLIBXSLT_INCLUDE_DIR=#{sdk}/usr/include/"
+      args << "-DLIBXSLT_LIBRARIES=#{sdk}/usr/lib/libxslt.tbd"
+    end
+
+    system "cmake", ".", *args
     system "make", "install"
   end
 
@@ -40,8 +58,10 @@ class Libsbol < Formula
     system ENV.cxx, "test.cpp", "-o", "test", "-std=c++11",
                     "-I/System/Library/Frameworks/Python.framework/Headers",
                     "-I#{Formula["raptor"].opt_include}/raptor2",
-                    "-I#{include}", "-L#{lib}", "-ljsoncpp", "-lcurl",
-                    "-lraptor2", "-lsbol"
+                    "-I#{include}", "-L#{lib}",
+                    "-L#{Formula["jsoncpp"].opt_lib}",
+                    "-L#{Formula["raptor"].opt_lib}",
+                    "-ljsoncpp", "-lcurl", "-lraptor2", "-lsbol"
     system "./test"
   end
 end

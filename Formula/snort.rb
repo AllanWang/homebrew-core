@@ -1,66 +1,79 @@
 class Snort < Formula
   desc "Flexible Network Intrusion Detection System"
   homepage "https://www.snort.org"
-  url "https://www.snort.org/downloads/snort/snort-2.9.12.tar.gz"
-  sha256 "7b02e11987c6cb4f6d79d72799ca9ad2b4bd59cc1d96bb7d6c91549f990d99d0"
+  url "https://github.com/snort3/snort3/archive/3.1.27.0.tar.gz"
+  mirror "https://fossies.org/linux/misc/snort3-3.1.27.0.tar.gz"
+  sha256 "069e54c7e2d1e20d9491a9aebdc718087e56dba75eb4e6ca9ee6420a61e28c91"
+  license "GPL-2.0-only"
+  head "https://github.com/snort3/snort3.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "2451928b0b98275ecedb347024ea33ed80bb7fca6e67f6f60bd2343159d960d5" => :mojave
-    sha256 "e90378116097477c70bf92381c6fcd5ac122939a1c06c0afaadd797e38fd549f" => :high_sierra
-    sha256 "7143a99771c1482070dc7802da36bc25cc4df7c59c55fd4ad9cb3646e1b60fe2" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "a8da9b0f6825032d84a1cb749641016d8f0245e44743a74540b21e44e733b612"
+    sha256 cellar: :any,                 arm64_big_sur:  "70dfd873dfd57cb9d2a52a64267ce8aebcdbd3c815a42c3b1e3597a682c72d35"
+    sha256 cellar: :any,                 monterey:       "91757311d8758867a0b6c8fc5817baabbf28130d445ed26fa6e2274a7bb42705"
+    sha256 cellar: :any,                 big_sur:        "f0dc414164137a551d954ebc620dcc9f4d7f8e181edd97e7c37ec2ac1572bcee"
+    sha256 cellar: :any,                 catalina:       "2aeafca25200ba1c8377b66ee925f76977a5c2941edc0dff9f9363f45712bef5"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "4dbbba941a27f613a024e4d175f891ed0abff750584ae85e88546ef36d4e82e9"
   end
 
+  depends_on "cmake" => :build
+  depends_on "flatbuffers" => :build
+  depends_on "flex" => :build # need flex>=2.6.0
   depends_on "pkg-config" => :build
   depends_on "daq"
+  depends_on "gperftools" # for tcmalloc
+  depends_on "hwloc"
+  # Hyperscan improves IPS performance, but is only available for x86_64 arch.
+  depends_on "hyperscan" if Hardware::CPU.intel?
   depends_on "libdnet"
-  depends_on "libpcap"
-  depends_on "luajit"
-  depends_on "nghttp2"
-  depends_on "openssl"
+  depends_on "libpcap" # macOS version segfaults
+  depends_on "luajit-openresty"
+  depends_on "openssl@1.1"
   depends_on "pcre"
+  depends_on "xz" # for lzma.h
 
-  def install
-    openssl = Formula["openssl"]
-    libpcap = Formula["libpcap"]
+  uses_from_macos "zlib"
 
-    args = %W[
-      --prefix=#{prefix}
-      --sysconfdir=#{etc}/snort
-      --disable-debug
-      --disable-dependency-tracking
-      --disable-silent-rules
-      --enable-active-response
-      --enable-flexresp3
-      --enable-gre
-      --enable-mpls
-      --enable-normalizer
-      --enable-react
-      --enable-reload
-      --enable-sourcefire
-      --enable-targetbased
-      --with-openssl-includes=#{openssl.opt_include}
-      --with-openssl-libraries=#{openssl.opt_lib}
-      --with-libpcap-includes=#{libpcap.opt_include}
-      --with-libpcap-libraries=#{libpcap.opt_lib}
-    ]
-
-    system "./configure", *args
-    system "make", "install"
-
-    rm Dir[buildpath/"etc/Makefile*"]
-    (etc/"snort").install Dir[buildpath/"etc/*"]
+  on_linux do
+    depends_on "libunwind"
+    depends_on "gcc"
   end
 
-  def caveats; <<~EOS
-    For snort to be functional, you need to update the permissions for /dev/bpf*
-    so that they can be read by non-root users.  This can be done manually using:
-        sudo chmod o+r /dev/bpf*
-    or you could create a startup item to do this for you.
-  EOS
+  fails_with gcc: "5"
+
+  # PR ref, https://github.com/snort3/snort3/pull/225
+  patch do
+    url "https://github.com/snort3/snort3/commit/704c9d2127377b74d1161f5d806afa8580bd29bf.patch?full_index=1"
+    sha256 "4a96e428bd073590aafe40463de844069a0e6bbe07ada5c63ce1746a662ac7bd"
+  end
+
+  def install
+    # These flags are not needed for LuaJIT 2.1 (Ref: https://luajit.org/install.html).
+    # On Apple ARM, building with flags results in broken binaries and they need to be removed.
+    inreplace "cmake/FindLuaJIT.cmake", " -pagezero_size 10000 -image_base 100000000\"", "\""
+
+    # Starting with flatbuffers 2.0.6, the function flatbuffer_version_string was renamed to
+    # flatbuffers_version_string. Upstream issue at https://github.com/snort3/snort3/issues/235.
+    inreplace "src/utils/util.cc",
+              "flatbuffers::flatbuffer_version_string",
+              "flatbuffers::flatbuffers_version_string()"
+
+    mkdir "build" do
+      system "cmake", "..", *std_cmake_args, "-DENABLE_TCMALLOC=ON"
+      system "make", "install"
+    end
+  end
+
+  def caveats
+    <<~EOS
+      For snort to be functional, you need to update the permissions for /dev/bpf*
+      so that they can be read by non-root users.  This can be done manually using:
+          sudo chmod o+r /dev/bpf*
+      or you could create a startup item to do this for you.
+    EOS
   end
 
   test do
-    system bin/"snort", "-V"
+    assert_match "Version #{version}", shell_output("#{bin}/snort -V")
   end
 end

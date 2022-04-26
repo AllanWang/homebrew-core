@@ -3,20 +3,28 @@ require "language/node"
 class ImageoptimCli < Formula
   desc "CLI for ImageOptim, ImageAlpha and JPEGmini"
   homepage "https://jamiemason.github.io/ImageOptim-CLI/"
-  url "https://github.com/JamieMason/ImageOptim-CLI/archive/2.3.7.tar.gz"
-  sha256 "9037f0ac44805c6c562ec509c89aea737f5625e749c500423320349519bb215d"
+  url "https://github.com/JamieMason/ImageOptim-CLI/archive/3.0.7.tar.gz"
+  sha256 "ed1a36ccb0e960152eda6b3d4c422ee355c8cf8271f1f8e71141a286c4d647e5"
+  license "MIT"
 
-  bottle do
-    cellar :any_skip_relocation
-    sha256 "2a6900ff56f1ecb196b38ff4d9391a7935dda759759ca391d8babc2d3473d643" => :mojave
-    sha256 "787da7525a4f29cf09a4ae0c6f43994d90b22a3491e17110637e42cb382f0558" => :high_sierra
-    sha256 "e9d5159487de92a2d43ca11df21e241bd02369be862be182319ac580bb51b25c" => :sierra
+  livecheck do
+    url :stable
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
   end
 
-  depends_on "node@10" => :build
+  bottle do
+    sha256 cellar: :any_skip_relocation, monterey: "5e330d75ae3187599414a272f05823d9e2e829cee4d4e75ca176e0e62aea2cdb"
+    sha256 cellar: :any_skip_relocation, big_sur:  "633de8d348a6618d839ff4e16694c8634d59accafe13488cd72c88f44386cbe4"
+    sha256 cellar: :any_skip_relocation, catalina: "633de8d348a6618d839ff4e16694c8634d59accafe13488cd72c88f44386cbe4"
+  end
+
+  depends_on "node" => :build
   depends_on "yarn" => :build
+  depends_on arch: :x86_64 # Installs pre-built x86-64 binaries
+  depends_on :macos
 
   def install
+    Language::Node.setup_npm_environment
     system "yarn"
     system "npm", "run", "build"
     system "npm", "install", *Language::Node.std_npm_install_args(libexec)

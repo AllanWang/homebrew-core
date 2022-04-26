@@ -3,17 +3,23 @@ class Screenresolution < Formula
   homepage "https://github.com/jhford/screenresolution"
   url "https://github.com/jhford/screenresolution/archive/v1.6.tar.gz"
   sha256 "d3761663eaf585b014391a30a77c9494a6404e78e8a4863383e12c59b0f539eb"
-  head "https://github.com/jhford/screenresolution.git"
+  license "GPL-2.0-only"
+  head "https://github.com/jhford/screenresolution.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "15d61e87178dbe8ef88c9cb75251f472efc42830b1a2c5be25e4a5bd074e0c66" => :mojave
-    sha256 "b2f7b0933c734d5ecd8bfafae8d384f20821c45ca38fc81308035d3ca79f3535" => :high_sierra
-    sha256 "ef630f5af67d6bcdde3fd580917ad05d871274f0d62b2a76705ab2b9683f334f" => :sierra
-    sha256 "63cfb53fe13d5f5b2c72e8a644b312f8a144b12e2b3f284de5adfc5010e1570d" => :el_capitan
-    sha256 "3b3f5d4c414aa36ee1ce963d47a82a50e06f1ffc7a36759bf13ee12c43845c73" => :yosemite
-    sha256 "9e6944af938c0c9ec9e1e4a79a6849fabb222baa0d977a9425bee6a2827595d0" => :mavericks
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "305ef97e31c6a2cdafb1a9de02787e2861b3c9de0165d45dde1c56185b8e1e64"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "65567f2a43d8744ca821b29e001d92b18f25750267714f4b42df0b2c24cfd3a9"
+    sha256 cellar: :any_skip_relocation, monterey:       "961b7f2ee25f6df43ac16338dc3e7b3fc23f76985a672084c37e193e1570ad0b"
+    sha256 cellar: :any_skip_relocation, big_sur:        "234674351827f392bc7de0eb7ddb9855e6254c83a5bade7fa93b9e09ac71218b"
+    sha256 cellar: :any_skip_relocation, catalina:       "53636977689925be4ef97933dc0f1b411f0cd82f71a268cfe7c6f90d5a294f97"
+    sha256 cellar: :any_skip_relocation, mojave:         "15d61e87178dbe8ef88c9cb75251f472efc42830b1a2c5be25e4a5bd074e0c66"
+    sha256 cellar: :any_skip_relocation, high_sierra:    "b2f7b0933c734d5ecd8bfafae8d384f20821c45ca38fc81308035d3ca79f3535"
+    sha256 cellar: :any_skip_relocation, sierra:         "ef630f5af67d6bcdde3fd580917ad05d871274f0d62b2a76705ab2b9683f334f"
+    sha256 cellar: :any_skip_relocation, el_capitan:     "63cfb53fe13d5f5b2c72e8a644b312f8a144b12e2b3f284de5adfc5010e1570d"
+    sha256 cellar: :any_skip_relocation, yosemite:       "3b3f5d4c414aa36ee1ce963d47a82a50e06f1ffc7a36759bf13ee12c43845c73"
   end
+
+  depends_on :macos
 
   def install
     system "make", "CC=#{ENV.cc}"

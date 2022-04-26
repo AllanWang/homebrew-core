@@ -3,19 +3,27 @@ class Svgcleaner < Formula
   homepage "https://github.com/RazrFalcon/svgcleaner"
   url "https://github.com/RazrFalcon/svgcleaner/archive/v0.9.5.tar.gz"
   sha256 "dcf8dbc8939699e2e82141cb86688b6cd09da8cae5e18232ef14085c2366290c"
-  head "https://github.com/RazrFalcon/svgcleaner.git"
+  license "GPL-2.0"
+  head "https://github.com/RazrFalcon/svgcleaner.git", branch: "master"
 
   bottle do
-    sha256 "a21da258fc59b005061edce47a5dfc6d9ac9c0e6bd528c9047785132428e4ea9" => :mojave
-    sha256 "bc7ce28fda3125d1b53d38225cf86b1a72fbfc5bdc6964014ce8a8af96cc9add" => :high_sierra
-    sha256 "141b68daa2335f0ca15ed707e07b239727340942c82943d9619e0b27a072701e" => :sierra
-    sha256 "4a8e60702be1d8cc7be187f8de0ead26b234d7018c567adbc4bc358b90c1aba0" => :el_capitan
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "526c99b79cb8de90e2d43a2723dedc23786f16a1e3992669d071d478cffb7e9d"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "d4e1232a8f5f904166c97f537df03596bf133ea9d68a1ab08df2f4b0dfbbdc1b"
+    sha256 cellar: :any_skip_relocation, monterey:       "b0f023be007c4b8a5cb02b91de3369ac0cb49b4bfccc8917ed5ee81ee1f7ea76"
+    sha256 cellar: :any_skip_relocation, big_sur:        "69290442826481651a7e314ec175f7fc980640c53e7908aa5fd6e9cbff03a1dc"
+    sha256 cellar: :any_skip_relocation, catalina:       "43533727baf2ed09cdce9fe64357c1bc1f70fed57d70f37cfd824b664ab1266f"
+    sha256 cellar: :any_skip_relocation, mojave:         "bf18c353316b7a46ed2cecad188a638e359ce77acdcf501f578e5f96149ed667"
+    sha256 cellar: :any_skip_relocation, high_sierra:    "7e6df86bb8f994b157ff6de9bb7f43605b813a6a476f6f2d3af4d3483c1b6483"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "faae5c691c1bbb241aa001e912458be50a1aaf6eea241591b6a34148d3d93228"
   end
+
+  deprecate! date: "2021-12-11", because: :repo_archived
 
   depends_on "rust" => :build
 
   def install
-    system "cargo", "install", "--root", prefix, "--path", "."
+    system "cargo", "install", *std_cargo_args
   end
 
   test do
@@ -34,6 +42,6 @@ class Svgcleaner < Formula
            style="fill:#0000ff;fill-opacity:0.75;stroke:#000000"/>
       </svg>
     EOS
-    system "#{bin}/svgcleaner", "in.svg", "out.svg"
+    system bin/"svgcleaner", "in.svg", "out.svg"
   end
 end

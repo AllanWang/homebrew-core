@@ -1,15 +1,18 @@
 class Unibilium < Formula
   desc "Very basic terminfo library"
-  homepage "https://github.com/mauke/unibilium"
-  url "https://github.com/mauke/unibilium/archive/v2.0.0.tar.gz"
-  sha256 "78997d38d4c8177c60d3d0c1aa8c53fd0806eb21825b7b335b1768d7116bc1c1"
+  homepage "https://github.com/neovim/unibilium"
+  url "https://github.com/neovim/unibilium/archive/v2.1.1.tar.gz"
+  sha256 "6f0ee21c8605340cfbb458cbd195b4d074e6d16dd0c0e12f2627ca773f3cabf1"
+  license "LGPL-3.0-or-later"
 
   bottle do
-    cellar :any
-    sha256 "3886afa29fecdbf2051ae6a92fac638bd27b6edafb75b199e50c0fc6fbf18266" => :mojave
-    sha256 "5c29d645cd3e0ad950a7054c73b89cb76114b369476eb8bca26587c38571861d" => :high_sierra
-    sha256 "15338d452e5e09e7b8f3bedd6d557d735d06bfbc53204487d11b6c225a04ad71" => :sierra
-    sha256 "d8caea872f5f8ed11503e46fc37f17fafbc8a4c64a5382e2bf9e6d84feda2f98" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "253c680b90ff85e1c58b90bae9459ca89404726f6295b692934f294f3a6c2413"
+    sha256 cellar: :any,                 arm64_big_sur:  "312df6bed7c751800af40d85f409f7b96296aa0968cc9a0d415f9fe4114a506c"
+    sha256 cellar: :any,                 monterey:       "3c5e2b61923c6479c173367d357b0b6e072a24c0aa04ca7e02c2f28cdd9c9f54"
+    sha256 cellar: :any,                 big_sur:        "6f0c7e2db3067e24f4480566d9cf80b9f47ef6099386205ca472a8ede717d3e8"
+    sha256 cellar: :any,                 catalina:       "06ca0a9cc4c001e5136b14b210c7a37ff7ecb85e2f1c348a3655b325094ac697"
+    sha256 cellar: :any,                 mojave:         "e2757e5acea92e205a10e738d6a084b37347a3be3e08f8a481607e9c48d22e95"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "c212b093e54c12a0b8c8afdde6e56fd04fa15182a9a95633c72bcf5ec9b10388"
   end
 
   depends_on "libtool" => :build

@@ -1,44 +1,44 @@
 class Supertux < Formula
   desc "Classic 2D jump'n run sidescroller game"
   homepage "https://www.supertux.org/"
-  url "https://github.com/SuperTux/supertux/releases/download/v0.5.1/SuperTux-v0.5.1-Source.tar.gz"
-  sha256 "c9dc3b42991ce5c5d0d0cb94e44c4ec2373ad09029940f0e92331e7e9ada0ac5"
-  revision 3
-  head "https://github.com/SuperTux/supertux.git"
+  url "https://github.com/SuperTux/supertux/releases/download/v0.6.3/SuperTux-v0.6.3-Source.tar.gz"
+  sha256 "f7940e6009c40226eb34ebab8ffb0e3a894892d891a07b35d0e5762dd41c79f6"
+  license "GPL-3.0-or-later"
+  revision 1
+  head "https://github.com/SuperTux/supertux.git", branch: "master"
+
+  livecheck do
+    url :stable
+    strategy :github_latest
+  end
 
   bottle do
-    cellar :any
-    rebuild 1
-    sha256 "006225504f80952487eb62f66359ac5976248ec4de46f266915f41f543e4742a" => :mojave
-    sha256 "66385b85ba64e6ce35f5d74e9c2304e73795b977b75f814ff4eeb55cbfccba0b" => :high_sierra
-    sha256 "fbde2e2249a89401fd9893b095857b283c4a7a3a4ab9dec47b8c30d2030d0268" => :sierra
-    sha256 "c66b6e14fc23160f5024ad7790286ec0bcb7f8ed262ce6c400dc8757c1c16ba8" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "052322840a5515495b30ca53f026ad78731ed3e0449cbfed92a926ccc27c5199"
+    sha256 cellar: :any,                 arm64_big_sur:  "b5f2b0dbf95c98f59d7c939f7350c03aaf15482c5bca9a58afdab0d7ea8e3b41"
+    sha256 cellar: :any,                 monterey:       "df5093e4b9825cc6e270c64c57577879d8d6aa89e4803ea8f7ecd061290ee27f"
+    sha256 cellar: :any,                 big_sur:        "79a3ed56412120db54a25502c915d8375cee5c13866dc6c2fba6fd861d423268"
+    sha256 cellar: :any,                 catalina:       "10aba5baa7d1dd9e8831f360ec9818f26bae2ba89ee8a3474b00115b4a92121b"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "ddc402083ffea0ee2c54fb1e5eb59f86103b367b3b6de5420fa3bf3c00abd3cc"
   end
 
-  depends_on "boost" => :build
   depends_on "cmake" => :build
+  depends_on "glm" => :build
   depends_on "pkg-config" => :build
+  depends_on "boost"
+  depends_on "freetype"
   depends_on "glew"
   depends_on "libogg"
+  depends_on "libpng"
   depends_on "libvorbis"
+  depends_on "physfs"
   depends_on "sdl2"
   depends_on "sdl2_image"
-  depends_on "sdl2_mixer"
 
-  # Fix symlink passing to physfs
-  # https://github.com/SuperTux/supertux/issues/614
-  patch do
-    url "https://github.com/SuperTux/supertux/commit/47a353e2981161e2da12492822fe88d797af2fec.diff?full_index=1"
-    sha256 "2b12aeead4f425a0626051e246a9f6d527669624803d53d6d0b5758e51099059"
-  end
+  uses_from_macos "curl"
+  uses_from_macos "zlib"
 
-  # Fix compilation issue with Xcode 9
-  # https://github.com/SuperTux/supertux/issues/762
-  # using Squirrel's patch
-  # https://github.com/albertodemichelis/squirrel/commit/a3a78eec
-  patch do
-    url "https://raw.githubusercontent.com/Homebrew/formula-patches/834e41a/supertux/squirrel_xcode9.patch"
-    sha256 "1830dcb88f635f611aa3236abdaee75b53293df407ebc8214f31635a75876831"
+  on_linux do
+    depends_on "openal-soft"
   end
 
   def install
@@ -49,17 +49,18 @@ class Supertux < Formula
     args << "-DINSTALL_SUBDIR_SHARE=share/supertux"
     # Without the following option, Cmake intend to use the library of MONO framework.
     args << "-DPNG_PNG_INCLUDE_DIR=#{Formula["libpng"].opt_include}"
-    system "cmake", ".", *args
-    system "make", "install"
+    system "cmake", "-S", ".", "-B", "build", *args
+    system "cmake", "--build", "build"
+    system "cmake", "--install", "build"
 
     # Remove unnecessary files
-    (share/"appdata").rmtree
     (share/"applications").rmtree
     (share/"pixmaps").rmtree
-    (prefix/"MacOS").rmtree
+    (prefix/"MacOS").rmtree if OS.mac?
   end
 
   test do
-    assert_equal "supertux2 v#{version}", shell_output("#{bin}/supertux2 --version").chomp
+    (testpath/"config").write "(supertux-config)"
+    assert_equal "supertux2 v#{version}", shell_output("#{bin}/supertux2 --userdir #{testpath} --version").chomp
   end
 end

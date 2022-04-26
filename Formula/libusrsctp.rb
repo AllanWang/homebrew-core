@@ -1,18 +1,19 @@
 class Libusrsctp < Formula
   desc "Portable SCTP userland stack"
   homepage "https://github.com/sctplab/usrsctp"
-  url "https://github.com/sctplab/usrsctp/archive/0.9.3.0.tar.gz"
-  sha256 "a4573b1cd7b8fc2fce476df61093736d3fea9eef5c87d72e66768c0a6b1f9e39"
-  head "https://github.com/sctplab/usrsctp.git"
+  url "https://github.com/sctplab/usrsctp/archive/0.9.5.0.tar.gz"
+  sha256 "260107caf318650a57a8caa593550e39bca6943e93f970c80d6c17e59d62cd92"
+  license "BSD-3-Clause"
+  head "https://github.com/sctplab/usrsctp.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "a7f2fe014d976dc839bdad57f3ac07a9c11683e683643c2de76c9036f87e61f9" => :mojave
-    sha256 "8914ab47dadb25cf626662cde57d10f10a99915b4848d0302c92a61b40842c3f" => :high_sierra
-    sha256 "7d210faa7eb0101915c2f918ac0479c7bfc5faa251b389dfea68d94385823499" => :sierra
-    sha256 "c11f1c4bb7ee3b7d04520d711dfac56bc5a2aa8f4b3f1e952bd591d9918528dd" => :el_capitan
-    sha256 "2998a0f18ca069da692c9c2fd44f52e5ed9fa39c223dec3e8df7206f113bc0f4" => :yosemite
-    sha256 "8fc00b935739b4e06e75773c780e7e9617d655ecf2e31ffa9ca46900c1bbd5cb" => :mavericks
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "2bf65d4cad3f3abcec79432f82c040761b3bf8b5b04417172ea343efc7ff878c"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "cccdb95cc428680b9dc8c57ae970f23874889797d8438eaa9079e675473ab394"
+    sha256 cellar: :any_skip_relocation, monterey:       "3a5ea16561b37ed98f235bd62e33534c85439244a41f3e917ffdabd6c97d74b0"
+    sha256 cellar: :any_skip_relocation, big_sur:        "ca45d1d9431028ad9b7025e6d5486a10f98c6c49e39dd1a4e1d033c75bee6135"
+    sha256 cellar: :any_skip_relocation, catalina:       "5c2a6b26e354c0498e0e3ef590dfc9f9651f70ce36112f196baec64ef76aec31"
+    sha256 cellar: :any_skip_relocation, mojave:         "fe831b138df6c6b80d260d8a224bf1b1114af51d1b14186e9d714fd99f035e30"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "f7b8b7629549478dc7d3b0ca0498cd6c181ce4a94e5dfddb19b34de124621ef8"
   end
 
   depends_on "cmake" => :build
@@ -32,7 +33,7 @@ class Libusrsctp < Formula
         return 0;
       }
     EOS
-    system ENV.cc, "test.c", "-L#{lib}", "-lusrsctp", "-o", "test"
+    system ENV.cc, "test.c", "-L#{lib}", "-lusrsctp", "-lpthread", "-o", "test"
     system "./test"
   end
 end

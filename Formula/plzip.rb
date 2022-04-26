@@ -1,24 +1,26 @@
 class Plzip < Formula
   desc "Data compressor"
   homepage "https://www.nongnu.org/lzip/plzip.html"
-  url "https://download.savannah.gnu.org/releases/lzip/plzip/plzip-1.8.tar.gz"
-  sha256 "edafae3c15142ac0ebd84c2231ff81da4f68db58359a737e750f2780686c3612"
+  url "https://download.savannah.gnu.org/releases/lzip/plzip/plzip-1.10.tar.gz"
+  mirror "https://download-mirror.savannah.gnu.org/releases/lzip/plzip/plzip-1.10.tar.gz"
+  sha256 "43faa58265d8b89ad75bd4ed11d347ef10065a8070748bc1ed0e06f191458098"
+  license "GPL-2.0-or-later"
+
+  livecheck do
+    url "https://download.savannah.gnu.org/releases/lzip/plzip/"
+    regex(/href=.*?plzip[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "3e266c42c66babd4fbdfe82645ab876fc7224846e94b26a39183c57404e17c35" => :mojave
-    sha256 "0a5df85c11e9afb266709a907980424cd60f1d1fd3adda71e8b0f9939ddf72a7" => :high_sierra
-    sha256 "c26a4b45c09173a4cb8ab2a56d2c5bb9018e16332e637d4d617bfcd75f90c0ad" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "9ec189bc207195600ac67dc7bd8e1f45b34685f187829f20c94dc576530ed8bb"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "be14dc090e8d607c81f0602104ca92d76c2a2dd041d822d2e9ca2e10b9af5c40"
+    sha256 cellar: :any_skip_relocation, monterey:       "84d7405ddf1f389d88272bc1059de5734a5fa3ad7c4e47bca93db44668f408b3"
+    sha256 cellar: :any_skip_relocation, big_sur:        "68bf6627aeaa0e6656deaf8022fd41e19529d0b6ba80d4f15063a6ad10d7d688"
+    sha256 cellar: :any_skip_relocation, catalina:       "cbf0b83bef990c417d8dc4cb57a67418ad1891842d18d568d27f902fe299560e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "e23f7ed84c69053f4cb82d0666b15c566fae4989448f4f259a1cba4a81d7a9b0"
   end
 
   depends_on "lzlib"
-
-  # error: unknown type name 'pthread_mutex_t' and 'pthread_cond_t'
-  # Reported 24 Nov 2017 to lzip-bug AT nongnu DOT org
-  patch do
-    url "https://raw.githubusercontent.com/Homebrew/formula-patches/68e2af8/plzip/pthread.diff"
-    sha256 "9e6653248ade666922b353b362eda6383af73c85cd93936c70bd8257e027f2b1"
-  end
 
   def install
     system "./configure", "--prefix=#{prefix}"

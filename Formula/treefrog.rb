@@ -1,22 +1,44 @@
 class Treefrog < Formula
   desc "High-speed C++ MVC Framework for Web Application"
-  homepage "http://www.treefrogframework.org/"
-  url "https://github.com/treefrogframework/treefrog-framework/archive/v1.24.0.tar.gz"
-  sha256 "4060736e96bb3c84fe3d0a251cf140baf29724d4cb50212cee4dbf1d491982ed"
-  head "https://github.com/treefrogframework/treefrog-framework.git"
+  homepage "https://www.treefrogframework.org/"
+  url "https://github.com/treefrogframework/treefrog-framework/archive/v2.3.0.tar.gz"
+  sha256 "e73f2c29d01fb4a41eefd4fc1394c8bf5aaa7d1646fcea88701c6de5621c8d05"
+  license "BSD-3-Clause"
+  head "https://github.com/treefrogframework/treefrog-framework.git", branch: "master"
 
-  bottle do
-    sha256 "bbf06535ab64a86ae25ddaf3e2ac066ec48143aa44dc358cd63651c60d9d5cb3" => :mojave
-    sha256 "22653f1d3be2a7dfae678d4d8d9be1b14be167ffc1f3d1cc040e9c3cf1368475" => :high_sierra
-    sha256 "19cc929312e7be589ec943cc4d12a1a34bd4f0b37a008202ff4e551df5c076b1" => :sierra
+  livecheck do
+    url :head
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
   end
 
-  depends_on :xcode => ["8.0", :build]
-  depends_on :macos => :el_capitan
+  bottle do
+    sha256 arm64_monterey: "a92b827a37e292f71a06dc045d90e19647d52ed5d77d9b5c31fa2372fb9f1bfc"
+    sha256 arm64_big_sur:  "cbbcd04225065a3f1288571351111257b3b79dbcffbbced68e29ab34edd2f343"
+    sha256 monterey:       "d44a6b742510daf871c21243775b1cc078212c27790b91432c18920a1387a96c"
+    sha256 big_sur:        "9fb5a0281360d87fd404e254922346df8deeed84f225bd1a87a0e1dac8e46874"
+    sha256 catalina:       "e80924533751ba46a8a5fd23d685fd44f236ae4a1049abbedc3db5ea54e9a7c6"
+    sha256 x86_64_linux:   "be9dbdd22e618a5dc0d9b6a706046329c122ef09e5654b41152e3c9528893fe6"
+  end
+
+  depends_on xcode: :build
+  depends_on "mongo-c-driver"
   depends_on "qt"
 
+  on_linux do
+    depends_on "gcc"
+  end
+
+  fails_with gcc: "5"
+
   def install
-    system "./configure", "--prefix=#{prefix}"
+    # src/corelib.pro hardcodes different paths for mongo-c-driver headers on macOS and Linux.
+    if OS.mac?
+      inreplace "src/corelib.pro", "/usr/local", HOMEBREW_PREFIX
+    else
+      inreplace "src/corelib.pro", "/usr/include", HOMEBREW_PREFIX/"include"
+    end
+
+    system "./configure", "--prefix=#{prefix}", "--enable-shared-mongoc"
 
     cd "src" do
       system "make"
@@ -30,11 +52,12 @@ class Treefrog < Formula
   end
 
   test do
+    ENV.delete "CPATH"
     system bin/"tspawn", "new", "hello"
     assert_predicate testpath/"hello", :exist?
     cd "hello" do
       assert_predicate Pathname.pwd/"hello.pro", :exist?
-      system HOMEBREW_PREFIX/"opt/qt/bin/qmake"
+      system Formula["qt"].opt_bin/"qmake"
       assert_predicate Pathname.pwd/"Makefile", :exist?
       system "make"
       system bin/"treefrog", "-v"

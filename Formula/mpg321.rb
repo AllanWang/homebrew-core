@@ -3,14 +3,16 @@ class Mpg321 < Formula
   homepage "https://mpg321.sourceforge.io/"
   url "https://downloads.sourceforge.net/project/mpg321/mpg321/0.3.2/mpg321_0.3.2.orig.tar.gz"
   sha256 "056fcc03e3f5c5021ec74bb5053d32c4a3b89b4086478dcf81adae650eac284e"
+  license "GPL-2.0"
+  revision 1
 
   bottle do
-    sha256 "d587b58200397ad4e8f7fa8c861e01c2c5e344d89a235e78d22fb7bd5ddf04f2" => :mojave
-    sha256 "6a8f8f58c8bf02f99e8206a231fce4e9f2bd7333b888581dd1838246983d139f" => :high_sierra
-    sha256 "a69f242f57e4211f96fa56f10573777204d5ed7d61cd7b35a04e0bbd33b9064e" => :sierra
-    sha256 "6c8921b0703d2952b6038ce7097957c3c2bfe9b59c2d41b5caddc268e96b245d" => :el_capitan
-    sha256 "48b9ac480d966fc344c4867f3dcef7cd59be1440b11fe7d8280d51134a881f78" => :yosemite
-    sha256 "bf86f590672fdb27f6fc92c706db1bfcb2ca0a1e35129c5435821640a11a422f" => :mavericks
+    sha256 arm64_monterey: "029006ddf0517aed22eeb084267dd6b2e74fc43f8a9a73488aea74fc4bc2321e"
+    sha256 arm64_big_sur:  "ce333737749b9af60223dec4a4492daa66b2c12bdb144ea390648bc88df4b38c"
+    sha256 monterey:       "e8745354e38c8e362bb289dab13ee28e8d9886fc0f7af9a1d4051a9aeb0ebf21"
+    sha256 big_sur:        "8ee396f49f3bde62edb1e6376b292c0724a9b6c808d0b2e83c26bf351097f41a"
+    sha256 catalina:       "4f93d83854a0072fca2ce326e46e7e068422464253f4981d3cf55b5e3ed9a4f0"
+    sha256 x86_64_linux:   "287044834b3a9e9e0b5b5e060a3a2492fd47c686d97ac74ffe6a1dcc479c5e2f"
   end
 
   depends_on "libao"
@@ -25,7 +27,10 @@ class Mpg321 < Formula
   # Both patches have been reported upstream here:
   # https://sourceforge.net/p/mpg321/patches/20/
   # Remove these at: Unknown.  These have not been merged as of 0.3.2.
-  patch :DATA
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/85fa66a9/mpg321/0.3.2.patch"
+    sha256 "a856292a913d3d94b3389ae7b1020d662e85bd4557d1a9d1c8ebe517978e62a1"
+  end
 
   def install
     system "./configure", "--disable-dependency-tracking",
@@ -41,32 +46,3 @@ class Mpg321 < Formula
     system "#{bin}/mpg321", "--version"
   end
 end
-
-__END__
---- a/mpg321.h	2012-03-25 05:27:49.000000000 -0700
-+++ b/mpg321.h	2012-11-15 20:54:28.000000000 -0800
-@@ -290,7 +290,7 @@
- /* Shared total decoded frames */
- decoded_frames *Decoded_Frames;
- 
--#if defined(__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED)
-+#if defined(__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED) || defined(__APPLE__)
- /* */
- #else
- union semun {
---- a/network.c	2012-03-25 05:27:49.000000000 -0700
-+++ b/network.c	2012-11-15 20:58:02.000000000 -0800
-@@ -50,6 +50,13 @@
- 
- #define IFVERB if(options.opt & MPG321_VERBOSE_PLAY)
- 
-+/* The following defines are needed to emulate the Linux interface on
-+ * BSD-based systems like FreeBSD and OS X */
-+#if !defined(IPV6_ADD_MEMBERSHIP) && defined(IPV6_JOIN_GROUP)
-+#define IPV6_ADD_MEMBERSHIP IPV6_JOIN_GROUP
-+#define IPV6_DROP_MEMBERSHIP IPV6_LEAVE_GROUP
-+#endif
-+
- int proxy_enable = 0;
- char *proxy_server;
- int auth_enable = 0;

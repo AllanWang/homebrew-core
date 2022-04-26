@@ -1,15 +1,18 @@
 class RiemannClient < Formula
   desc "C client library for the Riemann monitoring system"
   homepage "https://github.com/algernon/riemann-c-client"
-  url "https://github.com/algernon/riemann-c-client/archive/riemann-c-client-1.10.4.tar.gz"
-  sha256 "334874f0b9a507a8abbc7138df719cba4f28f12c02c39d5e55090b8edb86f9d2"
-  head "https://github.com/algernon/riemann-c-client.git"
+  url "https://github.com/algernon/riemann-c-client/archive/riemann-c-client-2.0.0.tar.gz"
+  sha256 "36f3fd6e293d61791d288682340fe69a87af9a843410d9b4b8b4192226cdea5f"
+  license "LGPL-3.0-or-later"
+  head "https://github.com/algernon/riemann-c-client.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "692dbcd6a5dbbbeb509d6022a18fcb7f20dd638722463e892359129bd55f10bf" => :mojave
-    sha256 "be90a238e4e68d45b658c25ca96de21f9fab54e19832ae6dea06ec9c6fc5aa33" => :high_sierra
-    sha256 "2052ba57754d3049747245a30caf32c81e5e7ec1b8f8de1790dde9c54f71548a" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "2e258c3d69f945ca6e74c115212360f51dba2dd8cd7a7fe2b5ddc61abe655bf0"
+    sha256 cellar: :any,                 arm64_big_sur:  "c4cee833659db746110a1f7efec8f7b0d0f51017685a36299d7da801708f2cd9"
+    sha256 cellar: :any,                 monterey:       "f89040ef4e8103aebc2d0f0f7fc3f726075b3e0b0c17a1ba22c563636f1d3168"
+    sha256 cellar: :any,                 big_sur:        "8477c2c7a301ea944f2e1bb1243870143940c479c9cc71e1532c5d6093184c51"
+    sha256 cellar: :any,                 catalina:       "f8bab9f628c7c2eeba134634387ab554ba44beb5d4e3dc3368969d90bbfac9ce"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "2eacca5202c51e1bafaea6800bbbc86a575133ba4a9a15a9092a25142816903d"
   end
 
   depends_on "autoconf" => :build

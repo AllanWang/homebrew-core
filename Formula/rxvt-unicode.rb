@@ -1,24 +1,42 @@
 class RxvtUnicode < Formula
   desc "Rxvt fork with Unicode support"
   homepage "http://software.schmorp.de/pkg/rxvt-unicode.html"
-  url "http://dist.schmorp.de/rxvt-unicode/rxvt-unicode-9.22.tar.bz2"
-  sha256 "e94628e9bcfa0adb1115d83649f898d6edb4baced44f5d5b769c2eeb8b95addd"
-  revision 3
+  url "http://dist.schmorp.de/rxvt-unicode/rxvt-unicode-9.26.tar.bz2"
+  sha256 "643116b9a25d29ad29f4890131796d42e6d2d21312282a613ef66c80c5b8c98b"
+  license "GPL-3.0-only"
+
+  livecheck do
+    url "http://dist.schmorp.de/rxvt-unicode/"
+    regex(/href=.*?rxvt-unicode[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    sha256 "126bda5982eb1d785cdaf84ab108024d85c3904cc3039514f13e12ebb80652a9" => :mojave
-    sha256 "01a97a5842a1507ae1e9c99d973811e300d0aac95b3fb744e8181918b6ac11eb" => :high_sierra
-    sha256 "2946f3abe2481ad6e4f52be7a9e51259bcd0846f38602e74384343946479eb4a" => :sierra
-    sha256 "5d6060cc30061763809d7255b8654309be0a709fccdcda1b799f0fac16fd085d" => :el_capitan
-    sha256 "9b674dd3738ab25fa6145680f92ca036df470ced089448abcb6647439320e075" => :yosemite
+    sha256 arm64_monterey: "acaab9ae981de980c62c28e89072cf754e9cfce42c79179c8bf96ada884e006e"
+    sha256 arm64_big_sur:  "2ad5cfb39d86aff0d7f3b785aee5058ce2b0bf113b13b24f963c1b8d60679ff3"
+    sha256 monterey:       "e7fe499f09e78e5b61e12ceb8b910c44b643b10018bde3d390223e0643f32e38"
+    sha256 big_sur:        "5e3a94dc348d57ada5dcb55eafee51b1ffa8bf78e10a8a2b0af9ac56b2d2ff02"
+    sha256 catalina:       "b97c65d257344a16accd34497c77ec3638674c7c596b7f05c190d606975de9af"
+    sha256 mojave:         "ecec482ad2b840b1cdb3945a42bcc31656d61a83ae3d08af2d2dafb1a4002d9d"
+    sha256 x86_64_linux:   "33700270809fe7d85c106cc6ef8aeb0c85c053ea52f39e6124464cfbf01a8309"
   end
 
   depends_on "pkg-config" => :build
-  depends_on :x11
+  depends_on "fontconfig"
+  depends_on "freetype"
+  depends_on "libx11"
+  depends_on "libxft"
+  depends_on "libxmu"
+  depends_on "libxrender"
+  depends_on "libxt"
+
+  uses_from_macos "perl"
 
   # Patches 1 and 2 remove -arch flags for compiling perl support
   # Patch 3 fixes `make install` target on case-insensitive filesystems
-  patch :DATA
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/85fa66a9/rxvt-unicode/9.22.patch"
+    sha256 "a266a5776b67420eb24c707674f866cf80a6146aaef6d309721b6ab1edb8c9bb"
+  end
 
   def install
     args = %W[
@@ -43,43 +61,3 @@ class RxvtUnicode < Formula
     Process.wait daemon
   end
 end
-
-__END__
-diff --git a/configure b/configure
-index c756724..5e94907 100755
---- a/configure
-+++ b/configure
-@@ -7847,8 +7847,8 @@ $as_echo_n "checking for $PERL suitability... " >&6; }
-
-      save_CXXFLAGS="$CXXFLAGS"
-      save_LIBS="$LIBS"
--     CXXFLAGS="$CXXFLAGS `$PERL -MExtUtils::Embed -e ccopts`"
--     LIBS="$LIBS `$PERL -MExtUtils::Embed -e ldopts`"
-+     CXXFLAGS="$CXXFLAGS `$PERL -MExtUtils::Embed -e ccopts|sed -E 's/ -arch [^ ]+//g'`"
-+     LIBS="$LIBS `$PERL -MExtUtils::Embed -e ldopts|sed -E 's/ -arch [^ ]+//g'`"
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
- /* end confdefs.h.  */
-
-@@ -7884,8 +7884,8 @@ $as_echo "#define ENABLE_PERL 1" >>confdefs.h
-
-         IF_PERL=
-         PERL_O=rxvtperl.o
--        PERLFLAGS="`$PERL -MExtUtils::Embed -e ccopts`"
--        PERLLIB="`$PERL -MExtUtils::Embed -e ldopts`"
-+        PERLFLAGS="`$PERL -MExtUtils::Embed -e ccopts|sed -E 's/ -arch [^ ]+//g'`"
-+        PERLLIB="`$PERL -MExtUtils::Embed -e ldopts|sed -E 's/ -arch [^ ]+//g'`"
-         PERLPRIVLIBEXP="`$PERL -MConfig -e 'print $Config{privlibexp}'`"
-      else
-         as_fn_error $? "no, unable to link" "$LINENO" 5
-diff --git a/Makefile.in b/Makefile.in
-index eee5969..c230930 100644
---- a/Makefile.in
-+++ b/Makefile.in
-@@ -31,6 +31,7 @@ subdirs = src doc
-
- RECURSIVE_TARGETS = all allbin alldoc tags clean distclean realclean install
-
-+.PHONY: install
- #-------------------------------------------------------------------------
-
- $(RECURSIVE_TARGETS):

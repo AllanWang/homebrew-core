@@ -1,16 +1,19 @@
 class Pqiv < Formula
   desc "Powerful image viewer with minimal UI"
   homepage "https://github.com/phillipberndt/pqiv"
-  url "https://github.com/phillipberndt/pqiv/archive/2.11.tar.gz"
-  sha256 "ea1f8b6bcb58dee19e2d8168ef4efd01e222c653eabbd3109aad57a870cc8c9b"
-  revision 2
-  head "https://github.com/phillipberndt/pqiv.git"
+  url "https://github.com/phillipberndt/pqiv/archive/2.12.tar.gz"
+  sha256 "1538128c88a70bbad2b83fbde327d83e4df9512a2fb560eaf5eaf1d8df99dbe5"
+  license "GPL-3.0"
+  revision 4
+  head "https://github.com/phillipberndt/pqiv.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "bb14b782c2af2a0422f75e80031672850cda3773a36eec14b052a5595e504470" => :mojave
-    sha256 "0cd96ff6e0946717110e360e8efa167a63bafc3f4b51a868da638c45861426e0" => :high_sierra
-    sha256 "0c07189268c9dbe3060751957ff33a6c0c396aef103198c57565a74e440cab09" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "8782a71f1737e6809e0bf8e03c1dbacd3822de5bb2b19857ca03c6df7d8a5c1a"
+    sha256 cellar: :any,                 arm64_big_sur:  "0c81274c8d13c19d95d69fdad59ed8fd94e3860f90b0eb2ca83a45435b214769"
+    sha256 cellar: :any,                 monterey:       "dba41e09a3ead21456f9d727eb6bede873098b7d0499629264900b618e7eace2"
+    sha256 cellar: :any,                 big_sur:        "6ef9f48897bb6fe32ed7cc51666c35415e7d1c77a1e5d10701c64a69402cdd84"
+    sha256 cellar: :any,                 catalina:       "9983a52d1c8b71c44f2bd435f4336a69c98aa1adf029b0fe72aebc6da23d10b8"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "33a23ff2a31d049557d533c50c1a30ab1e8c28d4ff28627e7ddb4ad08dcaeda8"
   end
 
   depends_on "pkg-config" => :build
@@ -20,6 +23,10 @@ class Pqiv < Formula
   depends_on "libspectre"
   depends_on "poppler"
   depends_on "webp"
+
+  on_linux do
+    depends_on "libtiff"
+  end
 
   def install
     system "./configure", "--prefix=#{prefix}"

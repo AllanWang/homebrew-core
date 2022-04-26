@@ -1,22 +1,30 @@
 class Mediaconch < Formula
   desc "Conformance checker and technical metadata reporter"
   homepage "https://mediaarea.net/MediaConch"
-  url "https://mediaarea.net/download/binary/mediaconch/18.03.2/MediaConch_CLI_18.03.2_GNU_FromSource.tar.bz2"
-  version "18.03.2"
-  sha256 "8f8f31f1c3eb55449799ebb2031ef373934a0a9826ce6c2b2bdd32dacbf5ec4c"
+  url "https://mediaarea.net/download/binary/mediaconch/22.03/MediaConch_CLI_22.03_GNU_FromSource.tar.bz2"
+  sha256 "0c35434b55c7f507b20ef13e0a33fdbc4868cca353b145abb5d2cd13c7f11f23"
+
+  livecheck do
+    url "https://mediaarea.net/MediaConch/Download/Source"
+    regex(/href=.*?mediaconch[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "8828246691975f172635147cf5f89ce679397112288276d3fcde40252edc637f" => :mojave
-    sha256 "d888f17d7347095c3516e1a51238fe01636578c1a2cf1d3e0162bd05e027ed5e" => :high_sierra
-    sha256 "07b38dfc6333a72b2333562fc017ccb175a91de98d21c4046c445b62e7dbeb6a" => :sierra
-    sha256 "b110435077f1d4164238760baa2bfaaa5e63b3a49a9600a86d710cfefc594e89" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "519bb9c709793e1e9343f69087b4832be1392220066ef5a37b60ea4f51e1f726"
+    sha256 cellar: :any,                 arm64_big_sur:  "acf1493abb7e5a14c276a831addd076a584d30d60b9b8e9373993808dedfbad2"
+    sha256 cellar: :any,                 monterey:       "88974c4a26e78c494cd4f641323ecc4c561946ccbdb7f5968c824acbc856d5e0"
+    sha256 cellar: :any,                 big_sur:        "5f7e218f55ae40cd50c45c6188f1a6f5314f87d24081eac338a2613bfcde104e"
+    sha256 cellar: :any,                 catalina:       "a82bd4c853e0473e4285fbced7c1011a7d0b3950d6ba9ecf6530e8e4482b10de"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d79bbbe98490ee3ba70a07ae4fe2fb14cba2cd42b3cbfc49638dc46b9c7a13c2"
   end
 
   depends_on "pkg-config" => :build
   depends_on "jansson"
   depends_on "libevent"
   depends_on "sqlite"
+
+  uses_from_macos "curl"
+  uses_from_macos "libxslt"
 
   def install
     cd "ZenLib/Project/GNU/Library" do

@@ -1,28 +1,28 @@
 class Gomplate < Formula
   desc "Command-line Golang template processor"
   homepage "https://gomplate.hairyhenderson.ca/"
-  url "https://github.com/hairyhenderson/gomplate/archive/v3.5.0.tar.gz"
-  sha256 "9dc2ee1c5ffeb22ea564a63a2965db6f6778cd0f5eac8570e5b173370d603cca"
-  head "https://github.com/hairyhenderson/gomplate.git"
+  url "https://github.com/hairyhenderson/gomplate/archive/v3.10.0.tar.gz"
+  sha256 "f9a30d8e94b81eefbbe3455c21dc547ec0ebf0e010a809c72db617a4b37223a6"
+  license "MIT"
+  head "https://github.com/hairyhenderson/gomplate.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "ae54a129b8b3ad6addb9921c1c43135ad85f2f4967d354ac6d61df97175657a7" => :mojave
-    sha256 "dd77e329d5f88b0ba0e2c008800c3b5d7be3a8bcaed8889240d6758aefd591e3" => :high_sierra
-    sha256 "ffba0a7a878530c0daa37d2245e5ad8f998908413cae7d6a7f5bbcc4f7a4d401" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "dd9583c59cdd27102266f6c324d4e7613470e48cdb5a30d1ffdcf677e497f54e"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "05845f4a31da3d5b78b61e119a62d7f9c869f471194de46d0b06b3b76b3cfc14"
+    sha256 cellar: :any_skip_relocation, monterey:       "9b41465cdf57336347772059715707557335b9c1b7c026d96ad163e05e7c025b"
+    sha256 cellar: :any_skip_relocation, big_sur:        "92ce5929e369eb6a49e478f71bf2a6fba500094b600c578f4ba3ae0c0546dcc5"
+    sha256 cellar: :any_skip_relocation, catalina:       "85ba008a9f271385b4599fe1308fa0846bde36307d96a39424c2aa53396ba12b"
+    sha256 cellar: :any_skip_relocation, mojave:         "d08b4521c7140d8391be5aef5ab3cfa9184e080e5abf46dbea079025b49c4a0f"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "f026fafcaeba0eb20e509c298edcd80c0158f0ab0a45a68184f754f8aa2e2754"
   end
 
-  depends_on "go" => :build
-  depends_on "upx" => :build
+  # Bump to 1.18 on the next release, if possible.
+  depends_on "go@1.17" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-    (buildpath/"src/github.com/hairyhenderson/gomplate").install buildpath.children
-    cd "src/github.com/hairyhenderson/gomplate" do
-      system "make", "compress", "VERSION=#{version}"
-      bin.install "bin/gomplate-slim" => "gomplate"
-      prefix.install_metafiles
-    end
+    system "make", "build", "VERSION=#{version}"
+    bin.install "bin/gomplate" => "gomplate"
+    prefix.install_metafiles
   end
 
   test do

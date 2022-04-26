@@ -1,19 +1,18 @@
 class Dylibbundler < Formula
   desc "Utility to bundle libraries into executables for macOS"
   homepage "https://github.com/auriamg/macdylibbundler"
-  url "https://downloads.sourceforge.net/project/macdylibbundler/macdylibbundler/0.4.4/dylibbundler-0.4.4.zip"
-  sha256 "65d050327df99d12d96ae31a693bace447f4115e6874648f1b3960a014362200"
-  head "https://github.com/auriamg/macdylibbundler.git"
+  url "https://github.com/auriamg/macdylibbundler/archive/1.0.4.tar.gz"
+  sha256 "839c6a30be2c974bba70ab80faf8167713955bb010427662b14d4af7df8d5f19"
+  license "MIT"
+  head "https://github.com/auriamg/macdylibbundler.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    rebuild 1
-    sha256 "4a5ee8ce4167301c5af472a253d615a67cdb276b58f961ef031845c3ec41fae7" => :mojave
-    sha256 "54e0ca248e9030351699e9ff31ed02dfe280a9dd97e1446966d0c81b14f644ee" => :high_sierra
-    sha256 "3d3297c9884ca982ce3a2ef9d31a53a1f96390268d0d9b378e3a954e0ad74996" => :sierra
-    sha256 "5dff018e62a9787871e45f4ae976358cfc3f7f85972a0aa0d4e039f97d4b8e0f" => :el_capitan
-    sha256 "eee9c829e932d8d25ded1e249bbf372ebfa0c9911dd3adc11a642184ecb6a6b7" => :yosemite
-    sha256 "49c1600c49ff7b10bdae8dc7351496680a9a4fb434ce6cd7393d10008506393e" => :mavericks
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "906a8b5293262c5416a17657e70bd7283ef007a2eaac10b0627729f14da3d685"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "d0c87ee93247dfb14af9096049d1eac119b2f52bed32eba7e8b7743ff3de76c4"
+    sha256 cellar: :any_skip_relocation, monterey:       "7459d9405ef5405c0be7fbc6db4987fbc4a4ce1dbca93c8902b945dd7b9d3307"
+    sha256 cellar: :any_skip_relocation, big_sur:        "f6699edbfc9c65203e3dba211bfbed054e1c98420155f7aa2c90c2c08de1419d"
+    sha256 cellar: :any_skip_relocation, catalina:       "f0e0cb6d2d0f852911795684b2817a13357c16077f153fead1e40fdc0e84edfe"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "c9f64c147777fe104678a78648a73fbed44471f02ba99698d382565f26b20c98"
   end
 
   def install

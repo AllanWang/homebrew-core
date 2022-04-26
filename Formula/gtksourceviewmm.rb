@@ -1,18 +1,27 @@
 class Gtksourceviewmm < Formula
   desc "C++ bindings for gtksourceview"
-  homepage "https://developer.gnome.org/gtksourceviewmm/"
+  homepage "https://gitlab.gnome.org/GNOME/gtksourceviewmm"
   url "https://download.gnome.org/sources/gtksourceviewmm/2.10/gtksourceviewmm-2.10.3.tar.xz"
   sha256 "0000df1b582d7be2e412020c5d748f21c0e6e5074c6b2ca8529985e70479375b"
-  revision 5
+  license "LGPL-2.1-or-later"
+  revision 12
 
-  bottle do
-    cellar :any
-    sha256 "ba0e44c276ecd0bf7770d6a48d67f9f40d445217f3136b14b7864bb8bf93f7ef" => :mojave
-    sha256 "6c241900e5eb52e186de31869c898504f923c8199ad1c63becc2b76e6a083b42" => :high_sierra
-    sha256 "3b6f901da7ee95a6f4b66d5bc2ec14ad53f96b303b4c73b80b23e2cb6e0e6c8f" => :sierra
+  livecheck do
+    url :stable
+    regex(/gtksourceviewmm[._-]v?(2\.([0-8]\d*?)?[02468](?:\.\d+)*?)\.t/i)
   end
 
-  depends_on "pkg-config" => :build
+  bottle do
+    sha256 cellar: :any,                 arm64_monterey: "2735fdddc92f3280188428fc9fa83431a700c376bcae4424bca10005dd440c76"
+    sha256 cellar: :any,                 arm64_big_sur:  "2b73a79e4c0df491e43dcc3def52858679c0d0ff699c3bb8a003014a7940408b"
+    sha256 cellar: :any,                 monterey:       "337b822adee8ddec4bb8f9f045f10cdb5e624c35fd1bf58aaaa1ab860af3cd73"
+    sha256 cellar: :any,                 big_sur:        "cb0781be44de07c6b920d97337eeca3650d9ffc03d99cb0ac0e9da7cf2769b0c"
+    sha256 cellar: :any,                 catalina:       "d6bd00f9f409660e55085ad15802c9e9b1f5f85d8600a729da0c81e3e79cd9d2"
+    sha256 cellar: :any,                 mojave:         "5c11aa110b1c22269ddc3a2ad31752c02b6522c8310db0367dd7f112b62e0b1f"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "cc5638fa500ed70f1de07180a729cee705fd3683305dabd4176f899bc7dfc17b"
+  end
+
+  depends_on "pkg-config" => [:build, :test]
   depends_on "gtkmm"
   depends_on "gtksourceview"
 
@@ -32,95 +41,8 @@ class Gtksourceviewmm < Formula
       }
     EOS
     ENV.libxml2
-    atk = Formula["atk"]
-    atkmm = Formula["atkmm"]
-    cairo = Formula["cairo"]
-    cairomm = Formula["cairomm"]
-    fontconfig = Formula["fontconfig"]
-    freetype = Formula["freetype"]
-    gdk_pixbuf = Formula["gdk-pixbuf"]
-    gettext = Formula["gettext"]
-    glib = Formula["glib"]
-    glibmm = Formula["glibmm"]
-    gtkx = Formula["gtk+"]
-    gtkmm = Formula["gtkmm"]
-    gtksourceview = Formula["gtksourceview"]
-    libpng = Formula["libpng"]
-    libsigcxx = Formula["libsigc++"]
-    pango = Formula["pango"]
-    pangomm = Formula["pangomm"]
-    pixman = Formula["pixman"]
-    flags = %W[
-      -I#{atk.opt_include}/atk-1.0
-      -I#{atkmm.opt_include}/atkmm-1.6
-      -I#{cairo.opt_include}/cairo
-      -I#{cairomm.opt_include}/cairomm-1.0
-      -I#{cairomm.opt_lib}/cairomm-1.0/include
-      -I#{fontconfig.opt_include}
-      -I#{freetype.opt_include}/freetype2
-      -I#{gdk_pixbuf.opt_include}/gdk-pixbuf-2.0
-      -I#{gettext.opt_include}
-      -I#{glib.opt_include}/glib-2.0
-      -I#{glib.opt_lib}/glib-2.0/include
-      -I#{glibmm.opt_include}/giomm-2.4
-      -I#{glibmm.opt_include}/glibmm-2.4
-      -I#{glibmm.opt_lib}/giomm-2.4/include
-      -I#{glibmm.opt_lib}/glibmm-2.4/include
-      -I#{gtkmm.opt_include}/gdkmm-2.4
-      -I#{gtkmm.opt_include}/gtkmm-2.4
-      -I#{gtkmm.opt_lib}/gdkmm-2.4/include
-      -I#{gtkmm.opt_lib}/gtkmm-2.4/include
-      -I#{gtksourceview.opt_include}/gtksourceview-2.0
-      -I#{gtkx.opt_include}/gtk-2.0
-      -I#{gtkx.opt_include}/gtk-unix-print-2.0
-      -I#{gtkx.opt_lib}/gtk-2.0/include
-      -I#{include}/gtksourceviewmm-2.0
-      -I#{libpng.opt_include}/libpng16
-      -I#{libsigcxx.opt_include}/sigc++-2.0
-      -I#{libsigcxx.opt_lib}/sigc++-2.0/include
-      -I#{lib}/gtksourceviewmm-2.0/include
-      -I#{pango.opt_include}/pango-1.0
-      -I#{pangomm.opt_include}/pangomm-1.4
-      -I#{pangomm.opt_lib}/pangomm-1.4/include
-      -I#{pixman.opt_include}/pixman-1
-      -D_REENTRANT
-      -L#{atk.opt_lib}
-      -L#{atkmm.opt_lib}
-      -L#{cairo.opt_lib}
-      -L#{cairomm.opt_lib}
-      -L#{gdk_pixbuf.opt_lib}
-      -L#{gettext.opt_lib}
-      -L#{glib.opt_lib}
-      -L#{glibmm.opt_lib}
-      -L#{gtkmm.opt_lib}
-      -L#{gtksourceview.opt_lib}
-      -L#{gtkx.opt_lib}
-      -L#{libsigcxx.opt_lib}
-      -L#{lib}
-      -L#{pango.opt_lib}
-      -L#{pangomm.opt_lib}
-      -latk-1.0
-      -latkmm-1.6
-      -lcairo
-      -lcairomm-1.0
-      -lgdk-quartz-2.0
-      -lgdk_pixbuf-2.0
-      -lgdkmm-2.4
-      -lgio-2.0
-      -lgiomm-2.4
-      -lglib-2.0
-      -lglibmm-2.4
-      -lgobject-2.0
-      -lgtk-quartz-2.0
-      -lgtkmm-2.4
-      -lgtksourceview-2.0
-      -lgtksourceviewmm-2.0
-      -lintl
-      -lpango-1.0
-      -lpangocairo-1.0
-      -lpangomm-1.4
-      -lsigc-2.0
-    ]
+    command = "#{Formula["pkg-config"].opt_bin}/pkg-config --cflags --libs gtksourceviewmm-2.0"
+    flags = shell_output(command).strip.split
     system ENV.cxx, "-std=c++11", "test.cpp", "-o", "test", *flags
     system "./test"
   end

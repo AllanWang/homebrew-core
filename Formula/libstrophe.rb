@@ -1,16 +1,18 @@
 class Libstrophe < Formula
   desc "XMPP library for C"
-  homepage "http://strophe.im/libstrophe/"
-  url "https://github.com/strophe/libstrophe/archive/0.9.2.tar.gz"
-  sha256 "158145bc1565a5fd0bbd7f57e3e15d768e58b8a460897ab5918a5a689d67ae6f"
-  head "https://github.com/strophe/libstrophe.git"
+  homepage "https://strophe.im/libstrophe/"
+  url "https://github.com/strophe/libstrophe/archive/0.11.0.tar.gz"
+  sha256 "090185bcf5800663e18340313410e3b6e4e742e065daac9e7cfa5dbb83dab8f5"
+  license any_of: ["GPL-3.0", "MIT"]
+  head "https://github.com/strophe/libstrophe.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "2a3b013266d4e92e3587ce22d16ba46ad830e3f0dedade73f2c6b850203677d8" => :mojave
-    sha256 "1e6c0b7461aeed6bf925a338248a577435d3b7f60561e09a7da9c530a05baaee" => :high_sierra
-    sha256 "4ddabe86834d65dafb68a82b2f82c66b1052df5c0bd5cdd81318ae421c6ec0de" => :sierra
-    sha256 "65162c4c6215dae7441c79aa50b31ef99c0ddfee55eea5f5d8974fb330a2dd96" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "13e67f5e28df838ffbf4bdcaded2308ae38abb6665cafa6bd36deba5c6ed2cb9"
+    sha256 cellar: :any,                 arm64_big_sur:  "db4c52347be6860ebc237f49996a177b1706a89653d4891db5041cf6b9cc9951"
+    sha256 cellar: :any,                 monterey:       "571d271187eb094a7b8ddee9e93fec77140042e279860b2ce6293d38bdaa1898"
+    sha256 cellar: :any,                 big_sur:        "9e0cf46077fc1ef4e30377e9a1d6047f542f86796b7f0e30bd6f9be307c20a6b"
+    sha256 cellar: :any,                 catalina:       "39d5bee8000fa0d133cb622b007cd050b2f1e7556a3f5e93d93ff2688abd6a1b"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "1b74000aa583bff02c47f079b4c75940ea81803761256eda098132c0b74d369b"
   end
 
   depends_on "autoconf" => :build
@@ -18,7 +20,10 @@ class Libstrophe < Formula
   depends_on "libtool" => :build
   depends_on "pkg-config" => :build
   depends_on "check"
-  depends_on "openssl"
+  depends_on "openssl@1.1"
+
+  uses_from_macos "expat"
+  uses_from_macos "libxml2"
 
   def install
     system "./bootstrap.sh"

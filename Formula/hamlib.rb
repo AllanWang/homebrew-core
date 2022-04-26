@@ -1,24 +1,34 @@
 class Hamlib < Formula
   desc "Ham radio control libraries"
-  homepage "https://hamlib.sourceforge.io/"
-  url "https://src.fedoraproject.org/repo/pkgs/hamlib/hamlib-1.2.15.3.tar.gz/3cad8987e995a00e5e9d360e2be0eb43/hamlib-1.2.15.3.tar.gz"
-  sha256 "a2ca4549e4fd99d6e5600e354ebcb57502611aa63c6921c1b8a825289833f75e"
+  homepage "http://www.hamlib.org/"
+  url "https://github.com/Hamlib/Hamlib/releases/download/4.4/hamlib-4.4.tar.gz"
+  sha256 "8bf0107b071f52f08587f38e2dee8a7848de1343435b326f8f66d95e1f8a2487"
+  license "LGPL-2.1-or-later"
+  head "https://github.com/hamlib/hamlib.git", branch: "master"
 
   bottle do
-    rebuild 1
-    sha256 "b77f0a84620a39f0622d6b1e0672778d13143484b7054e2967852fc37516f951" => :mojave
-    sha256 "60e67d17ef2573f5022e5bc85e70c0ca3bb42d273b9b079b465b5ec6108dffe7" => :high_sierra
-    sha256 "66d07ea64a912f95f989638124fe14658bfed6d34b609b50ce33691f06fae0ed" => :sierra
-    sha256 "d4e86dbc6d9bf5e0b4a1c1bce2471e90becf05b19b1c595952c94b3bda91e0db" => :el_capitan
-    sha256 "31a75a43cf17a17d35ee0c57048522e73de7c69f43279b45c766a903b5239372" => :yosemite
-    sha256 "6d9dd131db4baa70355822033257f822e029aa167b6c43643419bd75ef06395a" => :mavericks
+    sha256 cellar: :any,                 arm64_monterey: "402e4d11f14737861fc0e1b848b3750dd244155148a1e7d209368c52c536f492"
+    sha256 cellar: :any,                 arm64_big_sur:  "d2bca238a57f8c159b5056efbc65d4ebe596369e335593462631792ec7152fe4"
+    sha256 cellar: :any,                 monterey:       "5de56256bb7d46ca8b2adb77bb47489a53a97d9dfa030f5789f8384d548f0f39"
+    sha256 cellar: :any,                 big_sur:        "b048dc58043838aa534d497f1c53fd4ce98a7a430aca691068e828d5b226fbc6"
+    sha256 cellar: :any,                 catalina:       "20a4202b385772556054237968690744b850fa3174fe59eaed862489042024bd"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "e10e9c3dd40872ff78d3382aa8040339ddde307ba7cb4253dee08bfd342b8f95"
   end
 
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
   depends_on "pkg-config" => :build
   depends_on "libtool"
   depends_on "libusb-compat"
 
+  on_linux do
+    depends_on "gcc"
+  end
+
+  fails_with gcc: "5"
+
   def install
+    system "./bootstrap" if build.head?
     system "./configure", "--disable-dependency-tracking",
                           "--prefix=#{prefix}"
     system "make", "install"

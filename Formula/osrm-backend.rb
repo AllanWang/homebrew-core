@@ -1,16 +1,24 @@
 class OsrmBackend < Formula
   desc "High performance routing engine"
   homepage "http://project-osrm.org/"
-  url "https://github.com/Project-OSRM/osrm-backend/archive/v5.22.0.tar.gz"
-  sha256 "df0987a04bcf65d74f9c4e18f34a01982bf3bb97aa47f9d86cfb8b35f17a6a55"
-  revision 2
-  head "https://github.com/Project-OSRM/osrm-backend.git"
+  url "https://github.com/Project-OSRM/osrm-backend/archive/v5.26.0.tar.gz"
+  sha256 "45e986db540324bd0fc881b746e96477b054186698e8d14610ff7c095e906dcd"
+  license "BSD-2-Clause"
+  revision 1
+  head "https://github.com/Project-OSRM/osrm-backend.git", branch: "master"
+
+  livecheck do
+    url :stable
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "913eb97ac1b2d4bc87fd0c6c8642054a03779064fc6c811267581b217a1e2ba2" => :mojave
-    sha256 "523dd40dfe9b2e85741753a0058ffc6c7cb92ed962a6bf3b0af7c32b266ea2fe" => :high_sierra
-    sha256 "6710a6774c6886465231dc1c43fffa801c5c9d59c13d5828285d2c7324ab2a80" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "4a88710e2228747584c05029032b01ec71634bc470487c3da79d8e374fe12ffa"
+    sha256 cellar: :any,                 arm64_big_sur:  "273e540157c193740db4b9490bd4da38261b8479ff9b40431545d72c5507696e"
+    sha256 cellar: :any,                 monterey:       "d74e62b2ffba6f19c1995da7548881c71b054693763a620488d510b8b0dfeb9d"
+    sha256 cellar: :any,                 big_sur:        "170a08f79eafd445d62ccf687bbdee628380c3b836739bf8fc0b7fcb8d5e3bb7"
+    sha256 cellar: :any,                 catalina:       "71573db82a0f2c535e3a391c112ed29d6002b1f26f9bc9835be004dd99735079"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "8e8b8d4e023babe2136dda873d997505af6925045d0a6d41138c79ebbacb5cb6"
   end
 
   depends_on "cmake" => :build
@@ -19,16 +27,18 @@ class OsrmBackend < Formula
   depends_on "libxml2"
   depends_on "libzip"
   depends_on "lua"
+  depends_on "tbb@2020"
 
-  # "invalid use of non-static data member 'offset'"
-  # https://github.com/Project-OSRM/osrm-backend/issues/3719
-  depends_on :macos => :el_capitan
-
-  depends_on "tbb"
+  conflicts_with "flatbuffers", because: "both install flatbuffers headers"
 
   def install
+    lua = Formula["lua"]
+    luaversion = lua.version.major_minor
     mkdir "build" do
-      system "cmake", "..", "-DENABLE_CCACHE:BOOL=OFF", *std_cmake_args
+      system "cmake", "..", "-DENABLE_CCACHE:BOOL=OFF",
+                            "-DLUA_INCLUDE_DIR=#{lua.opt_include}/lua#{luaversion}",
+                            "-DLUA_LIBRARY=#{lua.opt_lib}/#{shared_library("liblua", luaversion)}",
+                            *std_cmake_args
       system "make"
       system "make", "install"
     end

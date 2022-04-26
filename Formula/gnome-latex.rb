@@ -1,17 +1,27 @@
 class GnomeLatex < Formula
   desc "LaTeX editor for the GNOME desktop"
-  homepage "https://wiki.gnome.org/Apps/LaTeXila"
-  url "https://download.gnome.org/sources/gnome-latex/3.32/gnome-latex-3.32.0.tar.xz"
-  sha256 "0f069c7b4c6754255a1c7e3e3b050925d8076f55458526a30ab59e0a7d52acc9"
+  homepage "https://wiki.gnome.org/Apps/GNOME-LaTeX"
+  url "https://download.gnome.org/sources/gnome-latex/3.38/gnome-latex-3.38.0.tar.xz"
+  sha256 "a82a9fc6f056929ea18d6dffd121e71b2c21768808c86ef1f34da0f86e220d77"
+  license "GPL-3.0-or-later"
   revision 1
 
   bottle do
-    sha256 "db8d7dc4b428f3fdfe3fb1397856808619c38297ae65306fdaf671bbae40811d" => :mojave
-    sha256 "3a0f41f3af768caa2e15633cf1ccce5d3c7119253d914cb4381abe8c0cd3762c" => :high_sierra
-    sha256 "908c445ffb71d1907a8a5e0eed94953ba8f61d8ed6222313364a7418c562eab7" => :sierra
+    sha256 arm64_monterey: "6c25d1dc2043da0fd0618c57316b19e59fa7627c61ea01051a38384c1e6683ac"
+    sha256 arm64_big_sur:  "118ac80bf869460f820e12a63bf8808b7ad9158eeb3ee594e494e344d54cc97c"
+    sha256 monterey:       "ec4d6862103ee03a5198148a0ea22acb97c1da93ef91af2b793bddb339f4e9c5"
+    sha256 big_sur:        "91916490eae6b8b5e9c8717ea9a37a2e8e383c6504a3d59c7d4f209d2f2e5db0"
+    sha256 catalina:       "34723bd50c23bc34d54750606f99247544a222f8d32ee1017422a618e7d8255c"
+    sha256 mojave:         "282a45a8580c354c10f112895d0448cc97e206da12460f75b6dbcc8906401314"
   end
 
+  # See: https://gitlab.gnome.org/Archive/gnome-latex
+  deprecate! date: "2021-05-25", because: :repo_archived
+
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
   depends_on "gobject-introspection" => :build
+  depends_on "gtk-doc" => :build
   depends_on "intltool" => :build
   depends_on "itstool" => :build
   depends_on "pkg-config" => :build
@@ -22,7 +32,14 @@ class GnomeLatex < Formula
   depends_on "libgee"
   depends_on "tepl"
 
+  # Add commit to port to Tepl 6
+  patch do
+    url "https://gitlab.gnome.org/Archive/gnome-latex/-/commit/e1b01186f8a4e5d3fee4c9ccfbedd6d098517df9.diff"
+    sha256 "0d54059732cb3092f52bfb8bca6ebad24a08b86036baafb31e06aca2415517ca"
+  end
+
   def install
+    system "autoreconf", "-fvi"
     system "./configure", "--disable-schemas-compile",
                           "--disable-dependency-tracking",
                           "--disable-silent-rules",
@@ -32,9 +49,12 @@ class GnomeLatex < Formula
   end
 
   def post_install
-    system "#{Formula["glib"].opt_bin}/glib-compile-schemas", "#{HOMEBREW_PREFIX}/share/glib-2.0/schemas"
-    system "#{Formula["gtk+3"].opt_bin}/gtk3-update-icon-cache", "-f", "-t", "#{HOMEBREW_PREFIX}/share/icons/hicolor"
-    system "#{Formula["gtk+3"].opt_bin}/gtk3-update-icon-cache", "-f", "-t", "#{HOMEBREW_PREFIX}/share/icons/HighContrast"
+    system "#{Formula["glib"].opt_bin}/glib-compile-schemas",
+           "#{HOMEBREW_PREFIX}/share/glib-2.0/schemas"
+    system "#{Formula["gtk+3"].opt_bin}/gtk3-update-icon-cache", "-f", "-t",
+           "#{HOMEBREW_PREFIX}/share/icons/hicolor"
+    system "#{Formula["gtk+3"].opt_bin}/gtk3-update-icon-cache", "-f", "-t",
+           "#{HOMEBREW_PREFIX}/share/icons/HighContrast"
   end
 
   test do

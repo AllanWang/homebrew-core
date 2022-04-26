@@ -1,13 +1,23 @@
 class Nng < Formula
   desc "Nanomsg-next-generation -- light-weight brokerless messaging"
   homepage "https://nanomsg.github.io/nng/"
-  url "https://github.com/nanomsg/nng/archive/v1.1.1.tar.gz"
-  sha256 "cec54ed40c8feb5c0c66f81cfd200e9b243639a75d1b6093c95ee55885273205"
+  url "https://github.com/nanomsg/nng/archive/v1.5.2.tar.gz"
+  sha256 "f8b25ab86738864b1f2e3128e8badab581510fa8085ff5ca9bb980d317334c46"
+  license "MIT"
+
+  livecheck do
+    url "https://github.com/nanomsg/nng.git"
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
+  end
 
   bottle do
-    sha256 "95806f0fd6dda2f2d07657186fe0fd5b67d0df560797806165c2a133f4e31e72" => :mojave
-    sha256 "7afc683e8993ddc89b5e0bbede86b8967453bb90253b5970e086feef4b08019d" => :high_sierra
-    sha256 "6b5464df0896b155b61b0f0428956142d0deabebd75e71f7116b5558a5138556" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "8a33b0d9fed3ae4df70c6c6c1bc0e6c86d5580aab8fd9d0c55b87a860c70f1a8"
+    sha256 cellar: :any,                 arm64_big_sur:  "65e87ec5195f73dd28ac038232cfd97f726e39d6420ee3eb8b09043fb6bbaf74"
+    sha256 cellar: :any,                 monterey:       "c2411011f0a91195cc46ac4e1c4dd064893bec79d0ac1aeb52bf979b5dabb90c"
+    sha256 cellar: :any,                 big_sur:        "4f8669a031bc81bcbee803c873ef1d97f2725d4a6fea722e5774b211edb7d6a5"
+    sha256 cellar: :any,                 catalina:       "268c52493195599b0ab12c36ed1c3473ec170b10cad96b8a0117d3fdb3b17b50"
+    sha256 cellar: :any,                 mojave:         "d2ef1609e6562912c88a0e8c5b9cb57058db7ef4f07d11b0ca881a114830d9a6"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d94d20ba5021ba6f36508194a103c89398fdef130a57c79b1f1935d08db19c75"
   end
 
   depends_on "asciidoctor" => :build
@@ -23,19 +33,14 @@ class Nng < Formula
   end
 
   test do
-    bind = "tcp://127.0.0.1:8000"
+    bind = "tcp://127.0.0.1:#{free_port}"
 
-    pid = fork do
+    fork do
       exec "#{bin}/nngcat --rep --bind #{bind} --format ascii --data home"
     end
     sleep 2
 
-    begin
-      output = shell_output("#{bin}/nngcat --req --connect #{bind} --format ascii --data brew")
-      assert_match(/home/, output)
-    ensure
-      Process.kill("SIGINT", pid)
-      Process.wait(pid)
-    end
+    output = shell_output("#{bin}/nngcat --req --connect #{bind} --format ascii --data brew")
+    assert_match(/home/, output)
   end
 end

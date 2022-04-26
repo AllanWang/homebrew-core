@@ -1,21 +1,20 @@
 class Pachi < Formula
   desc "Software for the Board Game of Go/Weiqi/Baduk"
   homepage "https://pachi.or.cz/"
-  url "https://repo.or.cz/pachi.git/snapshot/pachi-11.00-retsugen.tar.gz"
-  sha256 "2aaf9aba098d816d20950d283c8eaed522f3fa71f68390a4c384c0c1ab03cd6f"
-  revision 1
-  head "https://github.com/pasky/pachi.git"
+  url "https://github.com/pasky/pachi/archive/pachi-12.60.tar.gz"
+  sha256 "3c05cf4fe5206ba4cbe0e0026ec3225232261b44e9e05e45f76193b4b31ff8e9"
+  license "GPL-2.0"
+  head "https://github.com/pasky/pachi.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "0b415ef29c6636bcdff11cb56dba0d3822d826cf6f2313427337695ba249e47d" => :mojave
-    sha256 "0d32845e7628104c0748c8263c4da549766cfada77adcdb7d02141a72b29c69a" => :high_sierra
-    sha256 "738716a5b3cbb1d23ff52db5a4375a014060ed9d836f938be9200bfd25b83324" => :sierra
-    sha256 "0296a8eab88a76533da8c45630d53bf54c98236b061666ebba72a0065d32ca7c" => :el_capitan
-    sha256 "88480b1583b55e3eb05dd1f3b32617024873465f09d19e5998c2c81afb4d9dba" => :yosemite
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "c38b47dfb6e9f48507f47be141963ea5fb4b6329a83f015f4bd0d52c09325408"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "71f7bf11f6d68a8768468e4494cdc0785f484a5ccd7713cfc4327f049e79e80a"
+    sha256 cellar: :any_skip_relocation, monterey:       "7079a129c324c7411aabe2c5357f3b5c86658bcec6b897f06e8cccf02e775a23"
+    sha256 cellar: :any_skip_relocation, big_sur:        "d14dec70d5fedd0d7ba63b05f175b06b12c40e1da71d24da64712ce63858dae1"
+    sha256 cellar: :any_skip_relocation, catalina:       "9a2adc64bf7dbfbaf9e3d9ff940d6c5bcb0e4040160ed62f57751ec87281132e"
+    sha256 cellar: :any_skip_relocation, mojave:         "c88f24dd1e7a267848eab540dc2b0961962825ab6e7088fc24b335159dacf31c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "e0fc26989c0cf90b6fa2256e129b0b87993464ec27ad88fefe569abdd9702292"
   end
-
-  fails_with :clang if MacOS.version == :mavericks
 
   resource "patterns" do
     url "https://sainet-dist.s3.amazonaws.com/pachi_patterns.zip"
@@ -31,6 +30,10 @@ class Pachi < Formula
     ENV["MAC"] = "1"
     ENV["DOUBLE_FLOATING"] = "1"
 
+    # https://github.com/pasky/pachi/issues/78
+    inreplace "Makefile", "build.h: .git/HEAD .git/index", "build.h:"
+    inreplace "Makefile", "DCNN=1", "DCNN=0"
+
     system "make"
     bin.install "pachi"
 
@@ -38,17 +41,18 @@ class Pachi < Formula
     pkgshare.install resource("book")
   end
 
-  def caveats; <<~EOS
-    This formula also downloads additional data, such as opening books
-    and pattern files. They are stored in #{opt_pkgshare}.
+  def caveats
+    <<~EOS
+      This formula also downloads additional data, such as opening books
+      and pattern files. They are stored in #{opt_pkgshare}.
 
-    At present, pachi cannot be pointed to external files, so make sure
-    to set the working directory to #{opt_pkgshare} if you want pachi
-    to take advantage of these additional files.
-  EOS
+      At present, pachi cannot be pointed to external files, so make sure
+      to set the working directory to #{opt_pkgshare} if you want pachi
+      to take advantage of these additional files.
+    EOS
   end
 
   test do
-    assert_match /^= [A-T][0-9]+$/, pipe_output("#{bin}/pachi", "genmove b\n", 0)
+    assert_match(/^= [A-T][0-9]+$/, pipe_output("#{bin}/pachi", "genmove b\n", 0))
   end
 end

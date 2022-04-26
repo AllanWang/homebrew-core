@@ -1,29 +1,29 @@
 class Goreman < Formula
   desc "Foreman clone written in Go"
   homepage "https://github.com/mattn/goreman"
-  url "https://github.com/mattn/goreman/archive/v0.2.1.tar.gz"
-  sha256 "c1ef360fcc92688956bc7a18fae089d78754bd1dde22a89b27228ae5a840cc45"
+  url "https://github.com/mattn/goreman/archive/v0.3.11.tar.gz"
+  sha256 "2ff6a2746f17b00fe13ae942b556f346713e743de9a0f66208d63fe2d5586063"
+  license "MIT"
+  head "https://github.com/mattn/goreman.git", branch: "master"
+
+  livecheck do
+    url :homepage
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "4bd1c4412693e31ddc84eb29ae4fe5bd9612e0e5b2973b38e9ff0f0b4258c029" => :mojave
-    sha256 "4b2929d2a39a08456394b23b34be00206d26070211e8e80b2d659f94d8c8a8a1" => :high_sierra
-    sha256 "c5ccc2b4a4ecd7fa50f5bedffd93809aa42c36a89290b62e743f08a4a60f4ad4" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "f84399eff06321a5b182e2bf72db14cf1d16ea66de880ed28ae21d84c3049530"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "617893eee7167522eef137b451a75c58ebf61763342873c5931e8489c8048f5c"
+    sha256 cellar: :any_skip_relocation, monterey:       "47ef7cb6bd2b6dd3c369699979a1a627507d80e2b55c6c591f3fd339db8bfab2"
+    sha256 cellar: :any_skip_relocation, big_sur:        "3cbad1a55ba81b99570db12e9223b9be3ccacfb2064bb8811cdf63307141430b"
+    sha256 cellar: :any_skip_relocation, catalina:       "ac244b86a6b0fc62a1f04d68914f303abd7a1f29ada7650643797c43720c2973"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "7551327a1f817fa1778cd790ca681ea2fc46d3dcea41780158f96cf91a512cab"
   end
 
   depends_on "go" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-    ENV["GO111MODULE"] = "on"
-
-    srcpath = buildpath/"src/github.com/mattn/goreman"
-    srcpath.install buildpath.children
-
-    cd srcpath do
-      system "go", "build", "-o", bin/"goreman"
-      prefix.install_metafiles
-    end
+    system "go", "build", "-ldflags", "-s -w", "-trimpath", "-o", bin/"goreman"
   end
 
   test do

@@ -1,26 +1,30 @@
 class Sourcery < Formula
   desc "Meta-programming for Swift, stop writing boilerplate code"
   homepage "https://github.com/krzysztofzablocki/Sourcery"
-  url "https://github.com/krzysztofzablocki/Sourcery/archive/0.16.1.tar.gz"
-  sha256 "2a015af9e501eeabfae72033e91620365c1ebdf4dc401ae2971081d479b6186b"
-  head "https://github.com/krzysztofzablocki/Sourcery.git"
+  url "https://github.com/krzysztofzablocki/Sourcery/archive/1.8.1.tar.gz"
+  sha256 "a60b920b9dc4d3b7dc38c9d3593391c399ae6c5966734bb6d6991b73d0959898"
+  license "MIT"
+  head "https://github.com/krzysztofzablocki/Sourcery.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "d69bcf5e6dcf69247e53f67b58d568fbff5219b0d98683db24c2e2c6d60f71cd" => :mojave
-    sha256 "8e030ca0e08585b2c58db2504da93631a754dd38331615d12350ac8a1873ca33" => :high_sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "df19b1c5f921b36473c9de0cae013e705a796b2e4d439ea9cc1b43a1df4199bd"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "59234183803f8dc23797334a4f995a037e68ca51faf9f6242da18b0892f85f82"
+    sha256 cellar: :any_skip_relocation, monterey:       "5d93cb5bf7a3adc4dba8ea972fb9347190cd04238efcd60942192c56c096cbb6"
+    sha256 cellar: :any_skip_relocation, big_sur:        "92cb87ac0c373bd0ad1111d388916c86f4fcdd390686143b2ddff85a664f1b7a"
   end
 
-  depends_on :xcode => ["10.0", :build]
-  depends_on :xcode => "6.0"
+  depends_on xcode: "13.0"
+
+  uses_from_macos "ruby" => :build
 
   def install
-    system "swift", "build", "--disable-sandbox", "-c", "release", "-Xswiftc", "-target", "-Xswiftc", "x86_64-apple-macosx10.11"
-    bin.install ".build/release/sourcery"
-    lib.install Dir[".build/release/*.dylib"]
+    system "rake", "build"
+    bin.install "cli/bin/sourcery"
+    lib.install Dir["cli/lib/*.dylib"]
   end
 
   test do
+    # Regular functionality requires a non-sandboxed environment, so we can only test version/help here.
     assert_match version.to_s, shell_output("#{bin}/sourcery --version").chomp
   end
 end

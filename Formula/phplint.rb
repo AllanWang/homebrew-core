@@ -1,16 +1,30 @@
 class Phplint < Formula
   desc "Validator and documentator for PHP 5 and 7 programs"
   homepage "https://www.icosaedro.it/phplint/"
-  url "https://www.icosaedro.it/phplint/phplint-4.0_20190206.tar.gz"
-  version "4.0-20190206"
-  sha256 "8a2d4b128fff23b469e5c64847187c2550d9775602f80859475ad686f2317cc0"
+  url "https://www.icosaedro.it/phplint/phplint-4.2.0_20200308.tar.gz"
+  version "4.2.0-20200308"
+  sha256 "a0d0a726dc2662c1bc6fae95c904430b0c68d0b4e4e19c38777da38c2823a094"
 
-  bottle :unneeded
+  # The downloads page uses `href2` attributes instead of `href`.
+  livecheck do
+    url "https://www.icosaedro.it/phplint/download.html"
+    regex(/href2?=.*?phplint[._-]v?(\d+(?:\.\d+)+(?:[._-]\d{6,8})?)\.t/i)
+  end
 
-  depends_on "php"
+  bottle do
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "ecb11516875f096c647e254ef2451687ead874112397779abdb1afeafd8e0563"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "14f43ce602719839c32da02be3464239085fbe253a38617305a51e5619cbb9b4"
+    sha256 cellar: :any_skip_relocation, monterey:       "850a054845b3f52021d9afeaf0f36c0c946db3dba9741c01afb9238036e66fc4"
+    sha256 cellar: :any_skip_relocation, big_sur:        "5191083b9faf95df4815a425a2b0e3a991bc578c5fef05f804663adcb057d1da"
+    sha256 cellar: :any_skip_relocation, catalina:       "5191083b9faf95df4815a425a2b0e3a991bc578c5fef05f804663adcb057d1da"
+    sha256 cellar: :any_skip_relocation, mojave:         "5191083b9faf95df4815a425a2b0e3a991bc578c5fef05f804663adcb057d1da"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "ecb11516875f096c647e254ef2451687ead874112397779abdb1afeafd8e0563"
+  end
+
+  depends_on "php@7.4"
 
   def install
-    inreplace "php", "/opt/php/bin/php", Formula["php"].opt_bin/"php"
+    inreplace "php", "/opt/php/bin/php", Formula["php@7.4"].opt_bin/"php"
     libexec.install "modules", "php", "phpl", "stdlib", "utils"
     bin.install_symlink libexec/"phpl"
   end

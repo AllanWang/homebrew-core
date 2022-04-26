@@ -1,27 +1,40 @@
 class Zenity < Formula
   desc "GTK+ dialog boxes for the command-line"
   homepage "https://wiki.gnome.org/Projects/Zenity"
-  url "https://download.gnome.org/sources/zenity/3.32/zenity-3.32.0.tar.xz"
-  sha256 "e786e733569c97372c3ef1776e71be7e7599ebe87e11e8ad67dcc2e63a82cd95"
-  revision 1
+  url "https://download.gnome.org/sources/zenity/3.42/zenity-3.42.0.tar.xz"
+  sha256 "c24c7fe6bb43163ced8adf232d583b2e013d3ba6c28deb5fcf807985e3deb5ef"
+  license "LGPL-2.1-or-later"
 
   bottle do
-    sha256 "cef54fcd5601eb5dd3b563d1a09a6cd83654a2fa46e4a83a3d3c6e6a356fe29a" => :mojave
-    sha256 "36cf68d4838890e8d9122109464548a4630da0b06dcf6d4f0976ccf58b99dde2" => :high_sierra
-    sha256 "8b06d6cfec84ff39a95aeb4b466c1eb62584ff019ed90331334d243501cc8398" => :sierra
+    sha256 arm64_monterey: "0ebacd1447f8fba2bd8c40e962d3966e53d627b08e365fb9420d8aad83ccec47"
+    sha256 arm64_big_sur:  "d356f3fadb082e7d3eae3f5ca6968ec5af1aef95053ce798b45410d9e81f34c4"
+    sha256 monterey:       "29cd27529dbfe9f0fce0d640fa36711368869a10d565d067bdd43107e8a1cfed"
+    sha256 big_sur:        "d82c92a871f056e04c151f2527b91acecea2d90da4758af1767785aef876a715"
+    sha256 catalina:       "44339c221ebcd8115cc581783af487a3ccca81921e228aba029ab6caa08186be"
+    sha256 x86_64_linux:   "b54070df2689dec6df7baf5db505445d6a97e2292e3318d1b9f0c11006dc4400"
   end
 
   depends_on "itstool" => :build
+  depends_on "meson" => :build
+  depends_on "ninja" => :build
   depends_on "pkg-config" => :build
+  depends_on "glib"
   depends_on "gtk+3"
 
   def install
-    system "./configure", "--prefix=#{prefix}"
-    system "make"
-    system "make", "install"
+    ENV["DESTDIR"] = "/"
+
+    mkdir "build" do
+      system "meson", *std_meson_args, ".."
+      system "ninja", "-v"
+      system "ninja", "install", "-v"
+    end
   end
 
   test do
+    # (zenity:30889): Gtk-WARNING **: 13:12:26.818: cannot open display
+    return if OS.linux? && ENV["HOMEBREW_GITHUB_ACTIONS"]
+
     system bin/"zenity", "--help"
   end
 end

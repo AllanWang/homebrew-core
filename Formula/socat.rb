@@ -1,24 +1,29 @@
 class Socat < Formula
-  desc "netcat on steroids"
+  desc "SOcket CAT: netcat on steroids"
   homepage "http://www.dest-unreach.org/socat/"
-  url "http://www.dest-unreach.org/socat/download/socat-1.7.3.3.tar.gz"
-  sha256 "8cc0eaee73e646001c64adaab3e496ed20d4d729aaaf939df2a761e99c674372"
+  url "http://www.dest-unreach.org/socat/download/socat-1.7.4.3.tar.gz"
+  sha256 "d697245144731423ddbbceacabbd29447089ea223e9a439b28f9ff90d0dd216e"
+  license "GPL-2.0-only"
 
-  bottle do
-    cellar :any
-    sha256 "8df52f1aac80cb54571c817acf3dc3a37dc7c6cc61efda3ff5d894b802e41488" => :mojave
-    sha256 "146f0a748cf86284207e7a23f178eace6019d861add738fca74e74171a079fb6" => :high_sierra
-    sha256 "c17ddaf91194b3b06845c63f9d38f364612a5bbee315ff716eccd3b89a543bc2" => :sierra
+  livecheck do
+    url "http://www.dest-unreach.org/socat/download/"
+    regex(/href=.*?socat[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
-  depends_on "openssl"
+  bottle do
+    sha256 cellar: :any,                 arm64_monterey: "6ec140eff3260a12b045bef839bf7540f7b7a0c9b708403217995f7f084e6423"
+    sha256 cellar: :any,                 arm64_big_sur:  "f3e91fc6dd04e6f5402f18fcd949d883dbd48bd292e24c3861e1a9499781cf0a"
+    sha256 cellar: :any,                 monterey:       "73fd0ea6e6726d59213e04a5e494107dedfab96035a86b0cd1e6393a31e1fb4a"
+    sha256 cellar: :any,                 big_sur:        "ef42488ec3c32855172e0f9c37382fd1023f4217e979ca0284f87a9d5bf9237e"
+    sha256 cellar: :any,                 catalina:       "cac9a7e2cd195b3b95b4698df5f261821adfd12be00fafcd2234526bad7fded6"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "4f0c6a24f3828789152f08dc17bc86987d3301457173712137ecf0ced9c5bae6"
+  end
+
+  depends_on "openssl@1.1"
   depends_on "readline"
 
-  # patch for type conflict, sent upstream
-  patch :p0, :DATA
-
   def install
-    system "./configure", "--prefix=#{prefix}", "--mandir=#{man}"
+    system "./configure", *std_configure_args, "--mandir=#{man}"
     system "make", "install"
   end
 
@@ -27,16 +32,3 @@ class Socat < Formula
     assert_match "HTTP/1.0", output.lines.first
   end
 end
-
-__END__
---- xio-termios.h	2019-05-11 09:10:55.000000000 +0900
-+++ xio-termios.h	2019-05-11 09:11:13.000000000 +0900
-@@ -148,7 +148,7 @@
- extern int xiotermios_value(int fd, int word, tcflag_t mask, tcflag_t value);
- extern int xiotermios_char(int fd, int n, unsigned char c);
- #ifdef HAVE_TERMIOS_ISPEED
--extern int xiotermios_speed(int fd, int n, unsigned int speed);
-+extern int xiotermios_speed(int fd, int n, speed_t speed);
- #endif
- extern int xiotermios_spec(int fd, int optcode);
- extern int xiotermios_flush(int fd);

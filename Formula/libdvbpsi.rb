@@ -1,15 +1,25 @@
 class Libdvbpsi < Formula
   desc "Library to decode/generate MPEG TS and DVB PSI tables"
   homepage "https://www.videolan.org/developers/libdvbpsi.html"
-  url "https://download.videolan.org/pub/libdvbpsi/1.3.2/libdvbpsi-1.3.2.tar.bz2"
-  sha256 "ac4e39f2b9b1e15706ad261fa175a9430344d650a940be9aaf502d4cb683c5fe"
+  url "https://download.videolan.org/pub/libdvbpsi/1.3.3/libdvbpsi-1.3.3.tar.bz2"
+  sha256 "02b5998bcf289cdfbd8757bedd5987e681309b0a25b3ffe6cebae599f7a00112"
+  license "LGPL-2.1"
+
+  livecheck do
+    url "https://download.videolan.org/pub/libdvbpsi/"
+    regex(%r{href=["']?v?(\d+(?:\.\d+)+)/?["' >]}i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "58798e08191e81dad4757bd9a78cae7d9729eef19fdd58dcdecdcc1767a85c15" => :mojave
-    sha256 "cf87681a1db342d27db787787363c0628e4af6b8e70cedd3a740f50e71a84a2a" => :high_sierra
-    sha256 "1cf54943acbf49fac6505cb6d03ee80587192b9b627fe6727a3041eff5957a9f" => :sierra
-    sha256 "619b9fd96ed520287fef752afdd48d7127cd8b88ce94fa0a6f4bda6e7726a4fe" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "0f7e72f47f7677017fd3a003b0ef61d7d161fdaaf673adefd5a64fb3f83d8a40"
+    sha256 cellar: :any,                 arm64_big_sur:  "a61aaac7ff201fdd38a929556c6a64a69993150891690f8ea9532e1b9c9c9ae3"
+    sha256 cellar: :any,                 monterey:       "16bdd90a4f0734be90ab9e7c0a955913f07ee21dc41cf91666be43301661b1a4"
+    sha256 cellar: :any,                 big_sur:        "255b960c43fac14b8a50af513ca3b2925cdfa0e71efa61d2eced2fd172fe8dff"
+    sha256 cellar: :any,                 catalina:       "b6e6f300bbc36fabf785f74abb083c5cfc3f91fdd51ee7bd058cc579e709c78d"
+    sha256 cellar: :any,                 mojave:         "26298540d01f52628385c83cac4b6666543af4cc059fa7ad5b3a8bd458955628"
+    sha256 cellar: :any,                 high_sierra:    "c6d79686bf05346bc473cc148b68901d99ac447a85542ff68d089c71eda1bc87"
+    sha256 cellar: :any,                 sierra:         "8bb1f1fff61674756153e8aec744d5d3c726da0c4ecd4bd291cae732e8264af3"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "47a182099c4d84323f3058738f29b1668f364d7e16c214777bae6bcd9f257b24"
   end
 
   def install

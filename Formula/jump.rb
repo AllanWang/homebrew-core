@@ -1,26 +1,24 @@
 class Jump < Formula
   desc "Helps you navigate your file system faster by learning your habits"
   homepage "https://github.com/gsamokovarov/jump"
-  url "https://github.com/gsamokovarov/jump/archive/v0.23.0.tar.gz"
-  sha256 "decb93cdccf0aff1ed9ab503af320aaa723998178f1d62331e6966726e6487d2"
-  head "https://github.com/gsamokovarov/jump.git"
+  url "https://github.com/gsamokovarov/jump/archive/v0.41.0.tar.gz"
+  sha256 "833151da3e9dc09190588c0a381116e3dfdf5b728869cb7b96681eb59c452b4c"
+  license "MIT"
+  head "https://github.com/gsamokovarov/jump.git", branch: "main"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "125750ca3597f9d628b2fc988c492a5c77e3bbacb18580905d9169c24688049c" => :mojave
-    sha256 "03cbd33d75d0928fb0ff6141b4460b76cd288864831147e0b323d0f767d26477" => :high_sierra
-    sha256 "e890b010358194bc27f6f6c32d3671e928e8465b93a03f96195308ba7f639c47" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "a1f200b2d8848305139c76e468725599fc4647a80a7b54e1394abbdb4fbb1c16"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "a1f200b2d8848305139c76e468725599fc4647a80a7b54e1394abbdb4fbb1c16"
+    sha256 cellar: :any_skip_relocation, monterey:       "09697911ef3c008e4105828b6ee8ca4be2ffeb774fa1676d5de9de9efcaeae52"
+    sha256 cellar: :any_skip_relocation, big_sur:        "09697911ef3c008e4105828b6ee8ca4be2ffeb774fa1676d5de9de9efcaeae52"
+    sha256 cellar: :any_skip_relocation, catalina:       "09697911ef3c008e4105828b6ee8ca4be2ffeb774fa1676d5de9de9efcaeae52"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "5a6c2c2b029b816f95f5fb029b9d5857719553542bf485414f5f127c5dc8dede"
   end
 
   depends_on "go" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-    (buildpath/"src/github.com/gsamokovarov").mkpath
-    ln_s buildpath, buildpath/"src/github.com/gsamokovarov/jump"
-
-    ENV["GO111MODULE"] = "off"
-    system "go", "build", "-o", "#{bin}/jump"
+    system "go", "build", "-ldflags", "-s -w", "-trimpath", "-o", "#{bin}/jump"
     man1.install "man/jump.1"
     man1.install "man/j.1"
   end

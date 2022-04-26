@@ -1,14 +1,13 @@
 class Byobu < Formula
   desc "Text-based window manager and terminal multiplexer"
-  homepage "http://byobu.co/"
-  url "https://launchpad.net/byobu/trunk/5.129/+download/byobu_5.129.orig.tar.gz"
-  sha256 "e5135f20750c359b6371ee87cf2729c6038fbf3a6e66680e67f6a2125b07c2b9"
+  homepage "https://launchpad.net/byobu"
+  url "https://launchpad.net/byobu/trunk/5.133/+download/byobu_5.133.orig.tar.gz"
+  sha256 "4d8ea48f8c059e56f7174df89b04a08c32286bae5a21562c5c6f61be6dab7563"
+  license "GPL-3.0-only"
+  revision 1
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "6d47abdde37ae912d3ffabf2161284914cd5cd75ec68b2308e14f1e7cc560e1e" => :mojave
-    sha256 "6d47abdde37ae912d3ffabf2161284914cd5cd75ec68b2308e14f1e7cc560e1e" => :high_sierra
-    sha256 "2071147e4d137922442b615dfe4bc13513b85ba1766aa36c7367aec29097ec2c" => :sierra
+    sha256 cellar: :any_skip_relocation, all: "45b2277b96cd2c4c4170fbbe4a8ac92665062e8d0c835bfbd24ee3e3d52f2616"
   end
 
   head do
@@ -19,11 +18,10 @@ class Byobu < Formula
   end
 
   depends_on "coreutils"
-  depends_on "gnu-sed" # fails with BSD sed
   depends_on "newt"
   depends_on "tmux"
 
-  conflicts_with "ctail", :because => "both install `ctail` binaries"
+  conflicts_with "ctail", because: "both install `ctail` binaries"
 
   def install
     if build.head?
@@ -32,12 +30,18 @@ class Byobu < Formula
     end
     system "./configure", "--prefix=#{prefix}"
     system "make", "install"
-  end
 
-  def caveats; <<~EOS
-    Add the following to your shell configuration file:
-      export BYOBU_PREFIX=#{HOMEBREW_PREFIX}
-  EOS
+    byobu_python = Formula["newt"].deps
+                                  .find { |d| d.name.match?(/^python@\d\.\d+$/) }
+                                  .to_formula
+                                  .opt_bin/"python3"
+
+    lib.glob("byobu/include/*.py").each do |script|
+      byobu_script = "byobu-#{script.basename(".py")}"
+
+      libexec.install(bin/byobu_script)
+      (bin/byobu_script).write_env_script(libexec/byobu_script, BYOBU_PYTHON: byobu_python)
+    end
   end
 
   test do

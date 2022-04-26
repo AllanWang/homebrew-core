@@ -3,17 +3,27 @@ class Gtkextra < Formula
   homepage "https://gtkextra.sourceforge.io/"
   url "https://downloads.sourceforge.net/project/gtkextra/3.3/gtkextra-3.3.4.tar.gz"
   sha256 "651b738a78edbd5d6ccb64f5a256c39ec35fbbed898e54a3ab7e6cf8fd82f1d6"
-  revision 2
+  license "GPL-2.0-or-later"
+  revision 3
 
   bottle do
-    cellar :any
-    sha256 "39935985f18a7bfb404d2adb2bb75dbddab7c417148c7031dfdbeda93e22d16c" => :mojave
-    sha256 "f5c33b717b503376e4310f57be6ca87d053ed2fdc2d867c892a414672ce6c6ad" => :high_sierra
-    sha256 "4c328db177f2da868e5bba78ed35a93e2bbb51a45d3d5f7973990d902d5de7b3" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "8fdb88a373d7427090b1fecf13971afe93314c4b6fec59dea719c5e97f25786c"
+    sha256 cellar: :any,                 arm64_big_sur:  "841d46dfdaee00be8a853e8069db2b8ca1fbbfcaf298360411b6f9c0a0706da6"
+    sha256 cellar: :any,                 monterey:       "edc44c31e40d7a41a5b9d9f5074732f39896ba827f61e608c4c86c50c20fe841"
+    sha256 cellar: :any,                 big_sur:        "3c35df2372587b0cc5bde265a9ff06774ec70651ac5aa103639dc41e669ae3b7"
+    sha256 cellar: :any,                 catalina:       "17ba389425eea1e26e308f07b94a3f8637645e83a7b8314681f2285e09996d9b"
+    sha256 cellar: :any,                 mojave:         "d154740567dfe6c084d3ba87d2afb32e9be63b370f85828e01cd5a3ec164d18f"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "63ff3052d9c03812e4c97cf79786a4395b9cf431588fc7f771331d049bbe6127"
   end
 
   depends_on "pkg-config" => :build
   depends_on "gtk+"
+
+  # Fix -flat_namespace being used on Big Sur and later.
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+    sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+  end
 
   def install
     system "./configure", "--disable-debug",
@@ -41,9 +51,17 @@ class Gtkextra < Formula
     gettext = Formula["gettext"]
     glib = Formula["glib"]
     gtkx = Formula["gtk+"]
+    harfbuzz = Formula["harfbuzz"]
     libpng = Formula["libpng"]
     pango = Formula["pango"]
     pixman = Formula["pixman"]
+
+    backend = if OS.mac?
+      "quartz"
+    else
+      "x11"
+    end
+
     flags = %W[
       -I#{atk.opt_include}/atk-1.0
       -I#{cairo.opt_include}/cairo
@@ -55,6 +73,7 @@ class Gtkextra < Formula
       -I#{glib.opt_lib}/glib-2.0/include
       -I#{gtkx.opt_include}/gtk-2.0
       -I#{gtkx.opt_lib}/gtk-2.0/include
+      -I#{harfbuzz.opt_include}/harfbuzz
       -I#{include}/gtkextra-3.0
       -I#{libpng.opt_include}/libpng16
       -I#{pango.opt_include}/pango-1.0
@@ -70,17 +89,17 @@ class Gtkextra < Formula
       -L#{pango.opt_lib}
       -latk-1.0
       -lcairo
-      -lgdk-quartz-2.0
+      -lgdk-#{backend}-2.0
       -lgdk_pixbuf-2.0
       -lgio-2.0
       -lglib-2.0
       -lgobject-2.0
-      -lgtk-quartz-2.0
-      -lgtkextra-quartz-3.0
-      -lintl
+      -lgtk-#{backend}-2.0
+      -lgtkextra-#{backend}-3.0
       -lpango-1.0
       -lpangocairo-1.0
     ]
+    flags << "-lintl" if OS.mac?
     system ENV.cc, "test.c", "-o", "test", *flags
     system "./test"
   end

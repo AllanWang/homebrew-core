@@ -3,13 +3,24 @@ class Apgdiff < Formula
   homepage "https://www.apgdiff.com/"
   url "https://www.apgdiff.com/download/apgdiff-2.4-bin.zip"
   sha256 "12d95fbb0b8188d7f90e7aaf8bdd29d0eecac26e08d6323624b5b7e3f7c7a3f7"
+  license "MIT"
+
+  livecheck do
+    url "https://www.apgdiff.com/download.php"
+    regex(/href=.*?apgdiff[._-]v?(\d+(?:\.\d+)+)[._-]bin\.zip/i)
+  end
+
+  bottle do
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, all: "79ad8fdae60b989fb5e986ce237ed17d35dbddce6793a611ee5f05fbf9767ec6"
+  end
 
   head do
     url "https://github.com/fordfrog/apgdiff.git"
     depends_on "ant" => :build
   end
 
-  bottle :unneeded
+  depends_on "openjdk"
 
   def install
     jar = "apgdiff-#{version}.jar"

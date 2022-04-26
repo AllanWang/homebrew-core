@@ -1,20 +1,24 @@
 class LibsignalProtocolC < Formula
   desc "Signal Protocol C Library"
   homepage "https://github.com/signalapp/libsignal-protocol-c"
-  url "https://github.com/signalapp/libsignal-protocol-c/archive/v2.3.2.tar.gz"
-  sha256 "f3826f3045352e14027611c95449bfcfe39bfd3d093d578c70f70eee0c85000d"
+  url "https://github.com/signalapp/libsignal-protocol-c/archive/v2.3.3.tar.gz"
+  sha256 "c22e7690546e24d46210ca92dd808f17c3102e1344cd2f9a370136a96d22319d"
+  license "GPL-3.0"
 
   bottle do
-    cellar :any
-    sha256 "69afb86abbe0263768b3cafb3db403b3c3cf628505787c262d3d6a40825a412f" => :mojave
-    sha256 "f54d11652709ff3e48e527ba37008e6d6191ac5f5f51bc4fd1fc2559cc33e2ed" => :high_sierra
-    sha256 "55f3e5bc44e5c3dfd1463c44f218318a27ff2293c4de12ed39a5c5b266ba52a3" => :sierra
-    sha256 "99ba5d67f62c5b54e3f91a02151c797d0d676f975694806eeb2ab8c1d191a512" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "28c12c6c31a0950b035347de5e67aca8a0057793bf35feb2b4dbe1d342a2682d"
+    sha256 cellar: :any,                 arm64_big_sur:  "ae7936606ffb1bcc2cce9e6854bc6fa7cd6fcf44ae67b17b7a861158fa58ca7f"
+    sha256 cellar: :any,                 monterey:       "a5216e8239283c702a4c68d4f63da4cfa9e532d4452d0edc8ed560c7aa38900d"
+    sha256 cellar: :any,                 big_sur:        "16cbd5edd6e2d6a2905a6cf1d4b342deb3b356093c1945a9a4333038fbb3b60e"
+    sha256 cellar: :any,                 catalina:       "2ad98569b7c0543579c9a2596a78e86bb7a915fb17632850cea099feb9d2d674"
+    sha256 cellar: :any,                 mojave:         "95991e7aa3ef7fa4fdfb25f8f3ed588103e7343599bb5fd86c190e0a2b62ebf8"
+    sha256 cellar: :any,                 high_sierra:    "9dc54604cd42340d8e1ab2da73b54fd19d4cfdb87144921bdb6bcf03e2b41993"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "3d3f06b8dc3938b4dc6912a65606713000e6ad910c4bfcb4af4e9c0dca899e0c"
   end
 
   depends_on "cmake" => :build
   depends_on "pkg-config" => :build
-  depends_on "openssl"
+  depends_on "openssl@1.1"
 
   def install
     system "cmake", ".", "-DBUILD_SHARED_LIBS=ON", *std_cmake_args

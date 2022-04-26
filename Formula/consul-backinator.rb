@@ -1,39 +1,32 @@
 class ConsulBackinator < Formula
   desc "Consul backup and restoration application"
   homepage "https://github.com/myENA/consul-backinator"
-  url "https://github.com/myENA/consul-backinator/archive/v1.6.5.tar.gz"
-  sha256 "e464d597a3a28c6376e0d602c9484a465476db13684585bd52c6b5d81b07019d"
-  head "https://github.com/myENA/consul-backinator.git"
+  url "https://github.com/myENA/consul-backinator/archive/v1.6.6.tar.gz"
+  sha256 "b668801ca648ecf888687d7aa69d84c3f2c862f31b92076c443fdea77c984c58"
+  license "MPL-2.0"
+  head "https://github.com/myENA/consul-backinator.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "b7504895bfee3e1f3c9318de55a7c60cb256d3d433766f3178fcea7260c04863" => :mojave
-    sha256 "f77ec3bd0fa7598d79ca30469140e989ddae59dbb5512d0aa22f0c21190dcd02" => :high_sierra
-    sha256 "c52eaf11b850dea9c74b96d94157d25ee1912e52423628105c8b8d9240a2e52a" => :sierra
-    sha256 "bb39c88ad9e3e5aa6b12ea08bbd6ec2b31601d0c14f943aaaf10bfcf14cc5b8d" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "aed17c5c263df3f56c445b9ed9416206802102d3cefbf38ab893f7237c94e622"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "579fbf5bed18b1db8efc3d97621580316dc3d2d903fe085be3cd3dbd3ef72930"
+    sha256 cellar: :any_skip_relocation, monterey:       "541a6f16a60cca90b1f70c474d46b0a20bd6d9965e3190d60ae653983915c8bb"
+    sha256 cellar: :any_skip_relocation, big_sur:        "f0289e669896c287102e265b0d164021c0eed4d0906d972d4b85df9084dd01a3"
+    sha256 cellar: :any_skip_relocation, catalina:       "b984053374292f96bb3b095aa9338f15aa9962be4473f8eaaf64a43598f39c5f"
+    sha256 cellar: :any_skip_relocation, mojave:         "67549b4afb1e36aa92374850a5b5285d04a046e4f0120687613a58b63eab057d"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "b5b914861d80658228a91c3946d85609b07a780a9747e0302ebd4be3a5d1ea94"
   end
 
-  depends_on "glide" => :build
-  depends_on "go" => :build
+  # Bump to 1.18 on the next release, if possible.
+  depends_on "go@1.17" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-    ENV["GLIDE_HOME"] = HOMEBREW_CACHE/"glide_home/#{name}"
-
-    dir = buildpath/"src/github.com/myENA/consul-backinator"
-    dir.install buildpath.children
-
-    cd dir do
-      system "glide", "install"
-      system "go", "build", "-v", "-ldflags",
-             "-X main.appVersion=#{version}", "-o",
-             bin/"consul-backinator"
-      prefix.install_metafiles
-    end
+    system "go", "build", *std_go_args(ldflags: "-s -w -X main.appVersion=#{version}")
   end
 
   test do
-    output = shell_output("#{bin}/consul-backinator --version 2>&1")
-    assert_equal version.to_s, output.strip
+    assert_equal version.to_s, shell_output("#{bin}/consul-backinator --version 2>&1").strip
+
+    assert_match "[Error] Failed to backup key data:",
+      shell_output("#{bin}/consul-backinator backup 2>&1", 1)
   end
 end

@@ -1,17 +1,23 @@
 class Freexl < Formula
   desc "Library to extract data from Excel .xls files"
   homepage "https://www.gaia-gis.it/fossil/freexl/index"
-  url "https://www.gaia-gis.it/gaia-sins/freexl-sources/freexl-1.0.5.tar.gz"
-  sha256 "3dc9b150d218b0e280a3d6a41d93c1e45f4d7155829d75f1e5bf3e0b0de6750d"
-  revision 1
+  url "https://www.gaia-gis.it/gaia-sins/freexl-sources/freexl-1.0.6.tar.gz"
+  sha256 "3de8b57a3d130cb2881ea52d3aa9ce1feedb1b57b7daa4eb37f751404f90fc22"
+
+  livecheck do
+    url :homepage
+    regex(%r{current version is <b>v?(\d+(?:\.\d+)+)</b>}i)
+  end
 
   bottle do
-    cellar :any
     rebuild 1
-    sha256 "074e0ab64d2163799d917733f769843cc19613497adcabcde2e57a4487d8e1f8" => :mojave
-    sha256 "53fa9067f9cd0a809368ae614b198337f271bbe95fe0aed9fde7162b28bcbb46" => :high_sierra
-    sha256 "876c7d693c24c6721da1a15869b3f2bf40a2ebe3d911780aaa97499ace91cad0" => :sierra
-    sha256 "e4c2ed6d07840d5c4fb619048073eb349a8d31dbabc2f2a783fef1978c86b573" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "f2f26c1449a3f79a89ec85deb5cd22507ee4715827afdf31469fd605c8a31b7f"
+    sha256 cellar: :any,                 arm64_big_sur:  "57d5fc25946a587bfebb8724bff578688f605edcabba8cd80b9ebbf5840616d0"
+    sha256 cellar: :any,                 monterey:       "0dc034f726d2ad3850742e7f9a1676d67c14c48fd9735470fd3691a3c080182c"
+    sha256 cellar: :any,                 big_sur:        "a20523355d18f1ed2259ae198b45c5aa93080fbd4926e0eb6969d2919b7a97ac"
+    sha256 cellar: :any,                 catalina:       "1bab8437de88ce5564702dcc3e30a9c2f9491aa9358e767aa3d8ec62ba76922d"
+    sha256 cellar: :any,                 mojave:         "003e9d848f354e7f12232f85240f4892f21e6136cd657022fbbc51b3bd286225"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "2059ac999e20b72d31a6e586174327431066c01e10c25fca93c80ef5d10f5b4b"
   end
 
   depends_on "doxygen" => :build
@@ -29,15 +35,16 @@ class Freexl < Formula
 
   test do
     (testpath/"test.c").write <<~EOS
+      #include <stdio.h>
       #include "freexl.h"
 
       int main()
       {
-          printf(freexl_version());
+          printf("%s", freexl_version());
           return 0;
       }
     EOS
-    system ENV.cc, "-L#{lib}", "-lfreexl", "test.c", "-o", "test"
+    system ENV.cc, "test.c", "-L#{lib}", "-lfreexl", "-o", "test"
     assert_equal version.to_s, shell_output("./test")
   end
 end

@@ -1,19 +1,34 @@
 class Libu2fHost < Formula
   desc "Host-side of the Universal 2nd Factor (U2F) protocol"
   homepage "https://developers.yubico.com/libu2f-host/"
-  url "https://developers.yubico.com/libu2f-host/Releases/libu2f-host-1.1.7.tar.xz"
-  sha256 "917a259f2977538bc31e13560c830a11e49f54f27908372c774bbbb042d2dcff"
+  url "https://developers.yubico.com/libu2f-host/Releases/libu2f-host-1.1.10.tar.xz"
+  sha256 "4265789ec59555a1f383ea2d75da085f78ee4cf1cd7c44a2b38662de02dd316f"
+  license "GPL-3.0"
+  revision 1
 
   bottle do
-    cellar :any
-    sha256 "d33c41a856bcbdb1bd10b8c33bfe3e2066ca8aa488ccd6e6d62a237cf1f56a90" => :mojave
-    sha256 "7e2a76534a120e51729bd5587825f3d586fcad4ffa26c71c800cb3d959734389" => :high_sierra
-    sha256 "86d8f610d34ba53dba98377fd5b7550082e340ee94b2ca4e25d0d662ed64136b" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "dcc9f85a98a43d2d0bc7b7467dcc7a8e7f1932728cd4a52db60dd073f3f69ea4"
+    sha256 cellar: :any,                 arm64_big_sur:  "052b140ee60b38b731fe05d9d4bd0ba81765e9bac7ccc25125ba93596534fe14"
+    sha256 cellar: :any,                 monterey:       "eb922ac575fdf84fc9835fc3bebb55b0fb467a79db2eaad5d72e5b9a35fd6958"
+    sha256 cellar: :any,                 big_sur:        "4c6f6729349bce13f6710e5edf040411b78c36e6815258f54a4c8c52f907109b"
+    sha256 cellar: :any,                 catalina:       "461c37c919d585c8abca2fbff636332c27462cc8f10c04d5762e357c453f7066"
+    sha256 cellar: :any,                 mojave:         "deed9f64b0e078130c5618ce98580b9b1b284c531cfb04e6296a8d5b259b6a81"
+    sha256 cellar: :any,                 high_sierra:    "376aa8fc3a98d4aab29ba7d284a58bf07308fda51aa30da72e068f8a6206505e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "d8371ab9b3837d3cd9d784cf3b346aa8d2d88ab28d9a69f8035fefc1cb4b81ef"
   end
+
+  # See: https://github.com/Yubico/libu2f-host
+  deprecate! date: "2021-05-25", because: :repo_archived
 
   depends_on "pkg-config" => :build
   depends_on "hidapi"
   depends_on "json-c"
+
+  # Compatibility with json-c 0.14. Remove with the next release.
+  patch do
+    url "https://github.com/Yubico/libu2f-host/commit/840f01135d2892f45e71b9e90405de587991bd03.patch?full_index=1"
+    sha256 "6752463ca79fb312d4524f39d2ac02707ef6c182450d631e35f02bb49565c651"
+  end
 
   def install
     system "./configure", "--prefix=#{prefix}"

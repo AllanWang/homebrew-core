@@ -1,39 +1,37 @@
 class Atomicparsley < Formula
   desc "MPEG-4 command-line tool"
-  homepage "https://bitbucket.org/wez/atomicparsley/overview/"
-  url "https://bitbucket.org/wez/atomicparsley/get/0.9.6.tar.bz2"
-  sha256 "e28d46728be86219e6ce48695ea637d831ca0170ca6bdac99810996a8291ee50"
-  revision 1
-  head "https://bitbucket.org/wez/atomicparsley", :using => :hg
+  homepage "https://github.com/wez/atomicparsley"
+  url "https://github.com/wez/atomicparsley/archive/20210715.151551.e7ad03a.tar.gz"
+  version "20210715.151551.e7ad03a"
+  sha256 "546dcb5f3b625aff4f6bf22d27a0a636d15854fd729402a6933d31f3d0417e0d"
+  license "GPL-2.0-or-later"
+  version_scheme 1
+  head "https://github.com/wez/atomicparsley.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "d32a565f675bd0b2c5ebf1b5aee01fb79d9d42b072dedf724b7ee03b2cc242ee" => :mojave
-    sha256 "05c4cdc1dfc14fa6f06fdbbcadead5055a9fb53091d014458b86ecb4b22111fe" => :high_sierra
-    sha256 "d5f8672d420511ff76fd9ecc4d41c8aee5eecbf4382d7c4bd3fb04400c4617f4" => :sierra
-    sha256 "c0a7964ced998b2db7150f95b9329e138f28f0768be50d531fd4d82754e0ebde" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "05f8a9426c513b0bcd3e6bd3bdb2884bb85c212b9eb3cbb098d6d5e5ec0f7920"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "f1997965e9c425cd6b4d524f79ccae01c052554f1cf3926dd24ea86c50c8f494"
+    sha256 cellar: :any_skip_relocation, monterey:       "5144666ed89e97f8a79eb646d3d6151a790f4edbfcf924204073e3b495e5f05f"
+    sha256 cellar: :any_skip_relocation, big_sur:        "59476f055d9aba2d3d803830a7b6045313d39fb40a852932dd54191efc337672"
+    sha256 cellar: :any_skip_relocation, catalina:       "99e290df24ad259c91959669143108187f4654694bca9d857673e23dbd85997a"
+    sha256 cellar: :any_skip_relocation, mojave:         "e2d278c0505712c61e651450dc43c12fc2b62d0f37b018ff30031f91d4f33b1c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "872001ac408f9eaca26e329c3895162fc65f623e56c7b9b1b5802055748b34aa"
   end
 
-  depends_on "autoconf" => :build
-  depends_on "automake" => :build
-  depends_on "libtool" => :build
+  depends_on "cmake" => :build
+
   uses_from_macos "zlib"
 
-  # Fix Xcode 9 pointer warnings
-  # https://bitbucket.org/wez/atomicparsley/issues/52/xcode-9-build-failure
-  if DevelopmentTools.clang_build_version >= 900
-    patch do
-      url "https://raw.githubusercontent.com/Homebrew/formula-patches/ac8624c36e/atomicparsley/xcode9.patch"
-      sha256 "15b87be1800760920ac696a93131cab1c0f35ce4c400697bb8b0648765767e5f"
-    end
+  on_linux do
+    depends_on "gcc" => :build
   end
 
+  fails_with gcc: "5"
+
   def install
-    system "./autogen.sh"
-    system "./configure", "--prefix=#{prefix}",
-                          "--disable-debug",
-                          "--disable-universal"
-    system "make", "install"
+    system "cmake", ".", *std_cmake_args
+    system "cmake", "--build", ".", "--config", "Release"
+    bin.install "AtomicParsley"
   end
 
   test do

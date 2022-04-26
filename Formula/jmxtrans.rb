@@ -1,44 +1,62 @@
 class Jmxtrans < Formula
   desc "Tool to connect to JVMs and query their attributes"
   homepage "https://github.com/jmxtrans/jmxtrans"
-  url "https://github.com/jmxtrans/jmxtrans/archive/jmxtrans-parent-270.tar.gz"
-  sha256 "7261eb083e0ad927d69bc48bd190a0c1c1a340f20812514bd0ee59e4b25f8fd0"
+  url "https://github.com/jmxtrans/jmxtrans/archive/jmxtrans-parent-272.tar.gz"
+  sha256 "73691dc634be8ff504ed33867807266545d9ff9402e365c09fcf0272720cc160"
+  license "MIT"
   version_scheme 1
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "8ba9f5d54de8350421d72dfbbaa821e89d8707e5177a7156ce55f87e89befcfd" => :mojave
-    sha256 "a443805c63b0b51d4b13dfa2cc92b0d3f04ec2bcca3cffedb27ccd1e8d124fad" => :high_sierra
-    sha256 "3b9479ac46dc39a6f0a69bf43c5469abb31f33de6f51159ba6754a52d4127d7c" => :sierra
-    sha256 "3a21472f2c7858af301650a533be93ff9d4589e8497a7ada7dfe9165a4b00987" => :el_capitan
+    sha256 cellar: :any_skip_relocation, monterey:     "2014fcd1c2a53a9f3a396c039f3ad1b530548dabf8e55f8648819b8581c1e0a2"
+    sha256 cellar: :any_skip_relocation, big_sur:      "f83bb65c93c0149c4af9b3277d2ec1eee6fd0e94f2a27af0de47c18d3932e9fb"
+    sha256 cellar: :any_skip_relocation, catalina:     "f8e5ac84ca621fbb2c0b0c9715899c8e7b2e86f198330b49c7ba7e3d993ec24c"
+    sha256 cellar: :any_skip_relocation, mojave:       "8dd69723155a4f2580b7327ca2babc8389cc9678f21dc1934ce3b73e7c67c89b"
+    sha256 cellar: :any_skip_relocation, x86_64_linux: "33004f7a6ece9cc9b0c6a0fa1640bf3176237a860012a2df0b2c71ce0a722396"
   end
 
   depends_on "maven" => :build
-  depends_on :java => "1.8"
+  depends_on arch: :x86_64 # openjdk@8 is not supported on ARM
+  depends_on "openjdk@8"
+
+  uses_from_macos "netcat" => :test
 
   def install
-    cmd = Language::Java.java_home_cmd("1.8")
-    ENV["JAVA_HOME"] = Utils.popen_read(cmd).chomp
+    ENV["JAVA_HOME"] = Formula["openjdk@8"].opt_prefix
 
     system "mvn", "package", "-DskipTests=true",
                              "-Dmaven.javadoc.skip=true",
-                             "-Dcobertura.skip=true"
+                             "-Dcobertura.skip=true",
+                             "-Duser.home=#{buildpath}"
 
     cd "jmxtrans" do
-      vers = Formula["jmxtrans"].version.to_s.split("-").last
-      inreplace "jmxtrans.sh", "lib/jmxtrans-all.jar",
-                               libexec/"target/jmxtrans-#{vers}-all.jar"
+      # Point JAR_FILE into Cellar where we've installed the jar file
+      inreplace "jmxtrans.sh", "$( cd \"$( dirname \"${BASH_SOURCE[0]}\" )/../lib\" "\
+                               ">/dev/null && pwd )/jmxtrans-all.jar",
+                libexec/"target/jmxtrans-#{version}-all.jar"
+
+      # Exec java to avoid forking the server into a new process
+      inreplace "jmxtrans.sh", "${JAVA} -server", "exec ${JAVA} -server"
+
       chmod 0755, "jmxtrans.sh"
       libexec.install %w[jmxtrans.sh target]
       pkgshare.install %w[bin example.json src tools vagrant]
       doc.install Dir["doc/*"]
     end
 
-    (bin/"jmxtrans").write_env_script libexec/"jmxtrans.sh", Language::Java.java_home_env("1.8")
+    (bin/"jmxtrans").write_env_script libexec/"jmxtrans.sh", JAVA_HOME: Formula["openjdk@8"].opt_prefix
+
+    # Delete 32-bit Linux binaries
+    rm Dir[libexec/"target/generated-resources/appassembler/jsw/jmxtrans/{bin,lib}/*wrapper-linux-x86-32*"]
   end
 
   test do
-    output = shell_output("#{bin}/jmxtrans status", 3).chomp
-    assert_equal "jmxtrans is not running.", output
+    jmx_port = free_port
+    fork do
+      ENV["JMX_PORT"] = jmx_port.to_s
+      exec bin/"jmxtrans", pkgshare/"example.json"
+    end
+    sleep 2
+
+    system "nc", "-z", "localhost", jmx_port
   end
 end

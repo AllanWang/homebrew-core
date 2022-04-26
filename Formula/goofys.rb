@@ -1,92 +1,55 @@
-require "language/go"
-
 class Goofys < Formula
   desc "Filey-System interface to Amazon S3"
   homepage "https://github.com/kahing/goofys"
   url "https://github.com/kahing/goofys.git",
-      :tag      => "v0.20.0",
-      :revision => "cbe2da1abe463229fba48909d3f2bb1124ee4a9a"
-  head "https://github.com/kahing/goofys.git"
+      tag:      "v0.24.0",
+      revision: "45b8d78375af1b24604439d2e60c567654bcdf88"
+  license "Apache-2.0"
+  head "https://github.com/kahing/goofys.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "a0287abf29dbc261b730443d2e86367f0092e571b127941d059288f57ff810dd" => :mojave
-    sha256 "b6b19c389c6ae76cfd8c7a7856d6dc5a20b2f0c86e19be94298b71f49c0d8b2b" => :high_sierra
-    sha256 "9cbea3da95ba08e6e95e5c359d4808cb8cab171de7112317935c188af0afc65e" => :sierra
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, catalina:     "da054592343f7423d91a3abadbe4d601295b1f74b3a404c36fdb4deb94f7019b"
+    sha256 cellar: :any_skip_relocation, mojave:       "cee50248f9ac4d33ef8ca585ad94e3c9e6226fc464dfad86de2b7f9497b9f2b7"
+    sha256 cellar: :any_skip_relocation, high_sierra:  "eb0a3cfe49104292c16d76dce71db34000b1a7214f660b3cff3a39e4b3ba7a44"
+    sha256 cellar: :any_skip_relocation, x86_64_linux: "53acc931a935c3e7c6230a59d492bf0cea7238167415083232d6ef37741b1cdc"
   end
 
   depends_on "go" => :build
-  depends_on :osxfuse
 
-  go_resource "github.com/jacobsa/fuse" do
-    url "https://github.com/jacobsa/fuse.git",
-        :revision => "c4e473376f7d5be650b11657ded3afb1cd80ad7c"
+  on_macos do
+    disable! date: "2021-04-08", because: "requires closed-source macFUSE"
   end
 
-  go_resource "github.com/jinzhu/copier" do
-    url "https://github.com/jinzhu/copier.git",
-        :revision => "db4671f3a9b8df855e993f7c94ec5ef1ffb0a23b"
-  end
-
-  go_resource "github.com/kardianos/osext" do
-    url "https://github.com/kardianos/osext.git",
-        :revision => "ae77be60afb1dcacde03767a8c37337fad28ac14"
-  end
-
-  go_resource "github.com/sevlyar/go-daemon" do
-    url "https://github.com/sevlyar/go-daemon.git",
-        :revision => "e49ef56654f54139c4dc0285f973f74e9649e729"
-  end
-
-  go_resource "github.com/shirou/gopsutil" do
-    url "https://github.com/shirou/gopsutil.git",
-        :revision => "2ae56c34ce208b38309ab1618fc82866a1051811"
-  end
-
-  go_resource "github.com/sirupsen/logrus" do
-    url "https://github.com/sirupsen/logrus.git",
-        :revision => "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
-  end
-
-  go_resource "github.com/urfave/cli" do
-    url "https://github.com/urfave/cli.git",
-        :revision => "75104e932ac2ddb944a6ea19d9f9f26316ff1145"
-  end
-
-  go_resource "golang.org/x/crypto" do
-    url "https://go.googlesource.com/crypto.git",
-        :revision => "0fcca4842a8d74bfddc2c96a073bd2a4d2a7a2e8"
-  end
-
-  go_resource "golang.org/x/net" do
-    url "https://go.googlesource.com/net.git",
-        :revision => "434ec0c7fe3742c984919a691b2018a6e9694425"
-  end
-
-  go_resource "golang.org/x/sys" do
-    url "https://go.googlesource.com/sys.git",
-        :revision => "d38bf781f16e180a1b2ad82697d2f81d7b7ecfac"
+  on_linux do
+    depends_on "libfuse"
   end
 
   def install
-    contents = Dir["*"]
-    gopath = buildpath/"gopath"
-    (gopath/"src/github.com/kahing/goofys").install contents
+    ENV["GOPATH"] = buildpath
+    ENV["GO111MODULE"] = "auto"
+    (buildpath/"src/github.com/kahing/goofys").install buildpath.children
 
-    ENV["GOPATH"] = gopath
-
-    Language::Go.stage_deps resources, gopath/"src"
-
-    cd gopath/"src/github.com/kahing/goofys" do
-      commit = Utils.popen_read("git rev-parse HEAD").chomp
-      system "go", "build", "-o", "goofys", "-ldflags",
-             "-X main.Version=#{commit}"
+    cd "src/github.com/kahing/goofys" do
+      system "go", "build", "-o", "goofys", "-ldflags", "-X main.Version=#{Utils.git_head}"
       bin.install "goofys"
       prefix.install_metafiles
     end
   end
 
+  def caveats
+    on_macos do
+      <<~EOS
+        The reasons for disabling this formula can be found here:
+          https://github.com/Homebrew/homebrew-core/pull/64491
+
+        An external tap may provide a replacement formula. See:
+          https://docs.brew.sh/Interesting-Taps-and-Forks
+      EOS
+    end
+  end
+
   test do
-    system "#{bin}/goofys", "--version"
+    system bin/"goofys", "--version"
   end
 end

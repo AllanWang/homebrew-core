@@ -4,22 +4,40 @@ class Ekg2 < Formula
   url "https://src.fedoraproject.org/lookaside/extras/ekg2/ekg2-0.3.1.tar.gz/68fc05b432c34622df6561eaabef5a40/ekg2-0.3.1.tar.gz"
   mirror "https://web.archive.org/web/20161227025528/pl.ekg2.org/ekg2-0.3.1.tar.gz"
   sha256 "6ad360f8ca788d4f5baff226200f56922031ceda1ce0814e650fa4d877099c63"
-  revision 3
+  license "GPL-2.0"
+  revision 4
+
+  livecheck do
+    url :homepage
+    regex(/^ekg2[._-]v?(\d+(?:\.\d+)+)$/i)
+  end
 
   bottle do
-    rebuild 1
-    sha256 "d5f538008f49c37795bebab14977c48986e98bb0ee9d0ac8a2a40fd1e59674eb" => :mojave
-    sha256 "b8398d6f3c8a39dafc4a11765c9d78a7d136345d8d2f6822197da675dc6e7f36" => :high_sierra
-    sha256 "cc770b5b31d0c14a5794a722df0fd34429e2722ca41f603a7db48deb367c1826" => :sierra
+    sha256 arm64_big_sur: "e1ca8c485b595b3d8a0edcd59699c99d280a14d3aa7bfd7646c6d966f903101f"
+    sha256 big_sur:       "2f095607ab5e5bdbf0ca515983aeff44e4a2480d97fb460d19c63babd875bd05"
+    sha256 catalina:      "e17ea1385008892e80e0d5e0d44e510f6ac30e5d86423b55c61465eccd348d36"
+    sha256 mojave:        "78778e95338d2a0a61f7d4773716d927534d24e4d5867a04038401427b07c855"
+    sha256 high_sierra:   "f946e56a032b9526280745e6e57f8bc42a18d12fa9ced783f5515eb600bcdf0b"
+    sha256 sierra:        "35f01a57bbceb1a79abfa8b035e3135d0c821bbca22a63b273e32159e517813f"
+    sha256 x86_64_linux:  "a06b460073a25e212fc0488167281a438e4c72bc79ae30f204ea0d0d16643edc"
   end
 
   depends_on "pkg-config" => :build
-  depends_on "openssl"
+  depends_on "openssl@1.1"
   depends_on "readline"
 
   # Fix the build on OS X 10.9+
   # bugs.ekg2.org/issues/152 [LOST LINK]
-  patch :DATA
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/85fa66a9/ekg2/0.3.1.patch"
+    sha256 "6efbb25e57581c56fe52cf7b70dbb9c91c9217525b402f0647db820df9a14daa"
+  end
+
+  # Upstream commit, fix build against OpenSSL 1.1
+  patch do
+    url "https://github.com/ekg2/ekg2/commit/f05815.patch?full_index=1"
+    sha256 "207639edc5e6576c8a67301c63f0b28814d9885f0d4fca5d9d9fc465f4427cd7"
+  end
 
   def install
     readline = Formula["readline"].opt_prefix
@@ -44,77 +62,3 @@ class Ekg2 < Formula
     system "#{bin}/ekg2", "--help"
   end
 end
-
-__END__
-diff --git a/compat/strlcat.c b/compat/strlcat.c
-index 6077d66..c1c1804 100644
---- a/compat/strlcat.c
-+++ b/compat/strlcat.c
-@@ -14,7 +14,7 @@
-  *  License along with this program; if not, write to the Free Software
-  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
--
-+#ifndef strlcat
- #include <sys/types.h>
-
- size_t strlcat(char *dst, const char *src, size_t size)
-@@ -39,7 +39,7 @@ size_t strlcat(char *dst, const char *src, size_t size)
-
-	return dlen + j;
- }
--
-+#endif
- /*
-  * Local Variables:
-  * mode: c
-diff --git a/compat/strlcat.h b/compat/strlcat.h
-index cb91fcb..df8f4b0 100644
---- a/compat/strlcat.h
-+++ b/compat/strlcat.h
-@@ -1,7 +1,8 @@
-+#ifndef strlcat
- #include <sys/types.h>
-
- size_t strlcat(char *dst, const char *src, size_t size);
--
-+#endif
- /*
-  * Local Variables:
-  * mode: c
-diff --git a/compat/strlcpy.c b/compat/strlcpy.c
-index 31e41bd..4a40762 100644
---- a/compat/strlcpy.c
-+++ b/compat/strlcpy.c
-@@ -14,7 +14,7 @@
-  *  License along with this program; if not, write to the Free Software
-  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
--
-+#ifndef strlcpy
- #include <sys/types.h>
-
- size_t strlcpy(char *dst, const char *src, size_t size)
-@@ -32,7 +32,7 @@ size_t strlcpy(char *dst, const char *src, size_t size)
-
-	return i;
- }
--
-+#endif
- /*
-  * Local Variables:
-  * mode: c
-diff --git a/compat/strlcpy.h b/compat/strlcpy.h
-index 1c80e20..93340af 100644
---- a/compat/strlcpy.h
-+++ b/compat/strlcpy.h
-@@ -1,7 +1,8 @@
-+#ifndef strlcpy
- #include <sys/types.h>
-
- size_t strlcpy(char *dst, const char *src, size_t size);
--
-+#endif
- /*
-  * Local Variables:
-  * mode: c

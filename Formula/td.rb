@@ -1,28 +1,24 @@
 class Td < Formula
   desc "Your todo list in your terminal"
   homepage "https://github.com/Swatto/td"
-  url "https://github.com/Swatto/td/archive/1.4.0.tar.gz"
-  sha256 "b8080a73b274c201bc1fadaf5b83e5fab26b38838f4c82b49f1ae5dadaa94c20"
+  url "https://github.com/Swatto/td/archive/1.4.2.tar.gz"
+  sha256 "e85468dad3bf78c3fc32fc2ab53ef2d6bc28c3f9297410917af382a6d795574b"
+  license "MIT"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "b77b89e4f9b100d834c786d0e60c17aa80a51ed452ffab032589837c11c00714" => :mojave
-    sha256 "91a8beaacb3c67dff0dd12a717c10868df7874d9668a043eb658be4eb180390a" => :high_sierra
-    sha256 "55f7d879795bcf5cde8af98b463f4751c6c5426ceed96a46a0c1531b1324a60f" => :sierra
-    sha256 "e740be06065aac7f578e47d0bbf6ef803993a6246d0d7fa74c90367b5f3ea080" => :el_capitan
-    sha256 "e608e79004fe1cfbefb2f9963ed4a4e86aad8e8c751e12a97ff3a03325bddd2b" => :yosemite
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "183862b016182f09f43d0c3092fdcb50894ca9f5814b83af816f1d4329368eab"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "c78967ab33419211ed531310b5d40da8b7cfdb4573099d8e1b38b940c75d7a24"
+    sha256 cellar: :any_skip_relocation, monterey:       "4de1e88f3b9f6477a154a6f5e946a7411a5a30a4e054d3fac9ad9b62d5964b4c"
+    sha256 cellar: :any_skip_relocation, big_sur:        "665d2709804555227ee9fdffdf918574902345547bec837c53cd06fff04212c9"
+    sha256 cellar: :any_skip_relocation, catalina:       "b3fb2df4df96602895a40900d682fa42ca9bbbc814463eeccd50ddc2cae8f485"
+    sha256 cellar: :any_skip_relocation, mojave:         "af978b05395618b4e095498b3a9a4aa66086f8bc793804fb59086177535c8565"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "32afc5a28386f21e96fad99d94094b1011519e21bcbfd7ee14e6cef892f36e68"
   end
 
   depends_on "go" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
-    ENV["GOBIN"] = bin
-    (buildpath/"src/github.com/Swatto/td").install buildpath.children
-    cd "src/github.com/Swatto/td" do
-      system "go", "install"
-      prefix.install_metafiles
-    end
+    system "go", "build", *std_go_args(ldflags: "-s -w")
   end
 
   test do

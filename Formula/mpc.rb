@@ -1,13 +1,22 @@
 class Mpc < Formula
   desc "Command-line music player client for mpd"
   homepage "https://www.musicpd.org/clients/mpc/"
-  url "https://www.musicpd.org/download/mpc/0/mpc-0.31.tar.xz"
-  sha256 "62373e83a8a165b2ed43967975efecd3feee530f4557d6b861dd08aa89d52b2d"
+  url "https://www.musicpd.org/download/mpc/0/mpc-0.34.tar.xz"
+  sha256 "691e3f3654bc10d022bb0310234d0bc2d8c075a698f09924d9ebed8f506fda20"
+  license "GPL-2.0-or-later"
+
+  livecheck do
+    url "https://www.musicpd.org/download/mpc/0/"
+    regex(/href=.*?mpc[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    sha256 "a0978aee21d1d4326cac85904ad4dc381ffd0fae96c66b98912ecd5260b548a4" => :mojave
-    sha256 "70bf0925e52814689cc58579288dafbefcd512caf3e4bcaa48f78d6c84fd7f36" => :high_sierra
-    sha256 "34dc577f9ac9551204d7c36448468da5a69c152b2de21622fc5e649c051a98de" => :sierra
+    sha256 cellar: :any, arm64_monterey: "ab7dca71a458e5df0f35443eb3bcee79318dc8e81d1e6994b3c0fec457c516bd"
+    sha256 cellar: :any, arm64_big_sur:  "18b5ad4dc2effa515f23fca972e6793caa382398122538054992b5d2fd8e7855"
+    sha256 cellar: :any, monterey:       "37c0df291c472821d14b459e08d3e9a65971f049869b9f7dc9a14b5c436005de"
+    sha256 cellar: :any, big_sur:        "040a5ce6e08581306ab2aa274e79860390ccb3f0099b7bc8fe132f9a24ba5956"
+    sha256 cellar: :any, catalina:       "1bcbaf7a78216c6ff9482c1b7d7e5df30ebf5c1137e8b35c22996c1e2dc0dbf3"
+    sha256               x86_64_linux:   "518acb382cf9a16a5fad35023892db930b732d9329a6ffe3e0751c7b7bcb6e3c"
   end
 
   depends_on "meson" => :build
@@ -16,7 +25,7 @@ class Mpc < Formula
   depends_on "libmpdclient"
 
   def install
-    system "meson", "--prefix=#{prefix}", ".", "output"
+    system "meson", *std_meson_args, ".", "output"
     system "ninja", "-C", "output"
     system "ninja", "-C", "output", "install"
 
@@ -26,6 +35,6 @@ class Mpc < Formula
 
   test do
     assert_match "query", shell_output("#{bin}/mpc list 2>&1", 1)
-    assert_match "-F _mpc", shell_output("source #{bash_completion}/mpc && complete -p mpc")
+    assert_match "-F _mpc", shell_output("bash -c 'source #{bash_completion}/mpc && complete -p mpc'")
   end
 end

@@ -1,21 +1,31 @@
 class Ace < Formula
   desc "ADAPTIVE Communication Environment: OO network programming in C++"
   homepage "https://www.dre.vanderbilt.edu/~schmidt/ACE.html"
-  url "https://github.com/DOCGroup/ACE_TAO/releases/download/ACE%2BTAO-6_5_5/ACE-6.5.5.tar.bz2"
-  sha256 "695099756cf4ecbd59c9ef82fbe6ad496c86995e6186da173514145b8cdf2be4"
+  url "https://github.com/DOCGroup/ACE_TAO/releases/download/ACE%2BTAO-7_0_6/ACE+TAO-7.0.6.tar.bz2"
+  sha256 "27990ce2d17f5811efd589fa3de7c77e25e2dc33b3a6bfbe1b9f439eedd2dc3c"
+  license "DOC"
+
+  livecheck do
+    url :stable
+    regex(/^ACE(?:\+[A-Z]+)*?[._-]v?(\d+(?:[._]\d+)+)$/i)
+    strategy :git do |tags, regex|
+      tags.map { |tag| tag[regex, 1]&.tr("_", ".") }
+    end
+  end
 
   bottle do
-    cellar :any
-    sha256 "8520826a33a990c1bcfd7a63b4608acc562a393fd6c343e1c3f9a47d073b36b9" => :mojave
-    sha256 "242fc7e530c52a7037f3ca1fe1dde31dc9abfb0b04201c52c179d46e6f2640b0" => :high_sierra
-    sha256 "d62e51833b09a4e4894d1651ecde2b8bfd60a605aaedb6947009496b81bbd703" => :sierra
+    sha256 cellar: :any, monterey: "bd09d99803ce5e5671cfd4e369f6bf6b04294e7c72676c23df912ab2f7fce19f"
+    sha256 cellar: :any, big_sur:  "dc143404b04e701aad213768a9b58187e5f1b17feb3941aa2467aa0aa0cad672"
+    sha256 cellar: :any, catalina: "737f43fe9b5a430161f71b80ad1955c6ca9ef39ec93b7542e373e469f124c3e4"
   end
 
   def install
-    ln_sf "config-macosx.h", "ace/config.h"
-    ln_sf "platform_macosx.GNU", "include/makeinclude/platform_macros.GNU"
+    os = OS.mac? ? "macosx" : "linux"
+    ln_sf "config-#{os}.h", "ace/config.h"
+    ln_sf "platform_#{os}.GNU", "include/makeinclude/platform_macros.GNU"
 
     # Set up the environment the way ACE expects during build.
+    ENV.cxx11
     ENV["ACE_ROOT"] = buildpath
     ENV["DYLD_LIBRARY_PATH"] = "#{buildpath}/lib"
 
@@ -30,7 +40,7 @@ class Ace < Formula
                    "static_libs=0",
                    "install"
 
-    system "make", "-C", "examples"
+    system "make", "-C", "examples/Log_Msg"
     pkgshare.install "examples"
   end
 

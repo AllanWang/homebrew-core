@@ -1,22 +1,42 @@
 class Sqlmap < Formula
+  include Language::Python::Shebang
+
   desc "Penetration testing for SQL injection and database servers"
-  homepage "http://sqlmap.org"
-  url "https://github.com/sqlmapproject/sqlmap/archive/1.3.7.tar.gz"
-  sha256 "f9fdd1c5be1b9f4c945c01aca6e986088e8d7e7349013198a9f957724c7995c0"
-  head "https://github.com/sqlmapproject/sqlmap.git"
+  homepage "https://sqlmap.org"
+  url "https://github.com/sqlmapproject/sqlmap/archive/1.6.4.tar.gz"
+  sha256 "14585e4fc95006467e52685c4838f024654d7e23cbd84eb12762a55918b8d561"
+  license "GPL-2.0-or-later"
+  head "https://github.com/sqlmapproject/sqlmap.git", branch: "master"
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "01695368a1a603a12720787e67d7c9624e63696550a1f4563049da400be2b710"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "01695368a1a603a12720787e67d7c9624e63696550a1f4563049da400be2b710"
+    sha256 cellar: :any_skip_relocation, monterey:       "acee8fd18b18cd509e1ae6757284c7b54fd4eb483e7a48e181e04fd16a7aa2c2"
+    sha256 cellar: :any_skip_relocation, big_sur:        "acee8fd18b18cd509e1ae6757284c7b54fd4eb483e7a48e181e04fd16a7aa2c2"
+    sha256 cellar: :any_skip_relocation, catalina:       "acee8fd18b18cd509e1ae6757284c7b54fd4eb483e7a48e181e04fd16a7aa2c2"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "087b897322fb0312a5d95a6bd1d04ea6c2d4fce74496e933e4cb2e0380f277bf"
+  end
 
-  depends_on "python@2"
+  depends_on "python@3.10"
+
+  uses_from_macos "sqlite" => :test
 
   def install
     libexec.install Dir["*"]
 
-    bin.install_symlink libexec/"sqlmap.py"
-    bin.install_symlink bin/"sqlmap.py" => "sqlmap"
+    files = [
+      libexec/"lib/core/dicts.py",
+      libexec/"lib/core/settings.py",
+      libexec/"lib/request/basic.py",
+      libexec/"thirdparty/magic/magic.py",
+    ]
+    inreplace files, "/usr/local", HOMEBREW_PREFIX
 
-    bin.install_symlink libexec/"sqlmapapi.py"
-    bin.install_symlink bin/"sqlmapapi.py" => "sqlmapapi"
+    %w[sqlmap sqlmapapi].each do |cmd|
+      rewrite_shebang detected_python_shebang, libexec/"#{cmd}.py"
+      bin.install_symlink libexec/"#{cmd}.py"
+      bin.install_symlink bin/"#{cmd}.py" => cmd
+    end
   end
 
   test do

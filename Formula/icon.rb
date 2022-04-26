@@ -1,23 +1,34 @@
 class Icon < Formula
   desc "General-purpose programming language"
   homepage "https://www.cs.arizona.edu/icon/"
-  url "https://www.cs.arizona.edu/icon/ftp/packages/unix/icon-v951src.tgz"
-  version "9.5.1"
-  sha256 "062a680862b1c10c21789c0c7c7687c970a720186918d5ed1f7aad9fdc6fa9b9"
+  url "https://github.com/gtownsend/icon/archive/v9.5.21b.tar.gz"
+  version "9.5.21b"
+  sha256 "5dd46cd4e868c75ff1b50de275f1ec06a09641afcb8c18b072333f97f86d3bcc"
+  license :public_domain
+
+  livecheck do
+    url :stable
+    regex(/^v?(\d+(?:\.\d+)+[a-z]?)$/i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "824e189b6c174efa7e0f675c7bd4d90f19810f379d71b0195b508d2f6ec43986" => :mojave
-    sha256 "7c2d0794956448b8bebf166c97a65aa23fde0847eeb7c6c9f8197eff2835ffb5" => :high_sierra
-    sha256 "13d3963ef90d3f94f13a97e922185ea640233aee356e3bf8c2a0336de278482c" => :sierra
-    sha256 "5218afb915b7892d4c242c659218735293136c3b100f54aa7199bcc716915939" => :el_capitan
-    sha256 "44450b176b56db833a91ca6ae681e3876b2864a094b254340bcb5cd136957f17" => :yosemite
-    sha256 "ca5ba233b4713e54680525ffd3ee7554988aa48f6a959f78b53c24e58d8c1c59" => :mavericks
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "f2ccc00b4af7b3a086b6b72a1eb42dee8c1ac01862163090d13da1d718b4a5f8"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "f125fa0da1cf68ea312bf3f4b17c2b49491effc3ec55918f5578b7e819b87ea3"
+    sha256 cellar: :any_skip_relocation, monterey:       "5b169e29f1af9e4c21f38eb6bae5da048c568fb11e6840de26b14ee89a590141"
+    sha256 cellar: :any_skip_relocation, big_sur:        "26221c72cd120274c75db2dca9926ff6d651f380814946005f1bb20fa8a12be9"
+    sha256 cellar: :any_skip_relocation, catalina:       "c59f68713faf7424ff485f8e5b3407367d29cd1412af432355c0f6d525d78f71"
+    sha256 cellar: :any_skip_relocation, mojave:         "7882a95b7c29003762ee254bc6fb4e2f1ca857edadc679d0802328dfcd0ab7c2"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "f219d790f552dba33c724f3bb60bb91392f81ac62df185bebb137d4c8efdfb6e"
   end
 
   def install
     ENV.deparallelize
-    system "make", "Configure", "name=posix"
+    target = if OS.mac?
+      "posix"
+    else
+      "linux"
+    end
+    system "make", "Configure", "name=#{target}"
     system "make"
     bin.install "bin/icon", "bin/icont", "bin/iconx"
     doc.install Dir["doc/*"]

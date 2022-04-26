@@ -1,30 +1,25 @@
 class Automake < Formula
   desc "Tool for generating GNU Standards-compliant Makefiles"
   homepage "https://www.gnu.org/software/automake/"
-  url "https://ftp.gnu.org/gnu/automake/automake-1.16.1.tar.xz"
-  mirror "https://ftpmirror.gnu.org/automake/automake-1.16.1.tar.xz"
-  sha256 "5d05bb38a23fd3312b10aea93840feec685bdf4a41146e78882848165d3ae921"
-  revision 1
+  url "https://ftp.gnu.org/gnu/automake/automake-1.16.5.tar.xz"
+  mirror "https://ftpmirror.gnu.org/automake/automake-1.16.5.tar.xz"
+  sha256 "f01d58cd6d9d77fbdca9eb4bbd5ead1988228fdb73d6f7a201f5f8d6b118b469"
+  license "GPL-2.0-or-later"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "0a359c2385d0673ce1ab3cdaf39dd22af191f7b74732105ca5751e08a334e061" => :mojave
-    sha256 "fb32c065aaf91661380af32ed301edcf209ba453635c79ca945353b67e54af10" => :high_sierra
-    sha256 "fb32c065aaf91661380af32ed301edcf209ba453635c79ca945353b67e54af10" => :sierra
-    sha256 "d552844779f0dc4062f27203f7facfbd74c9d1780724ac76a86791e401aa73bd" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "f68481d06be7fa3f0a0881edb825a336e7f6548191c762d68bd817183b238f5a"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "f68481d06be7fa3f0a0881edb825a336e7f6548191c762d68bd817183b238f5a"
+    sha256 cellar: :any_skip_relocation, monterey:       "ae77a247a13ea860236a29b02769f5327395f712413f694d8a8d20cb6c21332d"
+    sha256 cellar: :any_skip_relocation, big_sur:        "ae77a247a13ea860236a29b02769f5327395f712413f694d8a8d20cb6c21332d"
+    sha256 cellar: :any_skip_relocation, catalina:       "ae77a247a13ea860236a29b02769f5327395f712413f694d8a8d20cb6c21332d"
+    sha256 cellar: :any_skip_relocation, mojave:         "ae77a247a13ea860236a29b02769f5327395f712413f694d8a8d20cb6c21332d"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "59808c20f7dc565f106b432941b43c52f3d7f46a8d562ab27a4aabd424783158"
   end
 
   depends_on "autoconf"
 
-  # https://lists.gnu.org/archive/html/bug-automake/2018-04/msg00002.html
-  # Remove this when applying any future 1.16.2 update.
-  patch do
-    url "https://git.savannah.gnu.org/cgit/automake.git/patch/?id=a348d830659fffd2cfc42994524783b07e69b4b5"
-    sha256 "7a57ca2b91f7f3c0b168cf5ffbc8a1b2168f3886bcadcc15412281472dace3ce"
-  end
-
   def install
-    ENV["PERL"] = "/usr/bin/perl"
+    ENV["PERL"] = "/usr/bin/perl" if OS.mac?
 
     system "./configure", "--prefix=#{prefix}"
     system "make", "install"

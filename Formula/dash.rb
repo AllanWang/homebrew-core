@@ -1,25 +1,33 @@
 class Dash < Formula
   desc "POSIX-compliant descendant of NetBSD's ash (the Almquist SHell)"
   homepage "http://gondor.apana.org.au/~herbert/dash/"
-  url "http://gondor.apana.org.au/~herbert/dash/files/dash-0.5.10.2.tar.gz"
-  mirror "https://dl.bintray.com/homebrew/mirror/dash-0.5.10.2.tar.gz"
-  sha256 "3c663919dc5c66ec991da14c7cf7e0be8ad00f3db73986a987c118862b5f6071"
-  revision 1
+  url "http://gondor.apana.org.au/~herbert/dash/files/dash-0.5.11.5.tar.gz"
+  sha256 "db778110891f7937985f29bf23410fe1c5d669502760f584e54e0e7b29e123bd"
+  license "BSD-3-Clause"
+  head "https://git.kernel.org/pub/scm/utils/dash/dash.git", branch: "master"
+
+  livecheck do
+    url "http://gondor.apana.org.au/~herbert/dash/files/"
+    regex(/href=.*?dash[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "aa6941a564fca697da6eb30e3691a8fa354de093d05ee84bbbc50c8045a55f66" => :mojave
-    sha256 "49ebe51a7662187224ab620aa50b0473b11c1f88372f7c17da328559d895f5e0" => :high_sierra
-    sha256 "4c7ca79c9b006065cb9bba57190103c518791b5a7ea078bb1f960e6f6c9dd7e9" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "98745c9a59dcf0e9894493ad047699171d5ddb4d943115e94d08b58e21c484dd"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "12e8257cfc5dda342cf5df3579e4d75d6c7da1c3e5188ea2bd632f66ca9291dc"
+    sha256 cellar: :any_skip_relocation, monterey:       "0891342216aaba226425c2e27a21082f1096994e6be82cebb08eedb7c4d9fb76"
+    sha256 cellar: :any_skip_relocation, big_sur:        "a7eafa8a473d2bfd1d9fbc207ed863d5765189b6662341420bee8a78cc6d4360"
+    sha256 cellar: :any_skip_relocation, catalina:       "b7ab66d5cea5b77081f58392eb8f8c66341cf20c94739a77c262f0a1f54716a6"
+    sha256 cellar: :any_skip_relocation, mojave:         "b7db705a81f667bde21d234b7241d9e0ae0643e9052aa836196095bbd4e98dbb"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "947fffdc8681c896ef07de1dabbd69341458de8d37c106d706d6013942d156c4"
   end
 
-  head do
-    url "https://git.kernel.org/pub/scm/utils/dash/dash.git"
-    depends_on "autoconf" => :build
-    depends_on "automake" => :build
-  end
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
+
+  uses_from_macos "libedit"
 
   def install
+    ENV["ac_cv_func_stat64"] = "no" if Hardware::CPU.arm?
     system "./autogen.sh" if build.head?
 
     system "./configure", "--prefix=#{prefix}",

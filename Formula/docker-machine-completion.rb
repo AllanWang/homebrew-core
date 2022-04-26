@@ -1,14 +1,19 @@
 class DockerMachineCompletion < Formula
-  desc "Docker-machine completion script"
+  desc "Completion script for docker-machine"
   homepage "https://docs.docker.com/machine/completion/"
-  url "https://github.com/docker/machine/archive/v0.16.1.tar.gz"
-  sha256 "b3989ed5b2829c87885b40b209fe475d90d63fbb9bd10879f866441d23cbf495"
-  head "https://github.com/docker/machine.git"
+  url "https://github.com/docker/machine/archive/v0.16.2.tar.gz"
+  sha256 "af8bff768cd1746c787e2f118a3a8af45ed11679404b6e45d5199e343e550059"
+  license "Apache-2.0"
+  head "https://github.com/docker/machine.git", branch: "master"
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "a953e0a6776024c35f839a0f4a23a782e186318fd07fdaa0a8405f41fadbd01a"
+  end
+
+  deprecate! date: "2021-09-30", because: :repo_archived
 
   conflicts_with "docker-machine",
-    :because => "docker-machine already includes completion scripts"
+    because: "docker-machine already includes completion scripts"
 
   def install
     bash_completion.install Dir["contrib/completion/bash/*.bash"]

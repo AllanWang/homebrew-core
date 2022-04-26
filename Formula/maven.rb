@@ -1,15 +1,28 @@
 class Maven < Formula
   desc "Java-based project management"
   homepage "https://maven.apache.org/"
-  url "https://www.apache.org/dyn/closer.cgi?path=maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz"
-  mirror "https://archive.apache.org/dist/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz"
-  sha256 "2528c35a99c30f8940cc599ba15d34359d58bec57af58c1075519b8cd33b69e7"
+  url "https://www.apache.org/dyn/closer.lua?path=maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz"
+  mirror "https://archive.apache.org/dist/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz"
+  sha256 "88e30700f32a3f60e0d28d0f12a3525d29b7c20c72d130153df5b5d6d890c673"
+  license "Apache-2.0"
 
-  bottle :unneeded
+  livecheck do
+    url "https://maven.apache.org/download.cgi"
+    regex(/href=.*?apache-maven[._-]v?(\d+(?:\.\d+)+)-bin\.t/i)
+  end
 
-  depends_on :java => "1.7+"
+  bottle do
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "2cebb1dc17611d23752838368125c5b5cf96b520724492aefa7bd23c5074e897"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "2cebb1dc17611d23752838368125c5b5cf96b520724492aefa7bd23c5074e897"
+    sha256 cellar: :any_skip_relocation, monterey:       "2f45f971e0d4f54b3200f7f0b1e99d793c4882200a44cba2f1c0b95daae264bf"
+    sha256 cellar: :any_skip_relocation, big_sur:        "2f45f971e0d4f54b3200f7f0b1e99d793c4882200a44cba2f1c0b95daae264bf"
+    sha256 cellar: :any_skip_relocation, catalina:       "2f45f971e0d4f54b3200f7f0b1e99d793c4882200a44cba2f1c0b95daae264bf"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "2cebb1dc17611d23752838368125c5b5cf96b520724492aefa7bd23c5074e897"
+  end
 
-  conflicts_with "mvnvm", :because => "also installs a 'mvn' executable"
+  depends_on "openjdk"
+
+  conflicts_with "mvnvm", because: "also installs a 'mvn' executable"
 
   def install
     # Remove windows files

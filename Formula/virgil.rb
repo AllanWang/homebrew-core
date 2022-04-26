@@ -2,33 +2,32 @@ class Virgil < Formula
   desc "CLI tool to manage your Virgil account and applications"
   homepage "https://github.com/VirgilSecurity/virgil-cli"
   url "https://github.com/VirgilSecurity/virgil-cli.git",
-     :tag      => "v5.0.3",
-     :revision => "749b6622ce7dd6c4b2ed469826b80a46c5c6ee74"
-  head "https://github.com/VirgilSecurity/virgil-cli.git"
+     tag:      "v5.2.9",
+     revision: "604e4339d100c9cd133f4730ba0efbd599321ecb"
+  license "BSD-3-Clause"
+  head "https://github.com/VirgilSecurity/virgil-cli.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "87ca8d26971b5a31df2e6ff9a7f281c0d863d9fd0a4eafb5a2ce28bb1122e26a" => :mojave
-    sha256 "181b88ed03e6f35b9d94204e8835a06dce6ef133c90889f7808d99dfbb574ce1" => :high_sierra
-    sha256 "86b8ee43bb54eed6922337ce205bf3d734a53cdb85e70951e6e789317c18d8bd" => :sierra
+    sha256 cellar: :any_skip_relocation, monterey:     "6ad1a2ee3c09e0ea3ae2027c7a35a26a9ab048ba3b3454072bc47ff2f144a7dc"
+    sha256 cellar: :any_skip_relocation, big_sur:      "e9ce86f5569a014b80c43e5bdf3d16aed3fc81c3e6fe4841e0b649f6d07542d3"
+    sha256 cellar: :any_skip_relocation, catalina:     "841082fa11c796ba0045d4ced3cead342fba308b049f07db4a0bd3309acc08c7"
+    sha256 cellar: :any_skip_relocation, mojave:       "d115016c280fbfe9381b56d0e08b9a69b4dc62042bb73424c243ea3f73280cd9"
+    sha256 cellar: :any_skip_relocation, high_sierra:  "f7b6c179875ab30f849e3cbba53c8aeed7af4c569b69d4b112c2d749e5c38ea4"
+    sha256 cellar: :any_skip_relocation, x86_64_linux: "05da77ebed1e01c11281b7f148441a6aa22f9be8d219037913c238d95c615425"
   end
 
-  depends_on "dep" => :build
-  depends_on "go" => :build
+  # Bump to 1.18 on the next release, if possible.
+  depends_on "go@1.17" => :build
+  # https://github.com/VirgilSecurity/virgil-cli/issues/58
+  depends_on arch: :x86_64
 
   def install
-    ENV["GOPATH"] = buildpath
-    dir = buildpath/"src/github.com/VirgilSecurity/virgil-cli"
-    dir.install buildpath.children - [buildpath/".brew_home"]
-    cd dir do
-      system "dep", "ensure", "-vendor-only"
-      system "go", "build", "-o", "virgil"
-      bin.install "virgil"
-    end
+    system "make"
+    bin.install "virgil"
   end
 
   test do
-    result = shell_output "#{bin}/virgil pure keygen"
-    assert_match /SK.1./, result
+    result = shell_output "#{bin}/virgil purekit keygen"
+    assert_match "SK.1.", result
   end
 end

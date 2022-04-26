@@ -1,21 +1,33 @@
 class PamYubico < Formula
   desc "Yubico pluggable authentication module"
   homepage "https://developers.yubico.com/yubico-pam/"
-  url "https://developers.yubico.com/yubico-pam/Releases/pam_yubico-2.26.tar.gz"
-  sha256 "2de96495963fefd72b98243952ca5d5ec513e702c596e54bc667ef6b5e252966"
+  url "https://developers.yubico.com/yubico-pam/Releases/pam_yubico-2.27.tar.gz"
+  sha256 "63d02788852644d871746e1a7a1d16c272c583c226f62576f5ad232a6a44e18c"
+  license "BSD-2-Clause"
+
+  livecheck do
+    url "https://developers.yubico.com/yubico-pam/Releases/"
+    regex(/href=.*?pam_yubico[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "bb57ab33d7b79a6461648cd510d5524ea636db738c46bba5aa8f1fe8451c4e49" => :mojave
-    sha256 "a9a21d8b84d95c76d13118d1c525b93f9bbdf5c49b8aae5304df966d1a1ea669" => :high_sierra
-    sha256 "7b0027b330f0f2bb6da798a7b405d80e09db71892c403206ba6c31bed5a3c804" => :sierra
-    sha256 "102680d53f9ef736089e1e4a4eeaab60962fbbf4156c1fb3e77d82f425b0eed7" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "203b85ed98819720e7f40971f9978956b4fd458133a3935f402a10dfc2ab85b5"
+    sha256 cellar: :any,                 arm64_big_sur:  "8d4405a65463be4dc6b5472b2cff454301591e57ff5c3b5fb4e8e40fb6981a66"
+    sha256 cellar: :any,                 monterey:       "07bd1f48953cef8653bc75f23fcbf9fab5de45a3551d7ba7f23db22e558b9247"
+    sha256 cellar: :any,                 big_sur:        "4abde2a6a123b3816945f79b07c760b95d2709fc791b5c5c7509d9ed1544e491"
+    sha256 cellar: :any,                 catalina:       "2405af18c4c1b4c2573c221ff6699afcb37a42fe211ebb8b726314d31e13ce1a"
+    sha256 cellar: :any,                 mojave:         "e40398cff74d597a3c0f203c59906b8276d3985a976c87812269bdc56ee06c72"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "396c081539899c3450ea38767fe2d33e547367da9351bb7c2726c7455516fcad"
   end
 
   depends_on "pkg-config" => :build
   depends_on "libyubikey"
   depends_on "ykclient"
   depends_on "ykpers"
+
+  on_linux do
+    depends_on "linux-pam"
+  end
 
   def install
     ENV["XML_CATALOG_FILES"] = "#{etc}/xml/catalog"

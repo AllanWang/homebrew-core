@@ -1,15 +1,20 @@
 class Dosbox < Formula
   desc "DOS Emulator"
   homepage "https://www.dosbox.com/"
-  url "https://downloads.sourceforge.net/project/dosbox/dosbox/0.74-2/dosbox-0.74-2.tar.gz"
-  sha256 "7077303595bedd7cd0bb94227fa9a6b5609e7c90a3e6523af11bc4afcb0a57cf"
+  url "https://downloads.sourceforge.net/project/dosbox/dosbox/0.74-3/dosbox-0.74-3.tar.gz"
+  sha256 "c0d13dd7ed2ed363b68de615475781e891cd582e8162b5c3669137502222260a"
+  license "GPL-2.0"
 
   bottle do
-    cellar :any
-    rebuild 2
-    sha256 "f8936546b368cd8c05c00ce2f46fe43cc4bd100f76b9845c783b9a06a6a004b5" => :mojave
-    sha256 "5116d754e9412089d741f29913adf1125cf8e7f46e3a06ab28caf36db88aa6b2" => :high_sierra
-    sha256 "81e9f9bc8bad788c85d62875a5d4549732addae94c8eecb03c0f573a406f775b" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "17d82e44047546d286b0674ba2acff78432f57f67c72111cf9ad6c0780ec43cb"
+    sha256 cellar: :any,                 arm64_big_sur:  "999bf1d034d6cd7eae80c5439fc07bd5681ccc315edd872872050adcf76dffc7"
+    sha256 cellar: :any,                 monterey:       "9c8543fa951eaf84a4466641f4933e32e664a12233213e6dce5c76a307a3f989"
+    sha256 cellar: :any,                 big_sur:        "7adbfaa213d56b44eb98645794f954e298dda776f37d5106e40c563704f1a7ab"
+    sha256 cellar: :any,                 catalina:       "b204c9a07dce5bf4f476c9912f177481a69e8843045ab19d01f3e016d875dceb"
+    sha256 cellar: :any,                 mojave:         "de46ee6c3c638829ba3b9dc3ee009811d26a19359d10804b9ff93706df2a6863"
+    sha256 cellar: :any,                 high_sierra:    "66b1b073b1ae7db629c64f66249254aefcb8fb6585c065c858a364bd258785d4"
+    sha256 cellar: :any,                 sierra:         "3bd2c41c7f76e214c0964acec02723d2a2a611eca92cf5edb93c029333a78adf"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "19c0a42d20e64b6e6f769d958a02325f0c2a0fabc09c4c56d2a9c711e49cc2a1"
   end
 
   head do

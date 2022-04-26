@@ -1,15 +1,19 @@
 class Confuse < Formula
   desc "Configuration file parser library written in C"
-  homepage "https://github.com/martinh/libconfuse"
-  url "https://github.com/martinh/libconfuse/releases/download/v3.2.2/confuse-3.2.2.tar.xz"
-  sha256 "a9240b653d02e8cfc52db48e8c4224426e528e1faa09b65e8ca08a197fad210b"
+  homepage "https://github.com/libconfuse/libconfuse"
+  url "https://github.com/libconfuse/libconfuse/releases/download/v3.3/confuse-3.3.tar.xz"
+  sha256 "1dd50a0320e135a55025b23fcdbb3f0a81913b6d0b0a9df8cc2fdf3b3dc67010"
+  license "ISC"
 
   bottle do
-    cellar :any
-    sha256 "24e05e5b2e29feab1222d9087e064349131023b97b3e5b8f847c8babe968cea2" => :mojave
-    sha256 "6e5f40a3ca684e8aeef00fe121a0742214a434d23ed45810d0b7b6c1e5ff65ac" => :high_sierra
-    sha256 "8a34f5dee392fb5c572df1e636821b1b6af62a197aca7a2de0c49b4f55bb2874" => :sierra
-    sha256 "8547a54095de338b895476e8fc2cfabc27ed9039996f37bdcb48040759c67f79" => :el_capitan
+    sha256 cellar: :any, arm64_monterey: "633330ab55c7992ac1a9dcb3d990029d1445aab0d3e5c3a8c5759af2554b33d4"
+    sha256 cellar: :any, arm64_big_sur:  "1eeec2cb7b54cf11c1e13448f191ed97d4f2477c215130b6402256678019f36e"
+    sha256 cellar: :any, monterey:       "bcdcdab60caa250aa1a5b38346dda7bd0a88ffb6359d73d8fab8aa046d5bc2fe"
+    sha256 cellar: :any, big_sur:        "370cd5df07249d44cbf0a848001be19d41341f404d229dcdcb3b5ae6ead4300c"
+    sha256 cellar: :any, catalina:       "13ad01ca606e746ab7f6bcd42b0da08abdcc29ccaaa9e8106f9d28bfe96bffd7"
+    sha256 cellar: :any, mojave:         "d6038fe2a7fcfea4ba6e3c29174cb6201ce7d05e22ef4c76b881b9f12dabcff6"
+    sha256 cellar: :any, high_sierra:    "371f699488d7e4459251c55e4ef4d9087b08e07b4fedfc553476bc30070ca9c1"
+    sha256               x86_64_linux:   "a5fbe815c75f10344684dab03501ecab39cec4b157e46d955f6e2c70062d120b"
   end
 
   depends_on "pkg-config" => :build
@@ -42,6 +46,6 @@ class Confuse < Formula
       }
     EOS
     system ENV.cc, "test.c", "-L#{lib}", "-lconfuse", "-o", "test"
-    assert_match /world/, shell_output("./test")
+    assert_match "world", shell_output("./test")
   end
 end

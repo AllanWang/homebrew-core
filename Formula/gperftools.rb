@@ -1,15 +1,34 @@
 class Gperftools < Formula
   desc "Multi-threaded malloc() and performance analysis tools"
   homepage "https://github.com/gperftools/gperftools"
-  url "https://github.com/gperftools/gperftools/releases/download/gperftools-2.7/gperftools-2.7.tar.gz"
-  sha256 "1ee8c8699a0eff6b6a203e59b43330536b22bbcbe6448f54c7091e5efb0763c9"
+  license "BSD-3-Clause"
+  revision 1
+
+  stable do
+    url "https://github.com/gperftools/gperftools/releases/download/gperftools-2.9.1/gperftools-2.9.1.tar.gz"
+    sha256 "ea566e528605befb830671e359118c2da718f721c27225cbbc93858c7520fee3"
+
+    # Fix segfaults on Monterey.
+    # https://github.com/gperftools/gperftools/pull/1315
+    patch do
+      url "https://github.com/gperftools/gperftools/commit/1000c64559ad5f624bec4d08657209d755c0a02a.patch?full_index=1"
+      sha256 "93f58cb6fe6d0e22a7aadc1ad2ee60a45743e862e398387213024acad83de319"
+    end
+  end
+
+  livecheck do
+    url :stable
+    strategy :github_latest
+    regex(%r{href=.*?/tag/gperftools[._-]v?(\d+(?:\.\d+)+)["' >]}i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "ebc68c4f401b6a77f8256a5ae84054803248b0e1ef1403f879893653ffd74cee" => :mojave
-    sha256 "cd47308eb2e44e527b749b392bebfa17613afacd202285e95954fa00590f44d7" => :high_sierra
-    sha256 "214a23363df0fe8d64260af6e86a891d3fb01452dbd2522f6c9451b21ab6e451" => :sierra
-    sha256 "a1f10be5627404a571fa448e7f3f15f522348f89f642e097ba04cd0c584d2b3b" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "f34a3226e8eb39953b26b2bbed7303a0121644b78e45acd6dfba08d7ffb99585"
+    sha256 cellar: :any,                 arm64_big_sur:  "1d97fc10af93886ac88a519c4807f9e73d84f71d6d11204c3b088302b8f6c8ed"
+    sha256 cellar: :any,                 monterey:       "15e8c3c91094d9aa65556b42f75126a8884262cb0438ffa7efd227f521270484"
+    sha256 cellar: :any,                 big_sur:        "c5402ce2e426620556c4dfbe0f57f68b7d42c96c84f0bbc667a02e6ee529eb7b"
+    sha256 cellar: :any,                 catalina:       "48f3c365c6915e4cd815103d418bb98a49c3f7387266fc808d23de1aa2d5fb8d"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "5e00b341d2cbcf5b1bfa351308d3fdb34c74cd357149fcb8babbb2571ada9f44"
   end
 
   head do
@@ -20,15 +39,26 @@ class Gperftools < Formula
     depends_on "libtool" => :build
   end
 
-  def install
-    # Fix "error: unknown type name 'mach_port_t'"
-    ENV["SDKROOT"] = MacOS.sdk_path if MacOS.version == :sierra
+  uses_from_macos "xz"
 
-    ENV.append_to_cflags "-D_XOPEN_SOURCE"
+  on_linux do
+    # libunwind is strongly recommended for Linux x86_64
+    # https://github.com/gperftools/gperftools/blob/master/INSTALL
+    depends_on "libunwind"
+  end
+
+  def install
+    ENV.append_to_cflags "-D_XOPEN_SOURCE" if OS.mac?
 
     system "autoreconf", "-fiv" if build.head?
-    system "./configure", "--disable-dependency-tracking",
-                          "--prefix=#{prefix}"
+
+    args = [
+      "--disable-dependency-tracking",
+      "--prefix=#{prefix}",
+    ]
+    args << "--enable-libunwind" if OS.linux?
+
+    system "./configure", *args
     system "make"
     system "make", "install"
   end
@@ -50,5 +80,20 @@ class Gperftools < Formula
     EOS
     system ENV.cc, "test.c", "-L#{lib}", "-ltcmalloc", "-o", "test"
     system "./test"
+
+    (testpath/"segfault.c").write <<~EOS
+      #include <stdio.h>
+      #include <stdlib.h>
+
+      int main()
+      {
+        void *ptr = malloc(128);
+        if (ptr == NULL) return 1;
+        free(ptr);
+        return 0;
+      }
+    EOS
+    system ENV.cc, "segfault.c", "-L#{lib}", "-ltcmalloc", "-o", "segfault"
+    system "./segfault"
   end
 end

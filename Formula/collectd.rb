@@ -1,14 +1,32 @@
 class Collectd < Formula
   desc "Statistics collection and monitoring daemon"
   homepage "https://collectd.org/"
-  url "https://collectd.org/files/collectd-5.9.0.tar.bz2"
-  sha256 "7b220f8898a061f6e7f29a8c16697d1a198277f813da69474a67911097c0626b"
-  revision 1
+  license "MIT"
+  revision 2
+
+  stable do
+    url "https://collectd.org/files/collectd-5.12.0.tar.bz2"
+    sha256 "5bae043042c19c31f77eb8464e56a01a5454e0b39fa07cf7ad0f1bfc9c3a09d6"
+
+    # Fix -flat_namespace being used on Big Sur and later.
+    patch do
+      url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+      sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+    end
+  end
+
+  livecheck do
+    url "https://collectd.org/download.shtml"
+    regex(/href=.*?collectd[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    sha256 "e30440912eb0052a02e7b160341aefeba4dcb005da755f1e4efefa98f2cb3ade" => :mojave
-    sha256 "71d2679f01bb058d0393525b530be6e4e0410253847f3aa26161eb3467c5a95d" => :high_sierra
-    sha256 "e8efa9f8b211b4d2de31b0e7789ce19dcfe10c59ec4c745fa511ca110f009bac" => :sierra
+    sha256 arm64_monterey: "a56843d8635cca54f7b67c584147d82a3a1d1f9a2ac3306e4ff9f6c1b112f160"
+    sha256 arm64_big_sur:  "ad251013d5579a17ec0682b23dd902d7fadd6f0f35736dd98d89c4f625f55d1e"
+    sha256 monterey:       "d34d4f4ed54c19669a9cfbd11e8d27ace8c41c0628c2852636c5bead857e8089"
+    sha256 big_sur:        "a81231d246349376c3e6bab9e1c7b1199645c9a8941e7339aed9fd239e4847ed"
+    sha256 catalina:       "1f16bc2e65d7475fd67c6e286027a543e506272901f7fdac98522d3d4a664b7b"
+    sha256 x86_64_linux:   "a2b240c5b10bb4f9b1593d9ff8b1803cbe314cc4b72c108aa845c2e686a8c0d9"
   end
 
   head do
@@ -23,6 +41,9 @@ class Collectd < Formula
   depends_on "libtool"
   depends_on "net-snmp"
   depends_on "riemann-client"
+
+  uses_from_macos "bison"
+  uses_from_macos "flex"
   uses_from_macos "perl"
 
   def install
@@ -40,33 +61,11 @@ class Collectd < Formula
     system "make", "install"
   end
 
-  plist_options :manual => "#{HOMEBREW_PREFIX}/sbin/collectd -f -C #{HOMEBREW_PREFIX}/etc/collectd.conf"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>KeepAlive</key>
-        <true/>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>ProgramArguments</key>
-        <array>
-          <string>#{sbin}/collectd</string>
-          <string>-f</string>
-          <string>-C</string>
-          <string>#{etc}/collectd.conf</string>
-        </array>
-        <key>RunAtLoad</key>
-        <true/>
-        <key>StandardErrorPath</key>
-        <string>#{var}/log/collectd.log</string>
-        <key>StandardOutPath</key>
-        <string>#{var}/log/collectd.log</string>
-      </dict>
-    </plist>
-  EOS
+  service do
+    run [opt_sbin/"collectd", "-f", "-C", etc/"collectd.conf"]
+    keep_alive true
+    error_log_path var/"log/collectd.log"
+    log_path var/"log/collectd.log"
   end
 
   test do

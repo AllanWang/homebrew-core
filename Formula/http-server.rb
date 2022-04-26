@@ -2,17 +2,14 @@ require "language/node"
 
 class HttpServer < Formula
   desc "Simple zero-configuration command-line HTTP server"
-  homepage "https://github.com/indexzero/http-server"
-  url "https://registry.npmjs.org/http-server/-/http-server-0.11.1.tgz"
-  sha256 "4154aba3e09f21595e26fdd174d9773e22755c0009f661bed54b8647fc987d95"
-  head "https://github.com/indexzero/http-server.git"
+  homepage "https://github.com/http-party/http-server"
+  url "https://registry.npmjs.org/http-server/-/http-server-14.1.0.tgz"
+  sha256 "98437beb1fdb90768092f0208849bd283b1bbd4e07197b7bbf4269648a1507f7"
+  license "MIT"
+  head "https://github.com/http-party/http-server.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "755716ac31e2feb72c2ce6a27d68175e751850cf1c28cccc3f96fc09bd2a3a6c" => :mojave
-    sha256 "d6a7324d5ed8943d3a63cd570346169206163879dbc9b347f584031ee9423a4a" => :high_sierra
-    sha256 "0a693d35ecd6e30295a3c714b51c02fe37dd1b0fba63107fffaecad6827f6850" => :sierra
-    sha256 "8d34e825aededd73ab87420e53a537742998f578f0019ddcf7eae9b8d8f6dd55" => :el_capitan
+    sha256 cellar: :any_skip_relocation, all: "8cd4292d5529f09e3a9f6395195a4320f43d7b599783528a37faa7174bfb9025"
   end
 
   depends_on "node"
@@ -23,15 +20,15 @@ class HttpServer < Formula
   end
 
   test do
-    begin
-      pid = fork do
-        exec "#{bin}/http-server"
-      end
-      sleep 1
-      output = shell_output("curl -sI http://localhost:8080")
-      assert_match /200 OK/m, output
-    ensure
-      Process.kill("HUP", pid)
+    port = free_port
+
+    pid = fork do
+      exec "#{bin}/http-server", "-p#{port}"
     end
+    sleep 3
+    output = shell_output("curl -sI http://localhost:#{port}")
+    assert_match "200 OK", output
+  ensure
+    Process.kill("HUP", pid)
   end
 end

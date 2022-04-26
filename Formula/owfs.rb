@@ -1,20 +1,31 @@
 class Owfs < Formula
   desc "Monitor and control physical environment using Dallas/Maxim 1-wire system"
-  homepage "https://github.com/owfs/owfs/"
-  url "https://github.com/owfs/owfs/releases/download/v3.2p3/owfs-3.2p3.tar.gz"
-  version "3.2p3"
-  sha256 "b8d33eba57d4a2f6c8a11ff23f233e3248bd75a42c8219b058a888846edd8717"
+  homepage "https://owfs.org/"
+  url "https://github.com/owfs/owfs/releases/download/v3.2p4/owfs-3.2p4.tar.gz"
+  version "3.2p4"
+  sha256 "af0a5035f3f3df876ca15aea13486bfed6b3ef5409dee016db0be67755c35fcc"
+  license "GPL-2.0-only"
 
   bottle do
-    cellar :any
-    sha256 "9873bebe0313c3bcf14435552914e70d3f44e42c40fb8740a110fee6b7a31d48" => :mojave
-    sha256 "5ce68ea75761ab29c718d7eb584dd305f76a3689faf0ede10e4e548d9270cf8c" => :high_sierra
-    sha256 "f8fe6f4b969682f9a4f1238b5b3cbca74cf49daa6915596a51135f559bc2f450" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "60b2cdf16ab634a941884f3053afade439202e030b20defb61371ff4bd666a50"
+    sha256 cellar: :any,                 arm64_big_sur:  "62b0c429498ff8aef96aa05ec7e4502978b3d98aa289ff8283a27de41352b68a"
+    sha256 cellar: :any,                 monterey:       "578554d18620a943b499b22046d97c9fc818ad1ebad6552484a4dec245c7ce0e"
+    sha256 cellar: :any,                 big_sur:        "d1f522c35882921728f0bc27c62c0b3a9c225278729ecf3b30ea093c21a1cc4b"
+    sha256 cellar: :any,                 catalina:       "659e132d059f5b07c1f53f7ebc8676edf732da7b36f4e85065a30fe616358f50"
+    sha256 cellar: :any,                 mojave:         "f67044700191dc6becb4b768d2c89f8e6714411ec4182c8297edcf3d3eac1318"
+    sha256 cellar: :any,                 high_sierra:    "1812f6546d6e6957fc34aefadb1ce83ab8c7995a4c9c67b85f0ff7ba4e7e381c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "dc7081d7fe26ec46288fa5bb16f5404e9697f1c567dde4ded5e181f0b54bbb6b"
   end
 
   depends_on "pkg-config" => :build
   depends_on "libftdi"
   depends_on "libusb"
+
+  # Fix -flat_namespace being used on Big Sur and later.
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+    sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+  end
 
   def install
     system "./configure", "--disable-dependency-tracking",

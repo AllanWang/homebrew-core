@@ -1,14 +1,18 @@
 class Putty < Formula
   desc "Implementation of Telnet and SSH"
   homepage "https://www.chiark.greenend.org.uk/~sgtatham/putty/"
-  url "https://the.earth.li/~sgtatham/putty/0.71/putty-0.71.tar.gz"
-  sha256 "2f931ce2f89780cc8ca7bbed90fcd22c44515d2773f5fa954069e209b48ec6b8"
+  url "https://the.earth.li/~sgtatham/putty/0.76/putty-0.76.tar.gz"
+  sha256 "547cd97a8daa87ef71037fab0773bceb54a8abccb2f825a49ef8eba5e045713f"
+  license "MIT"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "1f95ab0aa9ee5ac399d31f31d2e448fb5de0febdb31682e00ce604374cecf2e7" => :mojave
-    sha256 "d860a4b7c2fbcdfec3fea76fed4df08042a66b677402e7edae098fc99eadad92" => :high_sierra
-    sha256 "67fa3cdca8d8b5bb0e4532ffd11e5f3037771fd8b14e7dd13fc2b23150ef9510" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "d4ca114d39cb55f75ef0b71f496bb96acf2e3f97e10e66d3ea7de8a4c87dc51b"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "adb57691d42b70e51a4336dc37126996c782f2bf66db5d0f05813ebd04178ebf"
+    sha256 cellar: :any_skip_relocation, monterey:       "ab3cc934eace1bfe68e8a8896888b1c1213a68d18c4591f59df3f9312e9fbb0a"
+    sha256 cellar: :any_skip_relocation, big_sur:        "75e23ad8100002d5ade0acf3745f4f40a9add28a25ea4814caafd0cb37be7cb8"
+    sha256 cellar: :any_skip_relocation, catalina:       "ab58a1de02894bd5364c31e4a5b864acb81cbc0160814d048f98077bfe01a4b1"
+    sha256 cellar: :any_skip_relocation, mojave:         "4aab22d3d6867678be1d1be95edb5fe41fcd7d807892b00b83d0280b6f356f46"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "51689b0cb6c740349175dad1786ac7786b639e78f5e5b3765272ae83162009d4"
   end
 
   head do
@@ -21,7 +25,9 @@ class Putty < Formula
 
   depends_on "pkg-config" => :build
 
-  conflicts_with "pssh", :because => "both install `pscp` binaries"
+  uses_from_macos "expect" => :test
+
+  conflicts_with "pssh", because: "both install `pscp` binaries"
 
   def install
     if build.head?
@@ -30,10 +36,7 @@ class Putty < Formula
       system "make", "-C", "doc"
     end
 
-    args = %W[
-      --prefix=#{prefix}
-      --disable-silent-rules
-      --disable-dependency-tracking
+    args = std_configure_args + %w[
       --disable-gtktest
       --without-gtk
     ]
@@ -52,7 +55,7 @@ class Putty < Formula
 
   test do
     (testpath/"command.sh").write <<~EOS
-      #!/usr/bin/expect -f
+      #!/usr/bin/env expect
       set timeout -1
       spawn #{bin}/puttygen -t rsa -b 4096 -q -o test.key
       expect -exact "Enter passphrase to save key: "

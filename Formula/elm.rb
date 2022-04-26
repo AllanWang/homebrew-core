@@ -1,33 +1,38 @@
-require "language/haskell"
-
 class Elm < Formula
-  include Language::Haskell::Cabal
-
   desc "Functional programming language for building browser-based GUIs"
   homepage "https://elm-lang.org"
-  url "https://github.com/elm/compiler/archive/0.19.0.tar.gz"
-  sha256 "494df33724224307d6e2b4d0b342448cc927901483384ee4f8cfee2cb38e993c"
+  url "https://github.com/elm/compiler/archive/0.19.1.tar.gz"
+  sha256 "aa161caca775cef1bbb04bcdeb4471d3aabcf87b6d9d9d5b0d62d3052e8250b1"
+  license "BSD-3-Clause"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "5934d1b214fd2449b1a0222ad5c7b97b7309a21c97078634d6b32b3191dddc45" => :mojave
-    sha256 "4655392e3e985c90f9e23b03438a8587475b48c1e1b0dabc2d74358f1b06daef" => :high_sierra
-    sha256 "e0e45eb3388efe4a8147a65121d067ffad875952146c11519e8e564095de139b" => :sierra
-    sha256 "e2a5f47750fb6a487e5220a3ac234b209acdb7edcde7e42c2ebe2507f8a3a5cf" => :el_capitan
+    rebuild 2
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "ce89444a740bfc41ae2a03006171af4fb21dd2659164b5f68ff7fed681b214bb"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "7efd5b1f3446827c5c06502a65c4bf80cabde7ecf11156e206a373d0c568af35"
+    sha256 cellar: :any_skip_relocation, monterey:       "fef837b97895efeb899730e1381953b637f34910dd9e94d8c0a60e1da00d4b32"
+    sha256 cellar: :any_skip_relocation, big_sur:        "8054bda935a4760f4cfd799f2bef0bb8fd2b25c10cc2d1fc1c0824625eaf30a3"
+    sha256 cellar: :any_skip_relocation, catalina:       "0df96547e648ed70d25f67cbec301e8b1e9af814da5dba059c0c54cb594d1d0d"
+    sha256 cellar: :any_skip_relocation, mojave:         "a826ba1bd9a92f3a5384a772533bf90c8d87e5f6c4ca8f30a6877c10ee9bab2f"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "810bfd7c5a40e9c6f4bae78af527acf2df4fbea11bc1af632526e90429fb68e0"
   end
 
   depends_on "cabal-install" => :build
-  depends_on "ghc@8.2" => :build
+  depends_on "ghc" => :build
+
+  uses_from_macos "ncurses"
+  uses_from_macos "zlib"
+
+  patch do
+    # elm's tarball is not a proper cabal tarball, it contains multiple cabal files.
+    # Add `cabal.project` lets cabal-install treat this tarball as cabal project correctly.
+    # https://github.com/elm/compiler/pull/2159
+    url "https://github.com/elm/compiler/commit/eb566e901a419a6620e43c18faf89f57f0827124.patch?full_index=1"
+    sha256 "556ff15fb4d8e5ca6e853280e35389c8875fa31a543204b315b55ec2ac967624"
+  end
 
   def install
-    # elm-compiler needs to be staged in a subdirectory for the build process to succeed
-    (buildpath/"elm-compiler").install Dir["*"]
-
-    cabal_sandbox do
-      cabal_sandbox_add_source "elm-compiler"
-      cabal_install "--only-dependencies", "elm"
-      cabal_install "--prefix=#{prefix}", "elm"
-    end
+    system "cabal", "v2-update"
+    system "cabal", "v2-install", *std_cabal_v2_args
   end
 
   test do
@@ -39,7 +44,7 @@ class Elm < Formula
         "source-directories": [
                   "."
         ],
-        "elm-version": "0.19.0",
+        "elm-version": "0.19.1",
         "dependencies": {
                 "direct": {
                     "elm/browser": "1.0.0",
@@ -62,6 +67,7 @@ class Elm < Formula
 
     src_path = testpath/"Hello.elm"
     src_path.write <<~EOS
+      module Hello exposing (main)
       import Html exposing (text)
       main = text "Hello, world!"
     EOS

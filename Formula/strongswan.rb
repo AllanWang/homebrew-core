@@ -1,13 +1,30 @@
 class Strongswan < Formula
   desc "VPN based on IPsec"
   homepage "https://www.strongswan.org"
-  url "https://download.strongswan.org/strongswan-5.8.0.tar.bz2"
-  sha256 "15b1e10c7dd6253ab5d791fe9b9cb84624e24c118aecd9b90251b4e60daa0933"
+  license "GPL-2.0-or-later"
+
+  stable do
+    url "https://download.strongswan.org/strongswan-5.9.5.tar.bz2"
+    sha256 "983e4ef4a4c6c9d69f5fe6707c7fe0b2b9a9291943bbf4e008faab6bf91c0bdd"
+
+    # Fix -flat_namespace being used on Big Sur and later.
+    patch do
+      url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+      sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+    end
+  end
+
+  livecheck do
+    url "https://download.strongswan.org/"
+    regex(/href=.*?strongswan[._-]v?(\d+(?:\.\d+)+[a-z]?)\.t/i)
+  end
 
   bottle do
-    sha256 "b7ecdc25dcb364981e83f6aed2d115f054d61321ebe6c7c61754456fe0744302" => :mojave
-    sha256 "bf050912991b312ff534cb38a5507a69154c76bb1a4c959dbaeb3d11f8d1a5eb" => :high_sierra
-    sha256 "4614d547317a13c48a9cfccd0a8ff4aa097c6122ae5262e21f91d9e4b934d7d1" => :sierra
+    sha256 arm64_monterey: "a42f39198601606792a416884541d1b1e5798a8a097d17c8e5998a08600f8b69"
+    sha256 arm64_big_sur:  "36819a834b78145ee0e2de275dc3d5c2bb673b8a2cfb3ac613add75bcbaf60f4"
+    sha256 monterey:       "b6476514304afe6d3c38324b69d3374a011793cfb039de1d933c4ae444db85e0"
+    sha256 big_sur:        "e8d2f516a99abe3420bd26e7208bf947c196bca478c8995765af2c49024c0a5f"
+    sha256 catalina:       "a7967624cccfc7dde159851d6328d3bb79b95c172d861310872684cf96590f48"
   end
 
   head do
@@ -21,7 +38,7 @@ class Strongswan < Formula
     depends_on "pkg-config" => :build
   end
 
-  depends_on "openssl"
+  depends_on "openssl@1.1"
 
   def install
     args = %W[
@@ -41,10 +58,8 @@ class Strongswan < Formula
       --enable-ikev1
       --enable-ikev2
       --enable-kernel-pfkey
-      --enable-kernel-pfroute
       --enable-nonce
       --enable-openssl
-      --enable-osx-attr
       --enable-pem
       --enable-pgp
       --enable-pkcs1
@@ -63,15 +78,17 @@ class Strongswan < Formula
       --enable-xauth-generic
     ]
 
+    args << "--enable-kernel-pfroute" << "--enable-osx-attr" if OS.mac?
+
     system "./autogen.sh" if build.head?
     system "./configure", *args
-    system "make", "check"
     system "make", "install"
   end
 
-  def caveats; <<~EOS
-    You will have to run both "ipsec" and "charon-cmd" with "sudo".
-  EOS
+  def caveats
+    <<~EOS
+      You will have to run both "ipsec" and "charon-cmd" with "sudo".
+    EOS
   end
 
   test do

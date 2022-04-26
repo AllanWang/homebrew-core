@@ -3,16 +3,26 @@ class Netpbm < Formula
   homepage "https://netpbm.sourceforge.io/"
   # Maintainers: Look at https://sourceforge.net/p/netpbm/code/HEAD/tree/
   # for stable versions and matching revisions.
-  url "https://svn.code.sf.net/p/netpbm/code/stable", :revision => 3603
-  version "10.73.27"
+  url "https://svn.code.sf.net/p/netpbm/code/stable", revision: "4311"
+  version "10.86.32"
+  license "GPL-3.0-or-later"
+  revision 1
   version_scheme 1
   head "https://svn.code.sf.net/p/netpbm/code/trunk"
 
+  livecheck do
+    url "https://sourceforge.net/p/netpbm/code/HEAD/tree/stable/"
+    strategy :page_match
+    regex(/Release v?(\d+(?:\.\d+)+)/i)
+  end
+
   bottle do
-    cellar :any
-    sha256 "469cb2a025a09badb8b1f8c8f591fe9e7970b1d3f31c3652081f56180ddb944a" => :mojave
-    sha256 "98c91433c81c781fa85d6c43d48c8dedf8dc4136adec1c9d7ee7b94abc35eb89" => :high_sierra
-    sha256 "24e357df064d03650ceb98903d09ee5c130effcdf76e78276595073756ce8722" => :sierra
+    sha256 arm64_monterey: "50fe4b8bd38c95a636876c50eaa56ba7c08bc40260d2e41af83cd5851ecfdd27"
+    sha256 arm64_big_sur:  "c1afd6d892fd167b850996d6ef6d8c91777827d51e1c336a06ebe724559f238d"
+    sha256 monterey:       "160dbd102087ec169f5019527839bfe9d01454a0267196ab09a8fa8b3d852dd6"
+    sha256 big_sur:        "a08508f82df946861034ba7b5f5d48e30a344e3aa3b4ab3d66c0c3b21706cada"
+    sha256 catalina:       "3c55ba437d3991e17750144f586b83cc36294d615a2c9739b780fce1b0e06c3a"
+    sha256 x86_64_linux:   "f7372e3d244bff638ab0a62dff8df5e17b7ede9602a0a2f7a0e4bc0dc3080154"
   end
 
   depends_on "jasper"
@@ -20,29 +30,33 @@ class Netpbm < Formula
   depends_on "libpng"
   depends_on "libtiff"
 
-  conflicts_with "jbigkit", :because => "both install `pbm.5` and `pgm.5` files"
+  uses_from_macos "flex" => :build
+  uses_from_macos "libxml2"
+  uses_from_macos "zlib"
+
+  conflicts_with "jbigkit", because: "both install `pbm.5` and `pgm.5` files"
 
   def install
-    # Fix file not found errors for /usr/lib/system/libsystem_symptoms.dylib and
-    # /usr/lib/system/libsystem_darwin.dylib on 10.11 and 10.12, respectively
-    if MacOS.version == :sierra || MacOS.version == :el_capitan
-      ENV["SDKROOT"] = MacOS.sdk_path
-    end
-
     cp "config.mk.in", "config.mk"
 
     inreplace "config.mk" do |s|
       s.remove_make_var! "CC"
-      s.change_make_var! "CFLAGS_SHLIB", "-fno-common"
-      s.change_make_var! "NETPBMLIBTYPE", "dylib"
-      s.change_make_var! "NETPBMLIBSUFFIX", "dylib"
-      s.change_make_var! "LDSHLIB", "--shared -o $(SONAME)"
       s.change_make_var! "TIFFLIB", "-ltiff"
       s.change_make_var! "JPEGLIB", "-ljpeg"
       s.change_make_var! "PNGLIB", "-lpng"
       s.change_make_var! "ZLIB", "-lz"
       s.change_make_var! "JASPERLIB", "-ljasper"
       s.change_make_var! "JASPERHDR_DIR", "#{Formula["jasper"].opt_include}/jasper"
+      s.gsub! "/usr/local/netpbm/rgb.txt", "#{prefix}/misc/rgb.txt"
+
+      if OS.mac?
+        s.change_make_var! "CFLAGS_SHLIB", "-fno-common"
+        s.change_make_var! "NETPBMLIBTYPE", "dylib"
+        s.change_make_var! "NETPBMLIBSUFFIX", "dylib"
+        s.change_make_var! "LDSHLIB", "--shared -o $(SONAME)"
+      else
+        s.change_make_var! "CFLAGS_SHLIB", "-fPIC"
+      end
     end
 
     ENV.deparallelize
@@ -57,20 +71,42 @@ class Netpbm < Formula
       end
 
       prefix.install %w[bin include lib misc]
-      # do man pages explicitly; otherwise a junk file is installed in man/web
-      man1.install Dir["man/man1/*.1"]
-      man5.install Dir["man/man5/*.5"]
-      lib.install Dir["link/*.a"], Dir["link/*.dylib"]
+      lib.install Dir["staticlink/*.a"], Dir["sharedlink/#{shared_library("*")}"]
       (lib/"pkgconfig").install "pkgconfig_template" => "netpbm.pc"
     end
-
-    (bin/"doc.url").unlink
   end
 
   test do
-    fwrite = Utils.popen_read("#{bin}/pngtopam #{test_fixtures("test.png")} -alphapam")
+    fwrite = shell_output("#{bin}/pngtopam #{test_fixtures("test.png")} -alphapam")
     (testpath/"test.pam").write fwrite
     system "#{bin}/pamdice", "test.pam", "-outstem", testpath/"testing"
     assert_predicate testpath/"testing_0_0.", :exist?
+    (testpath/"test.xpm").write <<~EOS
+      /* XPM */
+      static char * favicon_xpm[] = {
+      "16 16 4 1",
+      " 	c white",
+      ".	c blue",
+      "X	c black",
+      "o	c red",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "  ....    ....  ",
+      " .    .  .    . ",
+      ".  ..  ..  ..  .",
+      "  .  . .. .  .  ",
+      " .   XXXXXX   . ",
+      " .   XXXXXX   . ",
+      "oooooooooooooooo",
+      "oooooooooooooooo",
+      "oooooooooooooooo",
+      "oooooooooooooooo",
+      "XXXXXXXXXXXXXXXX",
+      "XXXXXXXXXXXXXXXX"};
+    EOS
+    ppmout = shell_output("#{bin}/xpmtoppm test.xpm")
+    refute_predicate ppmout, :empty?
   end
 end

@@ -2,23 +2,27 @@ class Spim < Formula
   desc "MIPS32 simulator"
   homepage "https://spimsimulator.sourceforge.io/"
   # No source code tarball exists
-  url "https://svn.code.sf.net/p/spimsimulator/code", :revision => 707
-  version "9.1.19"
+  url "https://svn.code.sf.net/p/spimsimulator/code", revision: "749"
+  version "9.1.23"
+  license "BSD-3-Clause"
   head "https://svn.code.sf.net/p/spimsimulator/code/"
 
   bottle do
-    sha256 "ed97fd8280e875fd1d20fe79ce6205dfdf9fb454c71b63f1f5b3849a24a4c7a2" => :mojave
-    sha256 "dd734941f466f62278aae0826a7fa05a4a960bed55bde3318a5b3f46810c3175" => :high_sierra
-    sha256 "8a3717f7373bd8b9f4a85b335c321b27597dcd64ee22fc05921e96241458a191" => :sierra
-    sha256 "0b2c254bc2ab638516345e0fe44b29859179c6ec62704fb369e485a645178bbd" => :el_capitan
-    sha256 "1207f278f326747acbb97e272724d72dd467e90b4ef798365206958ccd54957a" => :yosemite
+    sha256                               arm64_monterey: "bdc5c60be138784fc2abc92e1f75db7024c81867a53f6f9eeedfbb092f4c6534"
+    sha256                               arm64_big_sur:  "75f374887912346bd6acf5639a0f1b506c99feea75f0d4647ed233310be2f060"
+    sha256 cellar: :any_skip_relocation, monterey:       "1d5234fbb252011107f344fdbc7f249591ae3f3fe851e1e28a8b531ec37d46c3"
+    sha256 cellar: :any_skip_relocation, big_sur:        "c1d1629354ab4e842c9254e47b420f56974c0611c24d267ba048fa5bf6055079"
+    sha256 cellar: :any_skip_relocation, catalina:       "c6f9828c0a790cf3aa2f9bc0b2a7c6ce5f2ea730a942508921950bc6da601cae"
+    sha256                               x86_64_linux:   "1b6edb0c5f5adaf513d6c5a1688852ee32f7091331db280ecc3a74d048a05c76"
   end
+
+  uses_from_macos "bison" => :build
+  uses_from_macos "flex" => :build
 
   def install
     bin.mkpath
     cd "spim" do
       system "make", "EXCEPTION_DIR=#{share}"
-      system "make", "test"
       system "make", "install", "BIN_DIR=#{bin}",
                                 "EXCEPTION_DIR=#{share}",
                                 "MAN_DIR=#{man1}"

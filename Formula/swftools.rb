@@ -5,13 +5,20 @@ class Swftools < Formula
   sha256 "bf6891bfc6bf535a1a99a485478f7896ebacbe3bbf545ba551298080a26f01f1"
   revision 1
 
+  livecheck do
+    url "http://www.swftools.org/download.html"
+    regex(/href=.*?swftools[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
+
   bottle do
-    sha256 "2fa840ad38183d656158ae3055e776ed122df16b866e31125e3b9327a27198c4" => :mojave
-    sha256 "2db933a79589905a67f36a9ea96a692a684c676d70b5299b087ae892195ff007" => :high_sierra
-    sha256 "479570fcb99302996b55c361db1a6bb4a3abee611533b854fa350956f6b8cf61" => :sierra
-    sha256 "7343a6c406b0374b460f1d814e5542372f85df5d6ee500759648084713e33174" => :el_capitan
-    sha256 "f672348156459f385c6b08ed67c7055cd1cb9ee9dee8d868777596a57ac01a7f" => :yosemite
-    sha256 "7f18b7dae61164cd47eb34712884dea4de8df821d51ce955c6c33f36c165eaa1" => :mavericks
+    rebuild 1
+    sha256 arm64_monterey: "f580bc8117485a0a4be18f76ffa5d3c5764aa04e1d4eb6b3e17b64239d88fb4d"
+    sha256 arm64_big_sur:  "4737739b57d119d07cca0689481151e9ed2a815d3e026d85be4354ef76200877"
+    sha256 monterey:       "109f5b7057ce61a14f6eb11eb87afb90305b0dc7d830d6ce8d70872e9338b939"
+    sha256 big_sur:        "bacf30e9986bb179127942abea49fac9ca05cf1ac3b3851cf3faf1cb970009b4"
+    sha256 catalina:       "b0791e6725e6d07610847df7e4431e5839fcf72120cea34f1890b425f8e024c4"
+    sha256 mojave:         "bf18bfc66b1f6d6ed247acd0a4208a09b4acf6a4668e8f7eba2e40ad33ffe9f6"
+    sha256 high_sierra:    "d0e441ed7eef07c3536965d5269f648744ceb62d41fbcfe9a12248b8154c4f62"
   end
 
   # Fixes a conftest for libfftwf.dylib that mistakenly calls fftw_malloc()

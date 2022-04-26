@@ -3,10 +3,18 @@ class Umlet < Formula
   homepage "https://www.umlet.com/"
   url "https://www.umlet.com/umlet_14_3/umlet-standalone-14.3.0.zip"
   sha256 "f4b064ed57ac0640daa31f5d59649a95596fc9290e503734ec4974a9bbecde49"
+  revision 1
 
-  bottle :unneeded
+  livecheck do
+    url "https://www.umlet.com/changes.htm"
+    regex(/href=.*?umlet-standalone[._-]v?(\d+(?:\.\d+)+)\.(t|zip)/i)
+  end
 
-  depends_on :java => "1.6+"
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "9cd3614267bd39f308b58b4f2b9cd9b6f9c3c7d5bc1baac28e592517d08cf76b"
+  end
+
+  depends_on "openjdk"
 
   def install
     rm Dir["*.{desktop,exe}"]
@@ -17,8 +25,7 @@ class Umlet < Formula
 
     chmod 0755, "#{libexec}/umlet.sh"
 
-    (bin/"umlet-#{version}").write_env_script "#{libexec}/umlet.sh",
-      Language::Java.java_home_env("1.6+")
+    (bin/"umlet-#{version}").write_env_script "#{libexec}/umlet.sh", JAVA_HOME: Formula["openjdk"].opt_prefix
     bin.install_symlink "umlet-#{version}" => "umlet"
   end
 

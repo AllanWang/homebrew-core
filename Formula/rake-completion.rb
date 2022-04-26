@@ -1,10 +1,13 @@
 class RakeCompletion < Formula
   desc "Bash completion for Rake"
   homepage "https://github.com/JoeNyland/rake-completion"
-  url "https://github.com/JoeNyland/rake-completion/archive/v1.0.0.tar.gz"
-  sha256 "2d619d0d1d8052994011209c62f926b9e41d45e9268da4b9858fa45911b04cd1"
+  url "https://github.com/JoeNyland/rake-completion/archive/v1.0.1.tar.gz"
+  sha256 "085801e62cb240311d77885778a603f649b3fd5d85ee279691d1d00bc060bba6"
+  license "MIT"
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "6d5a9f29cceb2470b61d563fc7d9d762e0a8b73f8e052d99103fad25e6301f62"
+  end
 
   def install
     bash_completion.install "rake.sh" => "rake"
@@ -12,6 +15,6 @@ class RakeCompletion < Formula
 
   test do
     assert_match "-F _rakecomplete",
-      shell_output("source #{bash_completion}/rake && complete -p rake")
+      shell_output("bash -c 'source #{bash_completion}/rake && complete -p rake'")
   end
 end

@@ -1,17 +1,23 @@
 class Geogram < Formula
   desc "Programming library of geometric algorithms"
   homepage "http://alice.loria.fr/software/geogram/doc/html/index.html"
-  url "https://gforge.inria.fr/frs/download.php/file/37934/geogram_1.6.11.tar.gz"
-  sha256 "5d823eb8bc3b34cc5c7abd78320a81e7e79ae16374a9706a7069d53ca032caf6"
+  url "https://members.loria.fr/BLevy/PACKAGES/geogram_1.7.8.tar.gz"
+  sha256 "28e70b353705faec555700d8a7b7b9d703687702f46866bad09e033f86a96faf"
+  license all_of: ["BSD-3-Clause", :public_domain, "LGPL-3.0-or-later", "MIT"]
 
   bottle do
-    sha256 "44825a928086db529724d520b545d661175a8c96eff2787a02c2a6b1d4571ef1" => :mojave
-    sha256 "ae7ff1f9dece2397f97b7cd544e7c55f3e5f04599b6377bad05fa496a74bf767" => :high_sierra
-    sha256 "4230cc8b3eb383800aaa5fa2d5b54f52581116d9348dfebd770ed2b0c800704a" => :sierra
+    sha256 cellar: :any,                 monterey:     "14eae5569bb7755822db7dd6db76569ff6b3a9ec14d52ebcd32a01d859209db8"
+    sha256 cellar: :any,                 big_sur:      "c02fbf13cac94ee730282f326322b9ccc78a9b2747fea1ec31c937cafa543725"
+    sha256 cellar: :any,                 catalina:     "ef86799ac68bfd1f5e982acd10e991acf2f4b74f5c7623ac54b30a4af9a90bc5"
+    sha256 cellar: :any_skip_relocation, x86_64_linux: "15a4143539e68a38f813fdf87b4d2123fd68e304f3aa53c36ceca7d12f2be907"
   end
 
   depends_on "cmake" => :build
   depends_on "glfw"
+
+  on_linux do
+    depends_on "doxygen" => :build
+  end
 
   resource "bunny" do
     url "https://raw.githubusercontent.com/FreeCAD/Examples/be0b4f9/Point_cloud_ExampleFiles/PointCloud-Data_Stanford-Bunny.asc"
@@ -19,13 +25,16 @@ class Geogram < Formula
   end
 
   def install
+    mv "CMakeOptions.txt.sample", "CMakeOptions.txt"
     (buildpath/"CMakeOptions.txt").append_lines <<~EOS
+      set(CPACK_GENERATOR RPM)
       set(CMAKE_INSTALL_PREFIX #{prefix})
       set(GEOGRAM_USE_SYSTEM_GLFW3 ON)
     EOS
 
     system "./configure.sh"
-    cd "build/Darwin-clang-dynamic-Release" do
+    platform = OS.mac? ? "Darwin-clang" : "Linux64-gcc"
+    cd "build/#{platform}-dynamic-Release" do
       system "make", "install"
     end
 

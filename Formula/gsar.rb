@@ -1,18 +1,27 @@
 class Gsar < Formula
   desc "General Search And Replace on files"
   homepage "http://tjaberg.com/"
-  url "http://tjaberg.com/gsar121.zip"
-  version "1.21"
-  sha256 "05fb9583c970aba4eb0ffae2763d7482b0697c65fda1632a247a0153d7db65a9"
+  url "http://tjaberg.com/gsar151.zip"
+  version "1.51"
+  sha256 "72908ae302d2293de5218fd4da0b98afa2ce8890a622e709360576e93f5e8cc8"
+  license "GPL-2.0-only"
+
+  # gsar archive file names don't include a version string with dots (e.g., 123
+  # instead of 1.23), so we identify versions from the text of the "Changes"
+  # section.
+  livecheck do
+    url :homepage
+    regex(/gsar v?(\d+(?:\.\d+)+) released/i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "b357c58535d31278d9b815770aa10e9f7d496849ecf58e131a23ea2182c7cbc3" => :mojave
-    sha256 "07872ab6e21c22fe0ff901974ff6772d934bebc6f574a8908e6e3600a0fb6fb9" => :high_sierra
-    sha256 "762262cc0840aa074588b1fbbd534f6b865a44d344628b9dbf36b07dfdef2a9a" => :sierra
-    sha256 "5cf3fe6d772f95378e2802a6208b8f06524a81b4d881343571dd3af201b69e98" => :el_capitan
-    sha256 "6e138e63b868dfbd4d16109cabe60f50dc600fd65cbf14cd3926b1b8c2f3e2dc" => :yosemite
-    sha256 "3911e63bccd5deae4101c7c38a84954ad7e205bda69b3eefcee61a4d46e1df8d" => :mavericks
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "68051084dfbefccd95074b0e7cf9316fe916bd23e452a8c018b83c2aa185c0e7"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "86de578de3d7754f9f3b6f3f092a262e32e2621f240105a8e983ce2b2afe4f7c"
+    sha256 cellar: :any_skip_relocation, monterey:       "7b479c3f3d2d9ab12bacd67ae0792472f803f1c59ea65b1c180bba9c9e8cdbeb"
+    sha256 cellar: :any_skip_relocation, big_sur:        "8bd2f9e7a24ec476fd8ae541dbeb60d1a5b93cc48790d28059d43fad27295581"
+    sha256 cellar: :any_skip_relocation, catalina:       "6bba5adb80da7941b6a6a62015eae1ad8d6e27a11678a2d966ca0699ac05eae2"
+    sha256 cellar: :any_skip_relocation, mojave:         "c3bf2fcc08cefb75fb0c8cae257f0b70f85172093649e065860324db6338f43a"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "160d27dd1c5497302c7249adb93a43cdb81669cdf5d01a23405adf42d5af16f4"
   end
 
   def install
@@ -21,6 +30,7 @@ class Gsar < Formula
   end
 
   test do
-    assert_match /1 occurrence changed/, shell_output("#{bin}/gsar -sCourier -rMonaco #{test_fixtures("test.ps")} new.ps")
+    assert_match "1 occurrence changed",
+      shell_output("#{bin}/gsar -sCourier -rMonaco #{test_fixtures("test.ps")} new.ps")
   end
 end

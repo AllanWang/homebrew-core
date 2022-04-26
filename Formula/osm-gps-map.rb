@@ -1,14 +1,18 @@
 class OsmGpsMap < Formula
   desc "GTK+ library to embed OpenStreetMap maps"
-  homepage "https://nzjrs.github.com/osm-gps-map/"
-  url "https://github.com/nzjrs/osm-gps-map/releases/download/1.1.0/osm-gps-map-1.1.0.tar.gz"
-  sha256 "8f2ff865ed9ed9786cc5373c37b341b876958416139d0065ebb785cf88d33586"
-  revision 2
+  homepage "https://github.com/nzjrs/osm-gps-map"
+  url "https://github.com/nzjrs/osm-gps-map/releases/download/1.2.0/osm-gps-map-1.2.0.tar.gz"
+  sha256 "ddec11449f37b5dffb4bca134d024623897c6140af1f9981a8acc512dbf6a7a5"
+  license "GPL-2.0-or-later"
+  revision 1
 
   bottle do
-    sha256 "d3c08a9f0ea0bc4bfca2b44154af6197a981af685aff94d0f1c104732c4fa1a2" => :mojave
-    sha256 "7ff942b7e7c828122f55da09a654981a705ec46500e4d5f178d2400b18645a99" => :high_sierra
-    sha256 "a162b95d7811b797b07ccb5d8afbad6bb833b93faf034fc200378ad775c14a5f" => :sierra
+    rebuild 1
+    sha256                               arm64_big_sur: "69c8b2b22877a14f14d04d3f40a890f6b092b992bcb86270c1f82ff79f54ae50"
+    sha256                               monterey:      "322015ebc1b2ce52d40d2db2d27662f639725bd474aca83b1af9238abccb903e"
+    sha256                               big_sur:       "5e88cd60732ed86ec019f82a136d3445af500893435b804f68c41d25fe8de72c"
+    sha256                               catalina:      "3bd120a4480aaf535f90b4660a3029682adf413eca6243c5a69e15856be192fb"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:  "1a70b74c033694c33f50fdd6190676cf47deb46e7ed0425e5be4e085fbc3c357"
   end
 
   head do
@@ -25,7 +29,12 @@ class OsmGpsMap < Formula
   depends_on "gdk-pixbuf"
   depends_on "glib"
   depends_on "gtk+3"
-  depends_on "libsoup"
+  depends_on "libsoup@2"
+
+  patch do
+    url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+    sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+  end
 
   def install
     system "./autogen.sh" if build.head?
@@ -50,6 +59,7 @@ class OsmGpsMap < Formula
     glib = Formula["glib"]
     gdk_pixbuf = Formula["gdk-pixbuf"]
     gtkx3 = Formula["gtk+3"]
+    harfbuzz = Formula["harfbuzz"]
     pango = Formula["pango"]
     flags = %W[
       -I#{atk.opt_include}/atk-1.0
@@ -58,6 +68,7 @@ class OsmGpsMap < Formula
       -I#{glib.opt_include}/glib-2.0
       -I#{glib.opt_lib}/glib-2.0/include
       -I#{gtkx3.opt_include}/gtk-3.0
+      -I#{harfbuzz.opt_include}/harfbuzz
       -I#{pango.opt_include}/pango-1.0
       -I#{include}/osmgpsmap-1.0
       -D_REENTRANT
@@ -79,6 +90,10 @@ class OsmGpsMap < Formula
       -losmgpsmap-1.0
     ]
     system ENV.cc, "test.c", "-o", "test", *flags
+
+    # (test:40601): Gtk-WARNING **: 23:06:24.466: cannot open display
+    return if OS.linux? && ENV["HOMEBREW_GITHUB_ACTIONS"]
+
     system "./test"
   end
 end

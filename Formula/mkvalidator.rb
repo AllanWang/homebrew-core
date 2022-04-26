@@ -1,16 +1,26 @@
 class Mkvalidator < Formula
   desc "Tool to verify Matroska and WebM files for spec conformance"
   homepage "https://www.matroska.org/downloads/mkvalidator.html"
-  url "https://downloads.sourceforge.net/project/matroska/mkvalidator/mkvalidator-0.5.2.tar.bz2"
-  sha256 "2e2a91062f6bf6034e8049646897095b5fc7a1639787d5fe0fcef1f1215d873b"
+  url "https://downloads.sourceforge.net/project/matroska/mkvalidator/mkvalidator-0.6.0.tar.bz2"
+  sha256 "f9eaa2138fade7103e6df999425291d2947c5355294239874041471e3aa243f0"
+  license "BSD-3-Clause"
+
+  livecheck do
+    url :stable
+    regex(%r{url=.*?/mkvalidator[._-]v?(\d+(?:\.\d+)+)\.t}i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "d8ed0ae48b3922549518802148f3687a9bcab9f072624d619e077368a874e71b" => :mojave
-    sha256 "5f0c85894cd7d4a7c5cdce1e26c5cc7c15ac7baa6c32a63e3474632f7727d8af" => :high_sierra
-    sha256 "5f0c85894cd7d4a7c5cdce1e26c5cc7c15ac7baa6c32a63e3474632f7727d8af" => :sierra
-    sha256 "6c253cdf3c824b6e37af7cca51bf05a930785286bc83ec367e10500d9645519c" => :el_capitan
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "2d72352ffb6de0c6ce0a925ca48e8e3276a99b4c15e503360a46dfc19f4b12dc"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "132951513f0022d9a2f8e0b0f81a5d76668b292873df6d6c67b81c4cd304ac31"
+    sha256 cellar: :any_skip_relocation, monterey:       "3ecaed3130b7884171aac431fffd4b6be19ad322cc990a4659a26407ffb799fd"
+    sha256 cellar: :any_skip_relocation, big_sur:        "cef2881fd23f1e0b7c465080379f8564b00da6db94cf28f5da272ec19f565014"
+    sha256 cellar: :any_skip_relocation, catalina:       "98fa360ee6e7ebc233784d62c599bc07bd92131159bdbc64d233ad99f883a99e"
+    sha256 cellar: :any_skip_relocation, mojave:         "4e2d50be71341f0a47591587ce3cc428da8493af87ea2bcdcca64c86cacd44f4"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "83b78fb761e9d2bccbc88b9893d6760f445eef59c2d122dace22541ef1e04791"
   end
+
+  depends_on "cmake" => :build
 
   resource "tests" do
     url "https://github.com/dunn/garbage/raw/c0e682836e5237eef42a000e7d00dcd4b6dcebdb/test.mka"
@@ -18,15 +28,9 @@ class Mkvalidator < Formula
   end
 
   def install
-    ENV.deparallelize # Otherwise there are races
-
-    # Reported 2 Nov 2017 https://github.com/Matroska-Org/foundation-source/issues/31
-    inreplace "configure", "\r", "\n"
-
-    system "./configure"
+    system "cmake", ".", *std_cmake_args
     system "make", "-C", "mkvalidator"
-    bindir = `corec/tools/coremake/system_output.sh`.chomp
-    bin.install "release/#{bindir}/mkvalidator"
+    bin.install "mkvalidator/mkvalidator"
   end
 
   test do

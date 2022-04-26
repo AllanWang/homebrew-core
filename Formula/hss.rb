@@ -1,14 +1,17 @@
 class Hss < Formula
   desc "Interactive parallel SSH client"
   homepage "https://github.com/six-ddc/hss"
-  url "https://github.com/six-ddc/hss/archive/1.8.tar.gz"
-  sha256 "60481274403c551f5b717599c813d619877a009832c4a8a84fcead18e39382fa"
+  url "https://github.com/six-ddc/hss/archive/1.9.tar.gz"
+  sha256 "d7846ee657fe6a600c7d6f8e91f17ffa238efcaeb6f79856caa9fdedd96e3bca"
+  license "MIT"
 
   bottle do
-    cellar :any
-    sha256 "bc7f0e8a54effd65cae855164b7ea0d287af079ceec01accebb74f476e04c863" => :mojave
-    sha256 "e6b884c0c3f45c0365c39d65f644281c0079899b96d7835ad7fdab6e2e67c338" => :high_sierra
-    sha256 "4d23f98a3af8e2facd71c61616a207bb7c990bb2b9c5c52ca9a772cc6aecd0be" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "b22fe721a066962a1673c52f8c1152b46c451cd4cfa3672158faefb24533fe5b"
+    sha256 cellar: :any,                 arm64_big_sur:  "510fa3605e4d856cde1df1fd6af76db46b00b382738004931a6a59cfe78d1a4c"
+    sha256 cellar: :any,                 monterey:       "148418af9ede974ce97929a4d2203427b67d8cefd49001e8f70eaae68742b8dd"
+    sha256 cellar: :any,                 big_sur:        "3b2888677612b095f03226c3a9cd1dbb788233dc909519021f38a4fcbed09a49"
+    sha256 cellar: :any,                 catalina:       "64bb0e7f8de22316b5cabf7c805e4ce2948a7e44d4490e51bc3012c40acd59e9"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "afddb5bd47b5545caddb3f178c318eae3074c07a417c194163316981067924a4"
   end
 
   depends_on "readline"
@@ -19,10 +22,9 @@ class Hss < Formula
   end
 
   test do
-    require "socket"
+    port = free_port
     begin
-      server = TCPServer.new(0)
-      port = server.addr[1]
+      server = TCPServer.new(port)
       accept_pid = fork do
         msg = server.accept.gets
         assert_match "SSH", msg
@@ -30,7 +32,7 @@ class Hss < Formula
       hss_read, hss_write = IO.pipe
       hss_pid = fork do
         exec "#{bin}/hss", "-H", "-p #{port} 127.0.0.1", "-u", "root", "true",
-          :out => hss_write
+          out: hss_write
       end
       server.close
       msg = hss_read.gets

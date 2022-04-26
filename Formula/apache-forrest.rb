@@ -1,29 +1,37 @@
 class ApacheForrest < Formula
   desc "Publishing framework providing multiple output formats"
   homepage "https://forrest.apache.org/"
-  url "https://www.apache.org/dyn/closer.cgi?path=forrest/apache-forrest-0.9-sources.tar.gz"
+  url "https://web.archive.org/web/20130606174723/archive.apache.org/dist/forrest/apache-forrest-0.9-sources.tar.gz"
+  mirror "https://archive.apache.org/dist/forrest/apache-forrest-0.9-sources.tar.gz"
   sha256 "c6ac758db2eb0d4d91bd1733bbbc2dec4fdb33603895c464bcb47a34490fb64d"
+  license "Apache-2.0"
+  revision 1
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "6128ea9bb47128eddc98787e8c874e100195e9c29062df10395b0fc9159c76f1" => :mojave
-    sha256 "66a6c2fb9f2d6db49bae90431d841378b07925d746d33bb77bfa9b41deff7e9e" => :high_sierra
-    sha256 "9d5b65be3ab328e2861e47e842530cba5d393e7ac2e6a09af0f2f4731fb0e34e" => :sierra
-    sha256 "615ab5a39fcc19a110ebab166c05a614149374e65c5f9a7a4522fa400b8d4118" => :el_capitan
-    sha256 "cd0e4ceeb9e01118fe69bee3f80ccff63a951e01bf76c87146185ae6fe474c09" => :yosemite
-    sha256 "a0e06c41204932f1427e38d47b3c4442dea7f7c3312f959faf1b725d35d85a52" => :mavericks
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "83d565eb783378de1f2650fbd678d197ee0538eac17d186c22c0e8cb4957d230"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "141e43e9268d661881cd2873e71bfce3e7c0e95b92cb6f5786ef0905d0dbb03f"
+    sha256 cellar: :any_skip_relocation, monterey:       "16673b394f80d82e534384ddeca8323087f7abf37954e635150f92a6c5f0f0eb"
+    sha256 cellar: :any_skip_relocation, big_sur:        "2767298b0c6c15419a22f4a9ed56e0eaf8b0f466a23a7edbaf4db0ae7e179871"
+    sha256 cellar: :any_skip_relocation, catalina:       "53aed268e732c00ae5d57d4b98287c59f12c124f5a1b925d02aefacdc6dc5132"
+    sha256 cellar: :any_skip_relocation, mojave:         "53aed268e732c00ae5d57d4b98287c59f12c124f5a1b925d02aefacdc6dc5132"
+    sha256 cellar: :any_skip_relocation, high_sierra:    "53aed268e732c00ae5d57d4b98287c59f12c124f5a1b925d02aefacdc6dc5132"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "83d565eb783378de1f2650fbd678d197ee0538eac17d186c22c0e8cb4957d230"
   end
 
-  depends_on :java
+  deprecate! date: "2020-02-01", because: :unmaintained
+
+  depends_on "openjdk"
 
   resource "deps" do
-    url "https://www.apache.org/dyn/closer.cgi?path=forrest/apache-forrest-0.9-dependencies.tar.gz"
+    url "https://web.archive.org/web/20161221052851/archive.apache.org/dist/forrest/apache-forrest-0.9-dependencies.tar.gz"
+    mirror "https://archive.apache.org/dist/forrest/apache-forrest-0.9-dependencies.tar.gz"
     sha256 "33146b4e64933691d3b779421b35da08062a704618518d561281d3b43917ccf1"
   end
 
   def install
     libexec.install Dir["*"]
-    (bin/"forrest").write_env_script libexec/"bin/forrest", Language::Java.java_home_env
+    (bin/"forrest").write_env_script libexec/"bin/forrest", JAVA_HOME: Formula["openjdk"].opt_prefix
 
     resource("deps").stage do
       # To avoid conflicts with directory names already installed from the
@@ -39,7 +47,7 @@ class ApacheForrest < Formula
         "tools/jetty",
       ]
       deps_to_install.each do |dep|
-        (libexec+dep).install Dir["#{dep}/*"]
+        (libexec/dep).install Dir["#{dep}/*"]
       end
     end
   end

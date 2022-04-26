@@ -1,25 +1,24 @@
 class WiremockStandalone < Formula
   desc "Simulator for HTTP-based APIs"
-  homepage "http://wiremock.org/docs/running-standalone/"
-  url "https://search.maven.org/remotecontent?filepath=com/github/tomakehurst/wiremock-standalone/2.23.2/wiremock-standalone-2.23.2.jar"
-  sha256 "728e0139bb2019bd9204936d9d60e079474682b621e15e9faf3b073e7a8171b2"
-  head "https://github.com/tomakehurst/wiremock.git"
+  homepage "https://wiremock.org/docs/running-standalone/"
+  url "https://search.maven.org/remotecontent?filepath=com/github/tomakehurst/wiremock-jre8-standalone/2.33.1/wiremock-jre8-standalone-2.33.1.jar"
+  sha256 "66e873c785c2cff47c3b59411d9d87c56b8863f1da00fcca6d6243dff0b620fb"
+  license "Apache-2.0"
+  head "https://github.com/tomakehurst/wiremock.git", branch: "master"
 
-  bottle :unneeded
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "22fba61e064ad4f8c1d5aaa63d65df5bda3ee59aec7c58dbb180cbbadb4a4cc2"
+  end
 
-  depends_on :java => "1.8+"
+  depends_on "openjdk"
 
   def install
-    libexec.install "wiremock-standalone-#{version}.jar"
-    bin.write_jar_script libexec/"wiremock-standalone-#{version}.jar", "wiremock"
+    libexec.install "wiremock-jre8-standalone-#{version}.jar"
+    bin.write_jar_script libexec/"wiremock-jre8-standalone-#{version}.jar", "wiremock"
   end
 
   test do
-    require "socket"
-
-    server = TCPServer.new(0)
-    port = server.addr[1]
-    server.close
+    port = free_port
 
     wiremock = fork do
       exec "#{bin}/wiremock", "-port", port.to_s

@@ -1,13 +1,17 @@
 class Enchant < Formula
   desc "Spellchecker wrapping library"
   homepage "https://abiword.github.io/enchant/"
-  url "https://github.com/AbiWord/enchant/releases/download/v2.2.5/enchant-2.2.5.tar.gz"
-  sha256 "ffce4ea00dbda1478d91c3e1538cadfe5761d9d6c0ceb27bc3dba51882fe1c47"
+  url "https://github.com/AbiWord/enchant/releases/download/v2.3.3/enchant-2.3.3.tar.gz"
+  sha256 "3da12103f11cf49c3cf2fd2ce3017575c5321a489e5b9bfa81dd91ec413f3891"
+  license "LGPL-2.1-or-later"
 
   bottle do
-    sha256 "8b57e30f33ffebf6269fe92df92ab9210d62bacb074beae936e1c7696a380be1" => :mojave
-    sha256 "67b8e1072ce0ee854dfa020ce964dce41dad1b5f5c3bcf6371aee14250d4e77f" => :high_sierra
-    sha256 "a256ac7e92352ed9eb6cb8669f6032e314847a89127d6ffd560b90f49d7b8242" => :sierra
+    sha256 arm64_monterey: "a108e65f994b1f4d783e337d3d91b1cf97232286ff12e171e40b89e81f8812f0"
+    sha256 arm64_big_sur:  "76226e20f61ffdc8ba8e5adde919251bbf720d2011c66e74ab2858211fb3d8dc"
+    sha256 monterey:       "3c3d3295fda5cbe97b11ded4c8c7f21754fba625626c6de87e659744afb268a6"
+    sha256 big_sur:        "a62e218d184f399cd6404043099363b32ace55760cb4ea8d249e017e281dab33"
+    sha256 catalina:       "35342a7cd9748ec02b714b042f6624320a8c8159cc25880684416cf3927b532d"
+    sha256 x86_64_linux:   "2d43c2614be362e7a7f34cdb4ddf655c28a13fd0387756110a9d2c8dbc1eea96"
   end
 
   depends_on "pkg-config" => :build
@@ -28,6 +32,10 @@ class Enchant < Formula
     enchant_result = text.sub("fox ", "").split.join("\n")
     file = "test.txt"
     (testpath/file).write text
+
+    # Explicitly set locale so that the correct dictionary can be found
+    ENV["LANG"] = "en_US.UTF-8"
+
     assert_equal enchant_result, shell_output("#{bin}/enchant-2 -l #{file}").chomp
   end
 end

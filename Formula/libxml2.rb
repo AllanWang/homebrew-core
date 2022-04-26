@@ -1,20 +1,37 @@
 class Libxml2 < Formula
   desc "GNOME XML library"
   homepage "http://xmlsoft.org/"
-  url "http://xmlsoft.org/sources/libxml2-2.9.9.tar.gz"
-  mirror "https://ftp.osuosl.org/pub/blfs/conglomeration/libxml2/libxml2-2.9.9.tar.gz"
-  sha256 "94fb70890143e3c6549f265cee93ec064c80a84c42ad0f23e85ee1fd6540a871"
-  revision 2
+  license "MIT"
+
+  stable do
+    url "https://download.gnome.org/sources/libxml2/2.9/libxml2-2.9.13.tar.xz"
+    sha256 "276130602d12fe484ecc03447ee5e759d0465558fbc9d6bd144e3745306ebf0e"
+
+    # Fix -flat_namespace being used on Big Sur and later.
+    patch do
+      url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+      sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+    end
+  end
+
+  # We use a common regex because libxml2 doesn't use GNOME's "even-numbered
+  # minor is stable" version scheme.
+  livecheck do
+    url :stable
+    regex(/libxml2[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    cellar :any
-    sha256 "1e6143e9bfb756fe80e4a1db417b722569429a815365ed9070556e81bd2db02a" => :mojave
-    sha256 "d6b944e43be98a8e4200eb247c1d4b1254f8026e2e5a39cfa8b67d1c9429a7f2" => :high_sierra
-    sha256 "e5ac4cca18a3d8795895059253e610b24f8c7c491354ce21e2b19ae4c7e84bd6" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "1ebcd2fa8e48d384beddb7e016bbe994eab1982d9582f227101dcdb2961b3b1f"
+    sha256 cellar: :any,                 arm64_big_sur:  "c7e58f96d887c48155d6313d7a861ff7257dc0aa773af24241ee3e0519055fe5"
+    sha256 cellar: :any,                 monterey:       "51fb1fa73c67da7e66555925ec512aa05eb80af02ceb3d2923eba97da6c8df6b"
+    sha256 cellar: :any,                 big_sur:        "4398ed732014a4f6ce01740c6a9814eb456d154d969b3b35d1f545876225887b"
+    sha256 cellar: :any,                 catalina:       "96c7793298f4bf2d8e178d6fbec9cb008714e02ffd3de6c89cd80a43769e7a17"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "01393bbdc60b7263d0c66d19bb56361d703c69c7ab56940561746715958b2d5e"
   end
 
   head do
-    url "https://gitlab.gnome.org/GNOME/libxml2.git"
+    url "https://gitlab.gnome.org/GNOME/libxml2.git", branch: "master"
 
     depends_on "autoconf" => :build
     depends_on "automake" => :build
@@ -24,7 +41,10 @@ class Libxml2 < Formula
 
   keg_only :provided_by_macos
 
-  depends_on "python"
+  depends_on "python@3.9" => [:build, :test]
+  depends_on "readline"
+
+  uses_from_macos "zlib"
 
   # Fix crash when using Python 3 using Fedora's patch.
   # Reported upstream:
@@ -35,14 +55,13 @@ class Libxml2 < Formula
     sha256 "37eb81a8ec6929eed1514e891bff2dd05b450bcf0c712153880c485b7366c17c"
   end
 
-  # Resolves CVE-2018-8048, CVE-2018-3740, CVE-2018-3741
-  # Upstream hasn't patched this bug, but Nokogiri distributes
-  # libxml2 with this patch to fixe this issue
-  # https://bugzilla.gnome.org/show_bug.cgi?id=769760
-  # https://github.com/sparklemotion/nokogiri/pull/1746
-  patch do
-    url "https://raw.githubusercontent.com/sparklemotion/nokogiri/38721829c1df30e93bdfbc88095cc36838e497f3/patches/libxml2/0001-Revert-Do-not-URI-escape-in-server-side-includes.patch"
-    sha256 "c755e6e17c02584bfbfc8889ffc652384b010c0bd71879d7ff121ca60a218fcd"
+  def sdk_include
+    on_macos do
+      return MacOS.sdk_path/"usr/include"
+    end
+    on_linux do
+      return HOMEBREW_PREFIX/"include"
+    end
   end
 
   def install
@@ -50,6 +69,7 @@ class Libxml2 < Formula
 
     system "./configure", "--disable-dependency-tracking",
                           "--prefix=#{prefix}",
+                          "--with-history",
                           "--without-python",
                           "--without-lzma"
     system "make", "install"
@@ -57,8 +77,8 @@ class Libxml2 < Formula
     cd "python" do
       # We need to insert our include dir first
       inreplace "setup.py", "includes_dir = [",
-                            "includes_dir = ['#{include}', '#{MacOS.sdk_path}/usr/include',"
-      system "python3", "setup.py", "install", "--prefix=#{prefix}"
+                            "includes_dir = ['#{include}', '#{sdk_include}',"
+      system Formula["python@3.9"].opt_bin/"python3", *Language::Python.setup_install_args(prefix)
     end
   end
 
@@ -75,13 +95,13 @@ class Libxml2 < Formula
         return 0;
       }
     EOS
-    args = shell_output("#{bin}/xml2-config --cflags --libs").split
-    args += %w[test.c -o test]
+    args = %w[test.c -o test]
+    args += shell_output("#{bin}/xml2-config --cflags --libs").split
     system ENV.cc, *args
     system "./test"
 
-    xy = Language::Python.major_minor_version "python3"
+    xy = Language::Python.major_minor_version Formula["python@3.9"].opt_bin/"python3"
     ENV.prepend_path "PYTHONPATH", lib/"python#{xy}/site-packages"
-    system "python3", "-c", "import libxml2"
+    system Formula["python@3.9"].opt_bin/"python3", "-c", "import libxml2"
   end
 end

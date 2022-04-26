@@ -1,6 +1,6 @@
 class Bind < Formula
   desc "Implementation of the DNS protocols"
-  homepage "https://www.isc.org/downloads/bind/"
+  homepage "https://www.isc.org/bind/"
 
   # BIND releases with even minor version numbers (9.14.x, 9.16.x, etc) are
   # stable. Odd-numbered minor versions are for testing, and can be unstable
@@ -8,185 +8,89 @@ class Bind < Formula
   # "version_scheme" because someone upgraded to 9.15.0, and required a
   # downgrade.
 
-  url "https://ftp.isc.org/isc/bind/9.14.3/bind-9.14.3.tar.gz"
-  sha256 "ce878aabcf01b61ed114522c32fff9e268b02da55b3c248349860bc3d0c8bdfa"
+  url "https://downloads.isc.org/isc/bind9/9.18.2/bind-9.18.2.tar.xz"
+  sha256 "2e4b38779bba0a23ee634fdf7c525fd9794c41d692bfd83cda25823a2a3ed969"
+  license "MPL-2.0"
   version_scheme 1
-  head "https://gitlab.isc.org/isc-projects/bind9.git"
+  head "https://gitlab.isc.org/isc-projects/bind9.git", branch: "main"
+
+  # BIND indicates stable releases with an even-numbered minor (e.g., x.2.x)
+  # and the regex below only matches these versions.
+  livecheck do
+    url "https://www.isc.org/download/"
+    regex(/href=.*?bind[._-]v?(\d+\.\d*[02468](?:\.\d+)*)\.t/i)
+  end
 
   bottle do
-    sha256 "632ddca79a45e3d2b2ffbaeae3385a96fd5356b325adb9e5979210180f955dd6" => :mojave
-    sha256 "87903a9bd6fdd752f992d5e14cb96eec50fc30dd469c90094f3dcb7977330581" => :high_sierra
-    sha256 "0b12a1a1560ac598fee8381ac9e2aff5215a65be919d647cf1fc7dcd89ab9c30" => :sierra
+    sha256 arm64_monterey: "b3166c0dd911a03d58c912c431fde1f908cd8c71fda1cfd6926b18a0c3f880d7"
+    sha256 arm64_big_sur:  "00cddc836c5b487701433cd5760e97eb3611f094a20fd360a8e083525c360157"
+    sha256 monterey:       "8c7d011a72f5a4bd7f8982f31f7429b246748a5c7b527b63d511b5022ce52a33"
+    sha256 big_sur:        "915d8ac26a52b8ee32b3814acb09e4c19eeadbd1fd563159b771aa7321d604e9"
+    sha256 catalina:       "40d77a092ea26f90a7175714791a52de5cbcdee78b89a61db26830b84ef60fe1"
+    sha256 x86_64_linux:   "867daf07548c0b63963b98e9eb15f371e899899e2f78f4b29e60ffc25518c532"
   end
 
+  depends_on "pkg-config" => :build
   depends_on "json-c"
-  depends_on "openssl"
-  depends_on "python"
-
-  resource "ply" do
-    url "https://files.pythonhosted.org/packages/e5/69/882ee5c9d017149285cab114ebeab373308ef0f874fcdac9beb90e0ac4da/ply-3.11.tar.gz"
-    sha256 "00c7c1aaa88358b9c765b6d3000c6eec0ba42abca5351b095321aef446081da3"
-  end
+  depends_on "libidn2"
+  depends_on "libnghttp2"
+  depends_on "libuv"
+  depends_on "openssl@1.1"
 
   def install
-    xy = Language::Python.major_minor_version "python3"
-    vendor_site_packages = libexec/"vendor/lib/python#{xy}/site-packages"
-    ENV.prepend_create_path "PYTHONPATH", vendor_site_packages
-    resources.each do |r|
-      r.stage do
-        system "python3", *Language::Python.setup_install_args(libexec/"vendor")
-      end
-    end
-
-    # Fix "configure: error: xml2-config returns badness"
-    if MacOS.version == :sierra || MacOS.version == :el_capitan
-      ENV["SDKROOT"] = MacOS.sdk_path
-    end
-
-    system "./configure", "--prefix=#{prefix}",
-                          "--with-openssl=#{Formula["openssl"].opt_prefix}",
-                          "--with-libjson=#{Formula["json-c"].opt_prefix}",
-                          "--with-python=#{Formula["python"].opt_bin}/python3",
-                          "--with-python-install-dir=#{vendor_site_packages}"
+    args = [
+      "--prefix=#{prefix}",
+      "--sysconfdir=#{pkgetc}",
+      "--localstatedir=#{var}",
+      "--with-json-c",
+      "--with-libidn2=#{Formula["libidn2"].opt_prefix}",
+      "--with-openssl=#{Formula["openssl@1.1"].opt_prefix}",
+      "--without-lmdb",
+    ]
+    args << "--disable-linux-caps" if OS.linux?
+    system "./configure", *args
 
     system "make"
     system "make", "install"
 
     (buildpath/"named.conf").write named_conf
     system "#{sbin}/rndc-confgen", "-a", "-c", "#{buildpath}/rndc.key"
-    etc.install "named.conf", "rndc.key"
+    pkgetc.install "named.conf", "rndc.key"
   end
 
   def post_install
     (var/"log/named").mkpath
-
-    # Create initial configuration/zone/ca files.
-    # (Mirrors Apple system install from 10.8)
-    unless (var/"named").exist?
-      (var/"named").mkpath
-      (var/"named/localhost.zone").write localhost_zone
-      (var/"named/named.local").write named_local
-    end
+    (var/"named").mkpath
   end
 
-  def named_conf; <<~EOS
-    //
-    // Include keys file
-    //
-    include "#{etc}/rndc.key";
+  def named_conf
+    <<~EOS
+      logging {
+          category default {
+              _default_log;
+          };
+          channel _default_log {
+              file "#{var}/log/named/named.log" versions 10 size 1m;
+              severity info;
+              print-time yes;
+          };
+      };
 
-    // Declares control channels to be used by the rndc utility.
-    //
-    // It is recommended that 127.0.0.1 be the only address used.
-    // This also allows non-privileged users on the local host to manage
-    // your name server.
-
-    //
-    // Default controls
-    //
-    controls {
-        inet 127.0.0.1 port 54 allow { any; }
-        keys { "rndc-key"; };
-    };
-
-    options {
-        directory "#{var}/named";
-        /*
-         * If there is a firewall between you and nameservers you want
-         * to talk to, you might need to uncomment the query-source
-         * directive below.  Previous versions of BIND always asked
-         * questions using port 53, but BIND 8.1 uses an unprivileged
-         * port by default.
-         */
-        // query-source address * port 53;
-    };
-    //
-    // a caching only nameserver config
-    //
-    zone "localhost" IN {
-        type master;
-        file "localhost.zone";
-        allow-update { none; };
-    };
-
-    zone "0.0.127.in-addr.arpa" IN {
-        type master;
-        file "named.local";
-        allow-update { none; };
-    };
-
-    logging {
-            category default {
-                    _default_log;
-            };
-
-            channel _default_log  {
-                    file "#{var}/log/named/named.log";
-                    severity info;
-                    print-time yes;
-            };
-    };
-  EOS
+      options {
+          directory "#{var}/named";
+      };
+    EOS
   end
 
-  def localhost_zone; <<~EOS
-    $TTL    86400
-    $ORIGIN localhost.
-    @            1D IN SOA    @ root (
-                        42        ; serial (d. adams)
-                        3H        ; refresh
-                        15M        ; retry
-                        1W        ; expiry
-                        1D )        ; minimum
+  plist_options startup: true
 
-                1D IN NS    @
-                1D IN A        127.0.0.1
-  EOS
-  end
-
-  def named_local; <<~EOS
-    $TTL    86400
-    @       IN      SOA     localhost. root.localhost.  (
-                                          1997022700 ; Serial
-                                          28800      ; Refresh
-                                          14400      ; Retry
-                                          3600000    ; Expire
-                                          86400 )    ; Minimum
-                  IN      NS      localhost.
-
-    1       IN      PTR     localhost.
-  EOS
-  end
-
-  plist_options :startup => true
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-      <key>EnableTransactions</key>
-      <true/>
-      <key>Label</key>
-      <string>#{plist_name}</string>
-      <key>RunAtLoad</key>
-      <true/>
-      <key>ProgramArguments</key>
-      <array>
-        <string>#{opt_sbin}/named</string>
-        <string>-f</string>
-        <string>-c</string>
-        <string>#{etc}/named.conf</string>
-      </array>
-      <key>ServiceIPC</key>
-      <false/>
-    </dict>
-    </plist>
-  EOS
+  service do
+    run [opt_sbin/"named", "-f", "-L", var/"log/named/named.log"]
   end
 
   test do
     system bin/"dig", "-v"
     system bin/"dig", "brew.sh"
+    system bin/"dig", "ü.cl"
   end
 end

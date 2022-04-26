@@ -1,19 +1,31 @@
 class Iozone < Formula
   desc "File system benchmark tool"
-  homepage "http://www.iozone.org/"
-  url "http://www.iozone.org/src/current/iozone3_487.tar"
-  sha256 "2c488a7ccddd624fd557af16e71442c367b131d6178e1b4023bbd532bacdda59"
+  homepage "https://www.iozone.org/"
+  url "https://www.iozone.org/src/current/iozone3_493.tgz"
+  sha256 "5a52f5017e022e737f5b55f320cc6ada0f2a8c831a5f996cce2a44e03e91c038"
+  license :cannot_represent
+
+  livecheck do
+    url "https://www.iozone.org/src/current/"
+    regex(/href=.*?iozone[._-]?v?(\d+(?:[._]\d+)+)\.t/i)
+    strategy :page_match do |page, regex|
+      page.scan(regex).map { |match| match&.first&.gsub("_", ".") }
+    end
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "ed77f59ddfb45e302b60e80d2f4a842e838af5973df7e6dc7d95a3d27c06d0e8" => :mojave
-    sha256 "c0f0f7a10f585f40435d1d0a07322739925c9cae2afeb8c8714fe9e121a41572" => :high_sierra
-    sha256 "09eda4f32813be63ba4e05dee24a9cac6805667d022fb8a2ed42ef8b0fafe9dc" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "b7eaa434d74f43691c718d76c09f1b756fcee32ad96ba5042f69de9efa00f8e7"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "d89148f54880ee8829237f33d129c5844d13ccda2621f1afd04ff715aaaa9521"
+    sha256 cellar: :any_skip_relocation, monterey:       "53a4da234813b26c9647f81b3c2c3aa6cfe2288a8902c257d6b790418444e685"
+    sha256 cellar: :any_skip_relocation, big_sur:        "1d17f34feb80fd9906bfab67542f082232389be9ea7d6fc8e7c893cd858428a7"
+    sha256 cellar: :any_skip_relocation, catalina:       "ef7631b9c8639f7e84b81e3dfcd99b6b0707fc27e4185e21f0126d9e625ca8c3"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "a9aa1ad6e384d02895adf1b3afe200c886856982a7f42855602822fb3288bf76"
   end
 
   def install
     cd "src/current" do
-      system "make", "macosx", "CC=#{ENV.cc}"
+      target = OS.mac? ? "macosx" : OS.kernel_name.downcase
+      system "make", target, "CC=#{ENV.cc}"
       bin.install "iozone"
       pkgshare.install %w[Generate_Graphs client_list gengnuplot.sh gnu3d.dem
                           gnuplot.dem gnuplotps.dem iozone_visualizer.pl

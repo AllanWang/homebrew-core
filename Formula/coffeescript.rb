@@ -3,20 +3,18 @@ require "language/node"
 class Coffeescript < Formula
   desc "Unfancy JavaScript"
   homepage "https://coffeescript.org/"
-  url "https://registry.npmjs.org/coffeescript/-/coffeescript-2.4.1.tgz"
-  sha256 "e4f0f957185adf2c7456b0080a7bf9a25e9b5e346c2b66bfb67acb2ac25a8471"
-  head "https://github.com/jashkenas/coffeescript.git"
+  url "https://registry.npmjs.org/coffeescript/-/coffeescript-2.7.0.tgz"
+  sha256 "590e2036bd24d3b54e598b56df2e0737a82c2aa966c1020338508035f3b4721f"
+  license "MIT"
+  head "https://github.com/jashkenas/coffeescript.git", branch: "master"
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "9c1bf5218600450ce9f3e8ed18e762f38d066d313f2d7ad198c8c0ffd7a7ad38" => :mojave
-    sha256 "46c1294c0ddabe9e77e83a1a43e2ce26c91c88f8831c0134fd4806704fc6838c" => :high_sierra
-    sha256 "eee1074f188cb64062d88a72c43e156230a358d207eb22959ff10c3b77545854" => :sierra
+    sha256 cellar: :any_skip_relocation, all: "ca7fa9078c1169f542f4b95ed89dfacbc69b02f50345c03656763f801ffc9cb3"
   end
 
   depends_on "node"
 
-  conflicts_with "cake", :because => "both install `cake` binaries"
+  conflicts_with "cake", because: "both install `cake` binaries"
 
   def install
     system "npm", "install", *Language::Node.std_npm_install_args(libexec)

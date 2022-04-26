@@ -1,15 +1,18 @@
 class Bogofilter < Formula
   desc "Mail filter via statistical analysis"
   homepage "https://bogofilter.sourceforge.io"
-  url "https://downloads.sourceforge.net/project/bogofilter/bogofilter-1.2.4/bogofilter-1.2.4.tar.bz2"
-  sha256 "e10287a58d135feaea26880ce7d4b9fa2841fb114a2154bf7da8da98aab0a6b4"
-  revision 2
+  url "https://downloads.sourceforge.net/project/bogofilter/bogofilter-stable/bogofilter-1.2.5.tar.xz"
+  sha256 "3248a1373bff552c500834adbea4b6caee04224516ae581fb25a4c6a6dee89ea"
 
   bottle do
-    sha256 "97a2da30e1c196c31eadbe5a3404258c79fdc9caed9b7c1daba9497442b02aee" => :mojave
-    sha256 "188368373c8bb9719a459b0f7905818dd4c8ce4303a59152cd47cc43557ff10b" => :high_sierra
-    sha256 "6366c9e1c254bbf94d2ada013d13fc78dc56c190e1ad148d5a0dded5bd263dbe" => :sierra
-    sha256 "9c717b7628a0c0428528338880d6cd5d480b3246c3888cbab5a87d3b8b3689e2" => :el_capitan
+    sha256 cellar: :any,                 arm64_monterey: "25e3974a7aa8d9dcc2c3e95b85e7a4e9abba388adf54470dcfd705d29ba3c6d1"
+    sha256 cellar: :any,                 arm64_big_sur:  "2206ad532a38d489deb48bb9cafec00c9b98a09f621f7f208f95cc36387dafb4"
+    sha256 cellar: :any,                 monterey:       "89d4f31cd57d801d99a68950682b746c490b481891bfb904f173270f13fc751f"
+    sha256 cellar: :any,                 big_sur:        "d6ad409edcabed2d32cc945c36151b3a0ae17258d9430f3192b912f1dd1050e8"
+    sha256 cellar: :any,                 catalina:       "2f2d4c414683f922e687d054e71619a0455560aac2522484132099fbddcc6a77"
+    sha256 cellar: :any,                 mojave:         "d7df5e0d29f4fcbc9eafc129ddfd993dc785ee3a4bf79b70b0dce9b5f31f7be4"
+    sha256 cellar: :any,                 high_sierra:    "c7998fa1651590e6aaf27f8fe014a7b0e305a48a02de4cdcb9ba53f1c84bd1e7"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "0a74a36fca55ff920b663466e33ed22a127726da33b90f26b45abcc084074f33"
   end
 
   depends_on "berkeley-db"

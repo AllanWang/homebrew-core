@@ -1,22 +1,32 @@
 class Scummvm < Formula
   desc "Graphic adventure game interpreter"
   homepage "https://www.scummvm.org/"
-  url "https://www.scummvm.org/frs/scummvm/2.0.0/scummvm-2.0.0.tar.xz"
-  sha256 "9784418d555ba75822d229514a05cf226b8ce1a751eec425432e6b7e128fca60"
+  url "https://downloads.scummvm.org/frs/scummvm/2.5.1/scummvm-2.5.1.tar.xz"
+  sha256 "9fd8db38e4456144bf8c34dacdf7f204e75f18e8e448ec01ce08ce826a035f01"
+  license "GPL-2.0-or-later"
   revision 1
-  head "https://github.com/scummvm/scummvm.git"
+  head "https://github.com/scummvm/scummvm.git", branch: "master"
 
-  bottle do
-    sha256 "7e19e7f58daa0e46c2343871804967fe915c27af7b92bc9d4c1007a3b2d609f3" => :mojave
-    sha256 "83b2bfb31084378352b3a0056d28c23101615bc3fd871e53c25671cdc32ff360" => :high_sierra
-    sha256 "3269c1ce9326d70f62471b4e11a70f513621864c8983013d21129bf54f68e297" => :sierra
+  livecheck do
+    url "https://www.scummvm.org/downloads/"
+    regex(/href=.*?scummvm[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
+  bottle do
+    sha256 arm64_big_sur: "af380525ea154276ad0d373bf6118f3a6838113cbeb9968902ae338cd25cf3c4"
+    sha256 monterey:      "d05447bbd2eee2531f7adf1b37f52a70a839b306df931e2abddffb833918b534"
+    sha256 big_sur:       "64322552466bf84d7c908349c1d3b2a9033c0f296d654732fd23dc09e37ce556"
+    sha256 catalina:      "f4955d7d9be4be813bd81ae4e1895307f97f52cc8af5df8c99c61356cc42cb5a"
+    sha256 x86_64_linux:  "a84d8f59c66e8a3f8556909a6086e00a1afae1c1054b6b1bb7ede2e3b26189ce"
+  end
+
+  depends_on "a52dec"
   depends_on "faad2"
   depends_on "flac"
   depends_on "fluid-synth"
   depends_on "freetype"
-  depends_on "jpeg"
+  depends_on "jpeg-turbo"
+  depends_on "libmpeg2"
   depends_on "libpng"
   depends_on "libvorbis"
   depends_on "mad"
@@ -24,14 +34,19 @@ class Scummvm < Formula
   depends_on "theora"
 
   def install
-    system "./configure", "--prefix=#{prefix}", "--enable-release"
+    system "./configure", "--prefix=#{prefix}",
+                          "--enable-release",
+                          "--with-sdl-prefix=#{Formula["sdl2"].opt_prefix}"
     system "make"
     system "make", "install"
-    (share+"pixmaps").rmtree
-    (share+"icons").rmtree
+    (share/"pixmaps").rmtree
+    (share/"icons").rmtree
   end
 
   test do
+    # Test fails on headless CI: Could not initialize SDL: No available video device
+    return if OS.linux? && ENV["HOMEBREW_GITHUB_ACTIONS"]
+
     system "#{bin}/scummvm", "-v"
   end
 end

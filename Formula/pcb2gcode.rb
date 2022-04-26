@@ -1,83 +1,55 @@
 class Pcb2gcode < Formula
   desc "Command-line tool for isolation, routing and drilling of PCBs"
   homepage "https://github.com/pcb2gcode/pcb2gcode"
-  url "https://github.com/pcb2gcode/pcb2gcode/releases/download/v1.3.2/pcb2gcode-1.3.2.tar.gz"
-  sha256 "c4135cd3981c4a5d6baffa81b7f8e890ae29776107b0d1938b744a8dfebdbc63"
-  revision 5
+  url "https://github.com/pcb2gcode/pcb2gcode/archive/v2.4.0.tar.gz"
+  sha256 "5d4f06f7041fe14a108780bdb953aa520f7e556773a7b9fb8435e9b92fef614d"
+  license "GPL-3.0-or-later"
+  head "https://github.com/pcb2gcode/pcb2gcode.git", branch: "master"
 
   bottle do
-    cellar :any
-    sha256 "ec0d8549b742d75ceb721a744adc1d555a82595c059a3cb1e11eaae0962e6470" => :mojave
-    sha256 "f0dffcd34d74cf63734a0534e40abfbb39c0af745cd1c14f3c5c94503b1d3db1" => :high_sierra
-    sha256 "c6151a82f67278db67fe5b479c6c4f5ae78a4e62b0a2eb92db8376117f094b06" => :sierra
+    sha256 cellar: :any,                 arm64_monterey: "4facc148f0dd1ed67cb098258f40210f13431239f36dd859a3605d8aba62a663"
+    sha256 cellar: :any,                 arm64_big_sur:  "596ef4d44d9da58ce8ce77fc51605c9a1229a8b763e47f785baf202b0ba2a208"
+    sha256 cellar: :any,                 monterey:       "20d4b84b6d91188a05455d39e7bf5a75314b641e11f41a860dc65ce318d78381"
+    sha256 cellar: :any,                 big_sur:        "d08a9c3c499b9b9d510942cb8e7f6bae057eb29cadeab474ce0bbd13ae452d43"
+    sha256 cellar: :any,                 catalina:       "5872fbb4710e05c4ad1795ea8cbb75fe26bc031cd00041156efc30f9fe632101"
+    sha256 cellar: :any,                 mojave:         "73c321af8bd386af20ec60cf9e0c98600f12681b5bdd8bac70504457ebcc8bad"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "53b4615757ee9604da2668158f7e420add1e4dfe6bdf8fc7183bb906322ead46"
   end
 
-  head do
-    url "https://github.com/pcb2gcode/pcb2gcode.git"
-
-    depends_on "autoconf" => :build
-    depends_on "automake" => :build
-    depends_on "libtool" => :build
-  end
-
+  # Release 2.0.0 doesn't include an autoreconfed tarball
+  # glibmm, gtkmm and librsvg are used only in unittests,
+  # and are therefore not needed at runtime.
+  depends_on "atkmm@2.28" => :build
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
+  depends_on "cairomm@1.14" => :build
+  depends_on "glibmm@2.66" => :build
+  depends_on "gtkmm" => :build
+  depends_on "librsvg" => :build
+  depends_on "libsigc++@2" => :build
+  depends_on "libtool" => :build
+  depends_on "pangomm@2.46" => :build
   depends_on "pkg-config" => :build
+  depends_on "boost"
   depends_on "gerbv"
-  depends_on "gtkmm"
 
-  # Upstream maintainer claims that the geometry library from boost >= 1.67
-  # is severely broken. Remove the vendoring once fixed.
-  # See https://github.com/Homebrew/homebrew-core/pull/30914#issuecomment-411662760
-  # and https://svn.boost.org/trac10/ticket/13645
-  resource "boost" do
-    url "https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.bz2"
-    sha256 "5721818253e6a0989583192f96782c4a98eb6204965316df9f5ad75819225ca9"
+  on_linux do
+    depends_on "gcc"
+  end
+
+  fails_with gcc: "5"
+
+  # Apply upstream commit to fix build with GCC 11.  Remove with next release.
+  patch do
+    url "https://github.com/pcb2gcode/pcb2gcode/commit/01cd18a6d859ab1aac6c532c99be9109f083448d.patch?full_index=1"
+    sha256 "b5b316b14e9b615ee9114261eb5d04a0b234823847a18bb5ab4d8e2af4210750"
   end
 
   def install
-    resource("boost").stage do
-      # Force boost to compile with the desired compiler
-      open("user-config.jam", "a") do |file|
-        file.write "using darwin : : #{ENV.cxx} ;\n"
-      end
-
-      bootstrap_args = %W[
-        --prefix=#{buildpath}/boost
-        --libdir=#{buildpath}/boost/lib
-        --with-libraries=program_options
-        --without-icu
-      ]
-
-      args = %W[
-        --prefix=#{buildpath}/boost
-        --libdir=#{buildpath}/boost/lib
-        -d2
-        -j#{ENV.make_jobs}
-        --ignore-site-config
-        --layout=tagged
-        --user-config=user-config.jam
-        install
-        threading=multi
-        link=static
-        optimization=space
-        variant=release
-        cxxflags=-std=c++11
-      ]
-
-      if ENV.compiler == :clang
-        args << "cxxflags=-stdlib=libc++" << "linkflags=-stdlib=libc++"
-      end
-
-      system "./bootstrap.sh", *bootstrap_args
-      system "./b2", "headers"
-      system "./b2", *args
-    end
-
-    system "autoreconf", "-fvi" if build.head?
+    system "autoreconf", "-fvi"
     system "./configure", "--disable-dependency-tracking",
                           "--disable-silent-rules",
-                          "--prefix=#{prefix}",
-                          "--with-boost=#{buildpath}/boost",
-                          "--enable-static-boost"
+                          "--prefix=#{prefix}"
     system "make", "install"
   end
 
@@ -128,7 +100,6 @@ class Pcb2gcode < Formula
       M30
     EOS
     (testpath/"millproject").write <<~EOS
-      dpi=500
       metric=true
       zchange=10
       zsafe=5
@@ -146,7 +117,6 @@ class Pcb2gcode < Formula
       cut-speed=10000
       cutter-diameter=3
       fill-outline=true
-      outline-width=0.15
       zbridges=-0.6
       zcut=-2.5
       al-front=true

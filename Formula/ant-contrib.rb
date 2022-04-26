@@ -2,10 +2,16 @@ class AntContrib < Formula
   desc "Collection of tasks for Apache Ant"
   homepage "https://ant-contrib.sourceforge.io/"
   url "https://downloads.sourceforge.net/project/ant-contrib/ant-contrib/1.0b3/ant-contrib-1.0b3-bin.tar.gz"
-  version "1.0b3"
   sha256 "6e58c2ee65e1f4df031796d512427ea213a92ae40c5fc0b38d8ac82701f42a3c"
 
-  bottle :unneeded
+  livecheck do
+    url :stable
+    regex(%r{url=.*?/ant-contrib[._-]v?(\d+(?:\.\d+)+(?:[a-z]\d+)?)-bin\.t}i)
+  end
+
+  bottle do
+    sha256 cellar: :any_skip_relocation, all: "2b3e0ff584bdc78fa47d6f422f1737f2c307d627ba4efe38e9a59548725fd48d"
+  end
 
   depends_on "ant"
 

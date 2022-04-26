@@ -1,74 +1,54 @@
 class Gjs < Formula
   desc "JavaScript Bindings for GNOME"
   homepage "https://gitlab.gnome.org/GNOME/gjs/wikis/Home"
-  url "https://download.gnome.org/sources/gjs/1.56/gjs-1.56.2.tar.xz"
-  sha256 "4c89818c3d0e2186fcc4cb5228e9bf2a1866dd7d6646a18f1b37219b6710a3ac"
-  revision 1
+  url "https://download.gnome.org/sources/gjs/1.72/gjs-1.72.0.tar.xz"
+  sha256 "3ef0caf716e3920dd61f7748f6d56e476cc0fc18351ad0548e7df1a0ab9bdcad"
+  license all_of: ["LGPL-2.0-or-later", "MIT"]
+  head "https://gitlab.gnome.org/GNOME/gjs.git", branch: "master"
 
   bottle do
-    sha256 "503b0c377f9d50f293154e7b8d7539153ace5c16d2bd1bdc963ababaa49b2057" => :mojave
-    sha256 "ef2e581c468ccee8078c0da71930e038b500f8f049e6e3a8ef4b08683d9081d7" => :high_sierra
-    sha256 "51c7abfd3a782d396d0d955a4198915c4bcf7507e16b52172a9803b6ae4c6048" => :sierra
+    sha256 arm64_monterey: "5be9066d306e9dbd1796dd774b165cb92d210bdb85fb9a351dfb9dddad5c92d4"
+    sha256 arm64_big_sur:  "6caabfb5e97099f72ac8df0d0754ac7aed0c0de0030dfc02345c4516361468e6"
+    sha256 monterey:       "557ffe778d84c49b76e90d9d9d4a6fbb0cc620529cd49ce75b965d411a2e6b95"
+    sha256 big_sur:        "6f35338389f3313ac4146069d26d9a6e7639c8094d15287b8ab4ac83b991b3f3"
+    sha256 catalina:       "26b264865727dcdc99aac87b347d4b6d109a43d7f79027baa7754db4c37625aa"
+    sha256 x86_64_linux:   "60224ecb303a7d6a4ba31253dfdc779ce7418eb7c5711717a453f0eab634ea4b"
   end
 
-  depends_on "autoconf@2.13" => :build
-  depends_on "pkg-config" => :build
+  depends_on "meson" => :build
+  depends_on "ninja" => :build
   depends_on "gobject-introspection"
-  depends_on "gtk+3"
-  depends_on "nspr"
   depends_on "readline"
+  depends_on "spidermonkey"
 
-  resource "mozjs60" do
-    url "https://archive.mozilla.org/pub/firefox/releases/60.1.0esr/source/firefox-60.1.0esr.source.tar.xz"
-    sha256 "a4e7bb80e7ebab19769b2b8940966349136a99aabd497034662cffa54ea30e40"
+  on_linux do
+    depends_on "gcc"
   end
+
+  fails_with gcc: "5" # meson ERROR: SpiderMonkey sanity check: DID NOT COMPILE
 
   def install
-    ENV.cxx11
-    ENV["_MACOSX_DEPLOYMENT_TARGET"] = ENV["MACOSX_DEPLOYMENT_TARGET"]
+    # ensure that we don't run the meson post install script
+    ENV["DESTDIR"] = "/"
 
-    resource("mozjs60").stage do
-      inreplace "config/rules.mk",
-                "-install_name $(_LOADER_PATH)/$(SHARED_LIBRARY) ",
-                "-install_name #{lib}/$(SHARED_LIBRARY) "
-      inreplace "old-configure", "-Wl,-executable_path,${DIST}/bin", ""
-      mkdir("build") do
-        ENV["PYTHON"] = "python"
-        system "../js/src/configure", "--prefix=#{prefix}",
-                              "--with-system-nspr",
-                              "--with-system-zlib",
-                              "--with-system-icu",
-                              "--enable-readline",
-                              "--enable-shared-js",
-                              "--with-pthreads",
-                              "--enable-optimize",
-                              "--enable-pie",
-                              "--enable-release",
-                              "--with-intl-api",
-                              "--disable-jemalloc"
-        system "make"
-        system "make", "install"
-        rm Dir["#{bin}/*"]
-      end
-      # headers were installed as softlinks, which is not acceptable
-      cd(include.to_s) do
-        `find . -type l`.chomp.split.each do |link|
-          header = File.readlink(link)
-          rm link
-          cp header, link
-        end
-      end
-      ENV.append_path "PKG_CONFIG_PATH", "#{lib}/pkgconfig"
-      rm "#{lib}/libjs_static.ajs"
+    args = std_meson_args + %w[
+      -Dprofiler=disabled
+      -Dreadline=enabled
+      -Dinstalled_tests=false
+      -Dbsymbolic_functions=false
+      -Dskip_dbus_tests=true
+      -Dskip_gtk_tests=true
+    ]
+
+    mkdir "build" do
+      system "meson", *args, ".."
+      system "ninja", "-v"
+      system "ninja", "install", "-v"
     end
+  end
 
-    system "./configure", "--disable-debug",
-                          "--disable-dependency-tracking",
-                          "--disable-silent-rules",
-                          "--without-dbus-tests",
-                          "--disable-profiler",
-                          "--prefix=#{prefix}"
-    system "make", "install"
+  def post_install
+    system "#{Formula["glib"].opt_bin}/glib-compile-schemas", "#{HOMEBREW_PREFIX}/share/glib-2.0/schemas"
   end
 
   test do

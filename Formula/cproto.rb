@@ -1,15 +1,26 @@
 class Cproto < Formula
   desc "Generate function prototypes for functions in input files"
   homepage "https://invisible-island.net/cproto/"
-  url "https://invisible-mirror.net/archives/cproto/cproto-4.7o.tgz"
-  mirror "https://deb.debian.org/debian/pool/main/c/cproto/cproto_4.7o.orig.tar.gz"
-  sha256 "c76b0b72064e59709459bb7d75d6ec929f77ce5ae7f2610d169ba0fa20ccb44f"
+  url "https://invisible-mirror.net/archives/cproto/cproto-4.7t.tgz"
+  mirror "https://deb.debian.org/debian/pool/main/c/cproto/cproto_4.7t.orig.tar.gz"
+  sha256 "3cce82a71687b69e0a3e23489fe825ba72e693e559ccf193395208ac0eb96fe5"
+  license all_of: [
+    :public_domain,
+    "MIT",
+    "GPL-3.0-or-later" => { with: "Autoconf-exception-3.0" },
+  ]
+
+  livecheck do
+    url "https://invisible-mirror.net/archives/cproto/"
+    regex(/href=.*?cproto[._-]v?(\d+(?:\.\d+)+[a-z]?)\.t/i)
+  end
 
   bottle do
-    cellar :any_skip_relocation
-    sha256 "10ca6eb5bb793309be3dc367b013b97f3ab199cccfc27b0fac2dbdfcb8b73a62" => :mojave
-    sha256 "c3cb1dc57b52471d2ce88ee243dbc72bd96984ee23c6508f316fd037f283d144" => :high_sierra
-    sha256 "371d43e22636bad41b4a37d7abd06bc42b504b0790a14a6c54f0b5d03b693cf3" => :sierra
+    sha256 cellar: :any_skip_relocation, arm64_monterey: "13b780ef3e9078c16847e134c3bf54ca9b8af8504b3cf5f4ed3bf493bad1493f"
+    sha256 cellar: :any_skip_relocation, arm64_big_sur:  "71bca925406cc678f69551bb66d465d44376bc1f1854aba91003218dae5cdadf"
+    sha256 cellar: :any_skip_relocation, monterey:       "6079a4a6df45f570734658bfda2197d6b9542a706cf0176f39be008f9e327a45"
+    sha256 cellar: :any_skip_relocation, big_sur:        "90f6050bc98803612e77e1464bdacd518fbbf0f62607508ab1018553f0d59713"
+    sha256 cellar: :any_skip_relocation, catalina:       "9f2cdd0ade5c49f112c2e87c5a18c9990805bc8447ad4e0350fafa26b08ac244"
   end
 
   def install

@@ -1,16 +1,24 @@
 class OathToolkit < Formula
   desc "Tools for one-time password authentication systems"
   homepage "https://www.nongnu.org/oath-toolkit/"
-  url "https://download.savannah.gnu.org/releases/oath-toolkit/oath-toolkit-2.6.2.tar.gz"
-  mirror "https://fossies.org/linux/privat/oath-toolkit-2.6.2.tar.gz"
-  sha256 "b03446fa4b549af5ebe4d35d7aba51163442d255660558cd861ebce536824aa0"
+  url "https://download.savannah.gnu.org/releases/oath-toolkit/oath-toolkit-2.6.6.tar.gz"
+  mirror "https://fossies.org/linux/privat/oath-toolkit-2.6.6.tar.gz"
+  sha256 "fd68b315c71ba1db47bcc6e67f598568db4131afc33abd23ed682170e3cb946c"
+  license all_of: ["GPL-3.0-or-later", "LGPL-2.1-or-later"]
+
+  livecheck do
+    url "https://download.savannah.gnu.org/releases/oath-toolkit/"
+    regex(/href=.*?oath-toolkit[._-]v?(\d+(?:\.\d+)+)\.t/i)
+  end
 
   bottle do
-    rebuild 1
-    sha256 "e56c414cf742ef44cef4c904c7bac6138d2fe3dde08d4733fcb6d94c62e75eae" => :mojave
-    sha256 "dbf06b9def1ea821269ff0b6d44f54e05c64af1fe57799803de5deb3a355c0d2" => :high_sierra
-    sha256 "af3c35a9cd1139b813bf5bbea9b9c0eff5890fc9beff8096d4405218d6398a42" => :sierra
-    sha256 "e72016ad2981cdfd75cc76aa8913ad8b41eca71eec82a769addb14cd94fc162e" => :el_capitan
+    sha256 cellar: :any, arm64_monterey: "d12d5f53c630491e0db01dd5955e9dd23baeae9080df3f24eb726ccf359aaa97"
+    sha256               arm64_big_sur:  "3e54014feda461a1aa6f68f71570c8be14076aac4a6823345b76b10feba0cf94"
+    sha256               monterey:       "a3b5fca2b9fbe382935b54efa49d56f07bb1f637cc1c17d90418a33ce265e92b"
+    sha256               big_sur:        "ed6ceb54edc0b0bea449a75c756b604c6204f6fd80c9e280ce57b1e3d7140ac7"
+    sha256               catalina:       "04c85d25d9c1e8cac2164a4b538344f95181346fd3170e65e43173aca6770b6d"
+    sha256               mojave:         "136fc9c533486f31645fdd6594d96fc8f17487439248b78a8c42a868ce7aaacb"
+    sha256               x86_64_linux:   "3ea5398bb38297c062a54cce0ee803487211cf9f16c7697981d67a3edebd94e6"
   end
 
   depends_on "pkg-config" => :build
